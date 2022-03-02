@@ -25,13 +25,15 @@
   },
   "semistandard": {
     "ignore": [
-      "/tests/**"
+      "/tests/**",
+      "/prisma/**"
     ]
   },
   "nyc": {
     "exclude": [
       "tests",
-      "server.js"
+      "server.js",
+      "prisma"
     ]
   }
 }
