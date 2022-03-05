@@ -1,0 +1,8 @@
+generator docs {
+  provider = "node node_modules/prisma-docs-generator"
+}
+
+generator dbml {
+  provider = "prisma-dbml-generator"
+  output = "./dbml"
+}

@@ -10,9 +10,13 @@
     "cov": "nyc npm run test:unit",
     "lint": "semistandard",
     "lint-fix": "semistandard --fix",
-    "precommit": "npm run lint-fix && npm run cov"
+    "precommit": "npm run lint-fix && npm run cov",
+    "generate-schema": "cat ./prisma/models.prisma > ./prisma/schema.prisma && npx prisma generate",
+    "generate-schema:dev": "cat ./prisma/dev.prisma ./prisma/models.prisma > ./prisma/schema.prisma && npx prisma generate",
+    "schema-docs": "npm run generate-schema:dev && npx prisma-docs-generator serve"
   },
   "dependencies": {
+    "@prisma/client": "^3.10.0",
     "express": "^4.16.3",
     "js-yaml": "^3.3.0",
     "oas-tools": "^2.1.4"
@@ -21,6 +25,8 @@
     "mocha": "^9.2.1",
     "nyc": "^15.1.0",
     "prisma": "^3.10.0",
+    "prisma-dbml-generator": "^0.8.3",
+    "prisma-docs-generator": "^0.5.0",
     "semistandard": "^16.0.1"
   },
   "semistandard": {
