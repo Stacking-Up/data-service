@@ -707,6 +707,10 @@ components:
         image:
           type: string
           format: binary
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/tag'
     rental:
       type: object
       required:
@@ -741,3 +745,13 @@ components:
         renterId:
           type: integer
           format: int32
+    tag:
+      type: object
+      required:
+        - key
+        - value
+      properties:
+        key:
+          type: string
+        value:
+          type: string

@@ -121,6 +121,15 @@ model Space {
   owner       User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId     Int
   rentals     Rental[]
+  tags        Tag[]
+}
+
+model Tag {
+  id          Int @id @default(autoincrement())
+  key         String
+  value       String
+
+  spaces      Space[]
 }
 
 // Rental model
