@@ -1,9 +1,18 @@
 'use strict';
 
+const { PrismaClient } = require('@prisma/client');
+const utils = require('../utils');
+const prisma = new PrismaClient();
+
 module.exports.getUsers = function getUsers (req, res, next) {
-  res.send({
-    message: 'This is the mockup controller for getUsers'
-  });
+  prisma.user.findMany({})
+    .then( users => {
+      res.send(users.map(user => utils.excludeNulls(user)));
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).send("Server error: Could not get users");
+    });
 };
 
 module.exports.getUser = function getUser (req, res, next) {
