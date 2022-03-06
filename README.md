@@ -24,4 +24,4 @@ You can access schema api-reference by running:
 ```bash
 npm run schema-docs
 ```
-You can watch the schema diagram by copying the content of `prisma/dbml/schema.dbml` at [dbdiagram.io](https://dbdiagram.io/home)
+You can watch the schema diagram generated at `prisma/docs/diagram.png`

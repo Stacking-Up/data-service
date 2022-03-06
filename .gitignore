@@ -7,8 +7,8 @@ yarn-error.log*
 lerna-debug.log*
 
 # Genareted docs
+prisma/diagram.*
 prisma/docs
-prisma/dbml
 prisma/schema.prisma
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
