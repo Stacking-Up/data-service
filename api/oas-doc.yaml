@@ -751,7 +751,7 @@ components:
         - key
         - value
       properties:
-        name:
+        key:
           type: string
         value:
           type: string
