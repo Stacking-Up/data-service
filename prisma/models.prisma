@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model: Complete, Overlapping specialization
+model User {
+  id          Int @id @default(autoincrement())
+  name        String  @db.VarChar(20)
+  surname     String  @db.VarChar(80)
+  birthDate   DateTime?
+  sex         Sex?
+  idCard      String? @unique
+  phoneNumber String?
+  location    String? @db.VarChar(80)
+
+  auth        Auth?
+  ratings     Rating[]   @relation("receiver")
+  reviews     Rating[]   @relation("reviewer")
+  avatar      Image?
+  items       Item[]
+  spaces      Space[]
+  rentals     Rental[]
+}
+
+enum Sex {
+  MALE
+  FEMALE
+  OTHER
+}
+
+// Auth model
+model Auth {
+  id          Int @id @default(autoincrement())
+  email       String @unique
+  role        Role
+
+  user  User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+}
+
+enum Role {
+  ADMIN
+  SUBSCRIBED
+  VERIFIED
+  USER
+}
+
+// Rating model
+model Rating {
+  id          Int @id @default(autoincrement())
+  title       String
+  description String
+  rating      Int
+
+  receiver    User @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  receiverId  Int
+
+  reviewer    User @relation("reviewer", fields: [reviewerId], references: [id])
+  reviewerId  Int
+}
+
+// Item model
+model Item {
+  id          Int @id @default(autoincrement())
+  type        ItemType
+  dimensions  Dimensions
+
+  owner       User[]
+
+  @@unique([type, dimensions])
+}
+
+enum ItemType {
+  APPLIANCES
+  ELECTRONICS
+  CLOTHES
+  FURNITURE
+  DIYs
+  OTHER
+}
+
+enum Dimensions {
+  SMALL
+  MEDIUM
+  LARGE
+  VERY_LARGE
+}
+
+// Images table
+model Image {
+  id          Int @id @default(autoincrement())
+  image       Bytes
+
+  user        User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int?
+  space       Space? @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  spaceId     Int?
+}
+
+// Space model
+model Space {
+  id          Int @id @default(autoincrement())
+  name        String
+  description String
+  initialDate DateTime
+  finalDate   DateTime?
+  location    String
+  dimensions  String
+  priceHour   Float?
+  priceDay    Float?
+  priceMonth  Float?
+  shared      Boolean @default(false)
+
+  image       Image?
+  owner       User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId     Int
+  rentals     Rental[]
+}
+
+// Rental model
+model Rental {
+  id          Int @id @default(autoincrement())
+  initialDate DateTime
+  finalDate   DateTime
+  cost        Float
+  type        RentalType
+  meters      Float
+
+  renter      User @relation(fields: [renterId], references: [id])
+  renterId    Int
+
+  space       Space @relation(fields: [spaceId], references: [id])
+  spaceId     Int
+}
+
+enum RentalType {
+  HOUR
+  DAY
+  MONTH
+}

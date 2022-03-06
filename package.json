@@ -3,24 +3,35 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "npm run prisma-db-push && node index.js",
+    "deploy": "npm run prisma-migrate:prod && node index.js",
     "test:unit": "mocha ./tests/index.test.js --timeout 100000 -s 20",
     "test:integration": "echo \"Error: no test specified\" && exit 1",
     "coverage": "nyc --reporter=lcov npm run test:unit",
     "cov": "nyc npm run test:unit",
     "lint": "semistandard",
     "lint-fix": "semistandard --fix",
-    "precommit": "npm run lint-fix && npm run cov"
+    "precommit": "npm run lint-fix && npm run cov",
+    "generate-schema:dev": "cat ./prisma/dev.prisma ./prisma/models.prisma > ./prisma/schema.prisma && npx prisma generate",
+    "generate-schema:prod": "npx prisma generate --schema=./prisma/models.prisma",
+    "prisma-migrate:dev": "npx prisma migrate dev --schema=./prisma/models.prisma",
+    "prisma-migrate:prod": "npm run generate-schema:prod && npx prisma migrate deploy --schema=./prisma/models.prisma",
+    "schema-docs": "npm run generate-schema:dev && npx prisma-docs-generator serve",
+    "prisma-db-push": "npm run generate-schema:dev && npx prisma db push"
   },
   "dependencies": {
+    "@prisma/client": "^3.10.0",
     "express": "^4.16.3",
     "js-yaml": "^3.3.0",
     "oas-tools": "^2.1.4"
   },
   "devDependencies": {
+    "@mermaid-js/mermaid-cli": "^8.14.0",
     "mocha": "^9.2.1",
     "nyc": "^15.1.0",
     "prisma": "^3.10.0",
+    "prisma-docs-generator": "^0.5.0",
+    "prisma-erd-generator": "^0.10.0",
     "semistandard": "^16.0.1"
   },
   "semistandard": {

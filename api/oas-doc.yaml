@@ -613,16 +613,16 @@ components:
         sex:
           type: string
           enum:
-            - Hombre
-            - Mujer
-            - Otro
+            - MALE
+            - FEMALE
+            - OTHER
         idcard:
           type: string
-        telephoneNumber:
+        phoneNumber:
           type: string
         location:
           type: string
-        image:
+        avatar:
           type: string
           format: binary
     item:
@@ -630,6 +630,7 @@ components:
       required:
         - type
         - dimensions
+        - ownerId
       properties:
         type:
           type: string
@@ -640,7 +641,7 @@ components:
             - Pequeño
         dimensions:
           type: string
-        userId:
+        ownerId:
           type: integer
           format: int32
     rating:
@@ -649,6 +650,8 @@ components:
         - title
         - description
         - rating
+        - reviewerId
+        - receiverId
       properties:
         title:
           type: string
@@ -656,10 +659,10 @@ components:
           type: string
         rating:
           type: integer
-        sender:
+        reviewerId:
           type: integer
           format: int32
-        receiver:
+        receiverId:
           type: integer
           format: int32
     space:
@@ -667,19 +670,20 @@ components:
       required:
         - name
         - description
-        - initDateTime
+        - initialDate
         - location
         - dimensions
         - shared
+        - ownerId
       properties:
         name:
           type: string
         description:
           type: string
-        initDateTime:
+        initialDate:
           type: string
           format: date-time
-        endDateTime:
+        finalDate:
           type: string
           format: date-time
         location:
@@ -697,24 +701,27 @@ components:
           format: double
         shared:
           type: boolean
-        landlord:
+        ownerId:
           type: integer
           format: int32
+        image:
+          type: string
+          format: binary
     rental:
       type: object
       required:
-        - initDateTime
-        - endDateTime
+        - initialDate
+        - finalDate
         - cost
         - type
         - meters
         - spaceId
         - renterId
       properties:
-        initDateTime:
+        initialDate:
           type: string
           format: date-time
-        endDateTime:
+        finalDate:
           type: string
           format: date-time
         cost:
@@ -722,9 +729,9 @@ components:
         type:
           type: string
           enum:
-            - Mes
-            - Dia
-            - Hora
+            - HOUR
+            - DAY
+            - MONTH
         meters:
           type: number
           format: double

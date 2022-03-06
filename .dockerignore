@@ -1,12 +1,12 @@
-.git
-.github
-.env
-*Dockerfile*
-*docker-compose*
-node_modules
-*.log
-*.ps1
-*.cmd
-*.sh
-tests
-tasks/*
+**
+
+# Allow files and directories
+!/api/**
+!/controllers/**
+!/prisma/models.prisma
+!/prisma/migrations/**
+!/utils/**
+!index.js
+!server.js
+!package.json
+!package-lock.json
