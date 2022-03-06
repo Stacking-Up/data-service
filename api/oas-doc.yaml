@@ -622,7 +622,7 @@ components:
           type: string
         location:
           type: string
-        image:
+        avatar:
           type: string
           format: binary
     item:
