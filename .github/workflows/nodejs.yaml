@@ -73,7 +73,9 @@ jobs:
       - name: Install dependencies 
         run: npm ci
       - name: Create migrations
-        run: npx prisma migrate dev --name=${GITHUB_SHA}
+        run: |
+          npm run generate-schema:prod
+          npx prisma migrate dev --name=${GITHUB_SHA}
       - uses: actions/upload-artifact@v3
         with:
           name: migrations
