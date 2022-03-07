@@ -72,7 +72,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/items':
+  /api/v1/users/{userId}/items:
     get:
       tags:
         - Users
@@ -85,7 +85,7 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
@@ -630,20 +630,11 @@ components:
       required:
         - type
         - dimensions
-        - ownerId
       properties:
         type:
           type: string
-          enum:
-            - Muy grande
-            - Grande
-            - Mediano
-            - Pequeño
         dimensions:
           type: string
-        ownerId:
-          type: integer
-          format: int32
     rating:
       type: object
       required:
