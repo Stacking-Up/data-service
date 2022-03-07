@@ -16,9 +16,18 @@ module.exports.getUsers = function getUsers (req, res, next) {
 };
 
 module.exports.getUser = function getUser (req, res, next) {
-  res.send({
-    message: 'This is the mockup controller for getUser'
-  });
+  prisma.user.findUnique({
+    where: {
+      id: parseInt(req.userId.value)
+    }
+  })
+    .then( user => {
+      res.send(utils.excludeNulls(user));
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).send("Server error: Could not get users");
+    });
 };
 
 module.exports.getUserItems = function getUserItems (req, res, next) {

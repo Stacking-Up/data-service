@@ -33,7 +33,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}':
+  /api/v1/users/{userId}:
     get:
       tags:
         - Users
@@ -46,7 +46,7 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
