@@ -105,7 +105,15 @@ jobs:
         with:
           name: migrations
           path: prisma/migrations
+      - name: Check Git status
+        id: up_to_date
+        run: |
+          RESULT=$(git status)
+          if [[ $RESULT == *"up to date"* ]]; then
+            echo "::set-output name=status::true"
+          fi
       - name: Commit files
+        if: ${{ !steps.up_to_date.outputs.status }}
         run: |
           git config --global user.email "101150232+StackingUpBot@users.noreply.github.com"
           git config --global user.name "StackingUpBot"
