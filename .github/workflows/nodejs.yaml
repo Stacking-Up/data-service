@@ -16,6 +16,7 @@ on:
 jobs:
   test:
     name: Lint, test and coverage to coveralls
+    if: github.actor != 'StackingUpBot'
     runs-on: ubuntu-latest
     strategy:
       matrix:
