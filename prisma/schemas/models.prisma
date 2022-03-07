@@ -38,6 +38,7 @@ enum Sex {
 model Auth {
   id          Int @id @default(autoincrement())
   email       String @unique
+  password    String
   role        Role
 
   user  User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -121,6 +122,15 @@ model Space {
   owner       User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId     Int
   rentals     Rental[]
+  tags        Tag[]
+}
+
+model Tag {
+  id          Int @id @default(autoincrement())
+  key         String
+  value       String
+
+  spaces      Space[]
 }
 
 // Rental model
