@@ -100,6 +100,13 @@ jobs:
         with:
           name: migrations
           path: prisma/migrations
+      - name: Commit files
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -m "chore: Created migrations"
+          git push
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
