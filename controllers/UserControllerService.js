@@ -1,8 +1,7 @@
 'use strict';
 
-const { PrismaClient } = require('@prisma/client');
 const utils = require('../utils');
-const prisma = new PrismaClient();
+const prisma = require('../prisma');
 
 module.exports.getUsers = function getUsers (req, res, next) {
   prisma.user.findMany({})
