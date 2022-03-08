@@ -3,7 +3,7 @@
 # Allow files and directories
 !/api/**
 !/controllers/**
-!/prisma/models.prisma
+!/prisma/**/models.prisma
 !/prisma/migrations/**
 !/utils/**
 !index.js
