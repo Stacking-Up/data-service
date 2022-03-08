@@ -15,7 +15,17 @@ module.exports.getRentals = function getRentals (req, res, next) {
 };
 
 module.exports.getRental = function getRental (req, res, next) {
-  res.send({
-    message: 'This is the mockup controller for getRental'
-  });
+  prisma.rental.findUnique({
+    where:{
+      id: parseInt(req.rentalId.value)
+    }
+  })
+  .then(rental =>{
+    if(!rental) { res.status(404).send("Rental not found"); }
+    else{ res.send(utils.excludeNulls(rental)); }
+  })
+  .catch(err =>{
+    console.error(err);
+    res.status(500).send("Server error: Could not get rentals.")
+  })
 };

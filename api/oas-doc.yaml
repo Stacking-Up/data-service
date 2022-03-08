@@ -550,7 +550,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/rentals/{rentalId}':
+  /api/v1/rentals/{rentalId}:
     get:
       tags:
         - Rentals
@@ -563,7 +563,7 @@ paths:
           description: Rental's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
