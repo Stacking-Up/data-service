@@ -448,7 +448,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/spaces/{spaceId}':
+  /api/v1/spaces/{spaceId}:
     get:
       tags:
         - Spaces
@@ -461,7 +461,7 @@ paths:
           description: Space's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
