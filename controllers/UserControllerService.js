@@ -188,7 +188,34 @@ module.exports.getUserRentals = function getUserRentals (req, res, next) {
 };
 
 module.exports.getUserRental = function getUserRental (req, res, next) {
-  res.send({
-    message: 'This is the mockup controller for getUserRental'
-  });
+  prisma.user.findUnique({
+    where: {
+      id:parseInt(req.userId.value)
+    },
+    include:{
+      rentals:{
+        select:{
+          initialDate: true,
+          finalDate: true,
+          cost: true,
+          type: true,
+          meters: true,
+          spaceId: true,
+          renterId: true,
+        },
+        where: {
+          id:parseInt(req.rentalId.value),
+        },
+      },
+    },
+  })
+  .then(user => {
+    if(!user) { res.status(404).send("User not found"); }
+    else if (!user.rentals[0]){res.status(404).send("Rental not found."); }
+    else{res.send(user.rentals[0]); }
+  })
+  .catch(err => {
+    console.error(err);
+    res.status(500).send("Server error: Could not get rental.");
+}); 
 };
