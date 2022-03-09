@@ -58,9 +58,31 @@ module.exports.getUserItems = function getUserItems (req, res, next) {
 };
 
 module.exports.getUserItem = function getUserItem (req, res, next) {
-  res.send({
-    message: 'This is the mockup controller for getUserItem'
-  });
+  prisma.user.findUnique({
+    where: {
+      id: parseInt(req.userId.value),
+  },
+    include: {
+      items: {
+        select: {
+          type: true,
+          dimensions: true,
+        },
+        where: {
+          id: parseInt(req.itemId.value),
+        },
+      },
+    },
+  })
+    .then(user => {
+      if (!user) { res.status(404).send("User not found"); }
+      else if (!user.items[0]) { res.status(404).send("Item not found"); }
+      else { res.send(user.items[0]); }      
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).send("Server error: Could not get users");
+    });
 };
 
 module.exports.getUserRatings = function getUserRatings (req, res, next) {
