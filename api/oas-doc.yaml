@@ -365,7 +365,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/rentals':
+  /api/v1/users/{userId}/rentals:
     get:
       tags:
         - Users
@@ -378,7 +378,7 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
