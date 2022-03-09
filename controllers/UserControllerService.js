@@ -146,8 +146,23 @@ module.exports.getUserRating = function getUserRating (req, res, next) {
 };
 
 module.exports.getUserSpaces = function getUserSpaces (req, res, next) {
-  res.send({
-    message: 'This is the mockup controller for getUserSpaces'
+  prisma.space.findMany({
+    skip: req.offset.value,
+    take: req.limit.value,
+    where: {
+      ownerId: parseInt(req.userId.value),
+    },
+    include: {
+      image: true,
+      tags: true,
+    },
+  })
+    .then(spaces => {
+      !spaces? res.status(404).send("Spaces not found") : res.send(spaces.map(space => utils.excludeNulls(space)));
+   })
+    .catch(err => {
+      console.error(err);
+      res.status(500).send("Server error: Could not get spaces");
   });
 };
 
