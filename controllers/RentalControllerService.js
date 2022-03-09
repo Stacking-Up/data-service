@@ -4,7 +4,10 @@ const utils = require('../utils');
 const prisma = require('../prisma');
 
 module.exports.getRentals = function getRentals (req, res, next) {
-  prisma.rental.findMany({})
+  prisma.rental.findMany({
+    skip: req.offset.value,
+    take: req.limit.value,
+  })
     .then(rentals => {
       res.send(rentals.map(rental =>utils.excludeNulls(rental)));
     })

@@ -18,6 +18,19 @@ paths:
       x-swagger-router-controller: UserController
       description: Returns all users
       operationId: getUsers
+      parameters:
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: Success
@@ -445,6 +458,19 @@ paths:
       x-swagger-router-controller: SpaceController
       description: Returns all spaces
       operationId: getSpaces
+      parameters:
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: Success
@@ -547,6 +573,19 @@ paths:
       x-swagger-router-controller: RentalController
       description: Returns all rentals
       operationId: getRentals
+      parameters:
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: Success

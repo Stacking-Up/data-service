@@ -4,7 +4,10 @@ const utils = require('../utils');
 const prisma = require("../prisma");
 
 module.exports.getSpaces = function getSpaces (req, res, next) {
-  prisma.space.findMany({})
+  prisma.space.findMany({
+    skip: req.offset.value,
+    take: req.limit.value,
+  })
   .then(  spaces => {
     res.send(spaces.map(space => utils.excludeNulls(space)));
   })

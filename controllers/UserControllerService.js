@@ -4,7 +4,10 @@ const utils = require('../utils');
 const prisma = require('../prisma');
 
 module.exports.getUsers = function getUsers (req, res, next) {
-  prisma.user.findMany({})
+  prisma.user.findMany({
+    skip: req.offset.value,
+    take: req.limit.value,
+  })
     .then( users => {
       res.send(users.map(user => utils.excludeNulls(user)));
     })
