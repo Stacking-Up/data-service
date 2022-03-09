@@ -115,9 +115,34 @@ module.exports.getUserRatings = function getUserRatings (req, res, next) {
 };
 
 module.exports.getUserRating = function getUserRating (req, res, next) {
-  res.send({
-    message: 'This is the mockup controller for getUserRating'
-  });
+  prisma.user.findUnique({
+    where: {
+      id: parseInt(req.userId.value)
+   },
+    include: {
+      ratings: {
+        select: {
+          title: true,
+          description: true,
+          rating: true,
+          reviewerId: true,
+          receiverId: true,
+        },
+        where: {
+          id: parseInt(req.ratingId.value),
+        },
+      },
+    },
+  })
+    .then(user => {
+      if (!user) { res.status(404).send("User not found"); }
+      else if (!user.ratings[0]) { res.status(404).send("Rating not found"); }
+      else { res.send(user.ratings[0]); }
+   })
+    .catch(err => {
+      console.error(err);
+      res.status(500).send("Server error: Could not get rating");
+  });  
 };
 
 module.exports.getUserSpaces = function getUserSpaces (req, res, next) {
