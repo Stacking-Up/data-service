@@ -61,9 +61,32 @@ module.exports.getUserItem = function getUserItem (req, res, next) {
 };
 
 module.exports.getUserRatings = function getUserRatings (req, res, next) {
-  res.send({
-    message: 'This is the mockup controller for getUserRatings'
-  });
+  prisma.rating.findMany({
+    skip: req.offset.value,
+    take: req.limit.value,
+    where: {
+      OR: [
+        { receiverId: { equals: parseInt(req.userId.value), }, },
+        { reviewerId: { equals: parseInt(req.userId.value), }, },
+    ],
+   },
+    select:
+      {
+        title: true,
+        description: true,
+        rating: true,
+        reviewerId: true,
+        receiverId: true,
+      }
+  })
+    .then(rating => {
+      if (!rating) { res.status(404).send("Ratings not found"); }
+      req.filter.value? res.send(utils.filterRatings(rating, req)) : res.send(rating);
+   })
+    .catch(err => {
+      console.error(err);
+      res.status(500).send("Server error: Could not get ratings");
+  });  
 };
 
 module.exports.getUserRating = function getUserRating (req, res, next) {

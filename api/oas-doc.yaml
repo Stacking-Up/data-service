@@ -158,7 +158,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/ratings':
+  /api/v1/users/{userId}/ratings:
     get:
       tags:
         - Users
@@ -171,7 +171,7 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
         - name: filter
           in: query
           description: 'Filter for given, received or both'
@@ -182,6 +182,18 @@ paths:
               - given
               - received
               - all
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: Success
