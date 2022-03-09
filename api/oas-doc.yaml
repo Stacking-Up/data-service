@@ -433,6 +433,118 @@ paths:
       x-swagger-router-controller: SpaceController
       description: Returns all spaces
       operationId: getSpaces
+      parameters: 
+        - name: offset
+          in: query
+          description: 'Number of elements to skip for pagination'
+          required: false
+          schema:
+            type: integer
+            format: int32
+
+        - name: limit
+          in: query
+          description: 'Number of elements for pagination'
+          required: false
+          schema:
+            type: integer
+            format: int32
+
+        - name: tag
+          in: query
+          description: 'Filter for given tags'
+          required: false
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+
+        - name: shared
+          in: query
+          description: 'Filter for shared category'
+          required: false
+          schema:
+            type: boolean
+
+        - name: minDim
+          in: query
+          description: 'Min value included for dimension filtering (Optional)'
+          required: false
+          schema:
+            type: string
+
+        - name: maxDim
+          in: query
+          description: 'Max value included for dimension filtering (Optional)'
+          required: false
+          schema:
+            type: string
+
+        - name: minPriceHour
+          in: query
+          description: 'Min value included for price/hour filtering (Optional)'
+          required: false
+          schema:
+            type: string
+
+        - name: maxPriceHour
+          in: query
+          description: 'Max value included for price/hour filtering (Optional)'
+          required: false
+          schema:
+            type: string
+
+        - name: minPriceDay
+          in: query
+          description: 'Min value included for price/day filtering (Optional)'
+          required: false
+          schema:
+            type: string
+
+        - name: maxPriceDay
+          in: query
+          description: 'Max value included for price/day filtering (Optional)'
+          required: false
+          schema:
+            type: string
+
+        - name: minPriceMonth
+          in: query
+          description: 'Min value included for price/month filtering (Optional)'
+          required: false
+          schema:
+            type: string
+
+        - name: maxPriceMonth
+          in: query
+          description: 'Max value included for price/month filtering (Optional)'
+          required: false
+          schema:
+            type: string
+        
+        - name: isRentPerHour
+          in: query
+          description: 'Check if a space can be rented per hours'
+          required: false
+          schema:
+            type: boolean
+
+        - name: isRentPerDay
+          in: query
+          description: 'Check if a space can be rented per days'
+          required: false
+          schema:
+            type: boolean
+        
+        - name: isRentPerMonth
+          in: query
+          description: 'Check if a space can be rented per months'
+          required: false
+          schema:
+            type: boolean
+
+        
       responses:
         '200':
           description: Success
@@ -748,10 +860,7 @@ components:
     tag:
       type: object
       required:
-        - key
-        - value
+        - tag
       properties:
-        key:
-          type: string
-        value:
+        tag:
           type: string

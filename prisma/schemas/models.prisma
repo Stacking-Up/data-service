@@ -127,8 +127,7 @@ model Space {
 
 model Tag {
   id          Int @id @default(autoincrement())
-  key         String
-  value       String
+  tag         String  @unique
 
   spaces      Space[]
 }
