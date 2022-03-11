@@ -30,21 +30,21 @@ module.exports = (prisma) => {
 it('should return data in DB when spaces present', async () => {
   // Fixture
   const dbOutput = [{id:1, name: 'Space 1', description: 'So much space',
-   initialDate: '2020-03-10T00:00:00.000Z', finalDate: '2022-03-17T00:00:00.000Z', 
+   initialDate: '2020-03-10T00:00:00.000Z', finalDate:null,
    location: 'Sevilla', dimensions: '2x2', priceHour: '10', priceDay: '4', priceMonth: '45', ownerId: 1}, 
 
   {id:2, name: 'Space 2', description: 'So much space',
   initialDate: '2020-03-11T00:00:00.000Z', finalDate: '2022-03-17T00:00:00.000Z', 
-  location: 'Sevilla', dimensions: '9x2', priceHour: '10', priceDay: '4', priceMonth: '45',
+  location: 'Sevilla', dimensions: '9x2', priceHour: '10', priceDay: '4', priceMonth: '45',image:null,
  shared: true, ownerId: 1}];
 
   const expected = [{id:1, name: 'Space 1', description: 'So much space',
-  initialDate: '2020-03-10T00:00:00.000Z', finalDate: '2022-03-17T00:00:00.000Z', 
+  initialDate: '2020-03-10T00:00:00.000Z',
   location: 'Sevilla', dimensions: '2x2', priceHour: '10', priceDay: '4', priceMonth: '45', ownerId: 1}, 
  
  {id:2, name: 'Space 2', description: 'So much space',
  initialDate: '2020-03-11T00:00:00.000Z', finalDate: '2022-03-17T00:00:00.000Z', 
- location: 'Sevilla', dimensions: '9x2', priceHour: '10', priceDay: '4', priceMonth: '45',
+ location: 'Sevilla', dimensions: '9x2', priceHour: '10', priceDay: '4', priceMonth: '45', 
 shared: true, ownerId: 1}];
   
   // Mock DB Query
@@ -63,11 +63,11 @@ it('should return a space in DB when a spaceId is given', async () => {
   // Fixture
   const dbOutput = {id:1, name: 'Space 1', description: 'So much space',
   initialDate: '2020-03-10T00:00:00.000Z', finalDate: '2022-03-17T00:00:00.000Z', 
-  location: 'Sevilla', dimensions: '2x2', priceHour: '10', priceDay: '4', priceMonth: '45', ownerId: 1};
+  location: 'Sevilla', dimensions: '2x2', priceHour: null, priceDay: '4', priceMonth: '45', ownerId: 1};
 
   const expected = {id:1, name: 'Space 1', description: 'So much space',
   initialDate: '2020-03-10T00:00:00.000Z', finalDate: '2022-03-17T00:00:00.000Z', 
-  location: 'Sevilla', dimensions: '2x2', priceHour: '10', priceDay: '4', priceMonth: '45', ownerId: 1};
+  location: 'Sevilla', dimensions: '2x2', priceDay: '4', priceMonth: '45', ownerId: 1};
   
   // Mock DB Query
   findUnique.withArgs({
@@ -84,6 +84,26 @@ it('should return a space in DB when a spaceId is given', async () => {
 
 });
 
+it('should return a 404 when a non-existing spaceId is given', async () => {
+  // Fixture
+  const dbOutput= undefined;
+
+  const expected = "Space not found" 
+
+  // Mock DB Query
+  findUnique.withArgs({
+    where:{
+      id: 1
+    }
+  }).resolves(dbOutput)
+
+  // API Call
+  axios.get(`${host}/api/v1/spaces/1`).then(res => {
+    assert.equal(res.status, 404);
+    assert.deepEqual(res.data, expected);
+  });
+
+});
 
 
 }
