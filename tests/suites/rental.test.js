@@ -5,8 +5,8 @@ const sinon = require('sinon');
 const host = "http://localhost:4100";
 
 module.exports = (prisma) => {
-  let findMany = sinon.stub(prisma.space, 'findMany').rejects("Not implemented");
-  let findUnique = sinon.stub(prisma.space, 'findUnique').rejects("Not implemented");
+  let findMany = sinon.stub(prisma.rental, 'findMany').rejects("Not implemented");
+  let findUnique = sinon.stub(prisma.rental, 'findUnique').rejects("Not implemented");
 
   before(() => {
     sinon.replace(prisma.rental, 'findMany', findMany);
@@ -18,7 +18,7 @@ module.exports = (prisma) => {
   ***************************************************************************/
  it('should return empty list when no rentals are found in DB', async () => {
   // Mock DB Query
-  findMany.withArgs({}).resolves([]);
+  findMany.withArgs({ skip: undefined, take: undefined }).resolves([]);
 
   // API Call
   await axios.get(`${host}/api/v1/rentals`).then(res => {
@@ -42,7 +42,7 @@ module.exports = (prisma) => {
     cost: 68, type: 'DAY', meters: 170, spaceId: 2, renterId: 1}];
     
     // Mock DB Query
-    findMany.withArgs({}).resolves(dbOutput);
+    findMany.withArgs({ skip: undefined, take: undefined }).resolves(dbOutput);
   
     // API Call
     await axios.get(`${host}/api/v1/rentals`).then(res => {

@@ -18,7 +18,7 @@ module.exports = (prisma) => {
   ***************************************************************************/
   it('should return empty list when no users are found in DB', async () => {
       // Mock DB Query
-      findMany.withArgs({}).resolves([]);
+      findMany.withArgs({ skip: undefined, take: undefined }).resolves([]);
 
       // API Call
       await axios.get(`${host}/api/v1/users`).then(res => {
@@ -33,7 +33,7 @@ module.exports = (prisma) => {
     const expected = [{id:1, name: 'John', surname: 'Doe'}, {id:2, name: 'Jane', surname: 'Doe'}];
     
     // Mock DB Query
-    findMany.withArgs({}).resolves(dbOutput);
+    findMany.withArgs({ skip: undefined, take: undefined }).resolves(dbOutput);
 
     // API Call
     await axios.get(`${host}/api/v1/users`).then(res => {
