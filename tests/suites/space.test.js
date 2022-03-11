@@ -14,7 +14,7 @@ module.exports = (prisma) => {
   });
 
 /***************************************************************************
-  * USER UNIT TESTS
+  * SPACE UNIT TESTS
   ***************************************************************************/
  it('should return empty list when no spaces are found in DB', async () => {
   // Mock DB Query
