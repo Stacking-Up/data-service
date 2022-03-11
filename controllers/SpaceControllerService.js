@@ -36,31 +36,22 @@ module.exports.getSpace = function getSpace (req, res, next) {
 };
 
 module.exports.getSpaceRentals = function getSpaceRentals (req, res, next) {
-  prisma.space.findUnique({
+  prisma.rental.findMany({
+    skip: req.offset.value,
+    take: req.limit.value,
     where:{
-      id: parseInt(req.spaceId.value)
+      spaceId: parseInt(req.spaceId.value)
     },
-    include: {
-      rentals:{
-        select:{
-          initialDate: true,
-          finalDate: true,
-          cost: true,
-          type: true,
-          meters: true,
-          spaceId: true,
-          renterId: true,
-        }
-      }
-    }
   })
-  .then(space => {
-    if(!space) { res.status(404).send("Space not found"); }
-    else{res.send(space.rentals); }
+
+  .then(rentals => {
+    if(!rentals) { res.status(404).send("Rentals not found"); }
+    else if(rentals.length == 0) { res.status(404).send("Rentals not found or non existing space with this Id."); }
+    else{res.send(rentals.map(rental=>utils.excludeNulls(rental))); }
   })
   .catch(err => {
     console.error(err);
-    res.status(500).send("Server error: Could not get spaces.")
+    res.status(500).send("Server error: Could not get rentals.")
   })
 
 };
