@@ -167,8 +167,26 @@ module.exports.getUserSpaces = function getUserSpaces (req, res, next) {
 };
 
 module.exports.getUserSpace = function getUserSpace (req, res, next) {
-  res.send({
-    message: 'This is the mockup controller for getUserSpace'
+  prisma.user.findUnique({
+    where: {
+      id: parseInt(req.userId.value),
+    },
+    include: {
+      spaces: {
+        where: {
+          id: parseInt(req.spaceId.value),
+        },
+      },
+    },
+  })
+    .then(users => {
+      if (!users) { res.status(404).send("User not found"); }
+      else if (!users.spaces[0]) { res.status(404).send("Space not found"); }
+      else { res.send(users.spaces.map(space => utils.excludeNulls(space))[0]); }
+   })
+    .catch(err => {
+      console.error(err);
+      res.status(500).send("Server error: Could not get space");
   });
 };
 
