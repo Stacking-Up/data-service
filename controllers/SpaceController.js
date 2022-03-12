@@ -13,3 +13,7 @@ module.exports.getSpace = function getSpace (req, res, next) {
 module.exports.getSpaceRentals = function getSpaceRentals (req, res, next) {
   varSpaceController.getSpaceRentals(req.swagger.params, res, next);
 };
+
+module.exports.postSpace = function postSpace (req, res, next) {
+  varSpaceController.postSpace(req, res, next);
+};

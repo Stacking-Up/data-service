@@ -448,6 +448,63 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
+    post:
+      security:
+        - cookieAuth: []
+      tags:
+        - Spaces
+      x-swagger-router-controller: SpaceController
+      description: Checks the validity of a logged-in user's token and publishes the space
+      operationId: postSpace      
+      requestBody:
+        x-name: body
+        description: Space object to be published
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - space
+              properties:
+                space:   
+                  $ref: '#/components/schemas/space'
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
   '/api/v1/spaces/{spaceId}':
     get:
       tags:
@@ -704,13 +761,10 @@ components:
         ownerId:
           type: integer
           format: int32
-        image:
-          type: string
-          format: binary
         tags:
           type: array
           items:
-            $ref: '#/components/schemas/tag'
+            type: string
     rental:
       type: object
       required:
@@ -745,13 +799,8 @@ components:
         renterId:
           type: integer
           format: int32
-    tag:
-      type: object
-      required:
-        - key
-        - value
-      properties:
-        key:
-          type: string
-        value:
-          type: string
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: authToken

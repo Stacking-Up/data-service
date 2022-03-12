@@ -6,9 +6,15 @@ const deploy = (env) => {
       const fs = require('fs');
       const http = require('http');
       const path = require('path');
+      const cookieParser = require('cookie-parser');
+      const multer = require('multer');
 
       const express = require('express');
       const app = express();
+
+      app.use(express.json());
+      app.use(multer().any());
+      app.use(cookieParser());
 
       const oasTools = require('oas-tools');
       const jsyaml = require('js-yaml');
