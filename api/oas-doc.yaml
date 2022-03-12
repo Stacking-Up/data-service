@@ -646,6 +646,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
+  /api/v1/tags:
+    get:
+      tags:
+        - SpaceTags
+      x-swagger-router-controller: TagController
+      description: Returns all existing tags
+      operationId: getTags
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
 components:
   schemas:
     errorModel:

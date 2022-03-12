@@ -27,8 +27,6 @@ module.exports.postSpace = async function postSpace (req, res, next) {
   const imagesToBePublished = req.swagger.params.body.files;
   const authToken = req.cookies?.authToken;
 
-  console.log(req.swagger.params.body);
-
   if (authToken) {
     try {
       const decoded = jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
