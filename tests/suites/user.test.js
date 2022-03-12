@@ -162,4 +162,95 @@ module.exports = (prisma) => {
       assert.deepEqual(res.data, expected);
     });
   });
+
+  it('should return item asociated to an user giving an userId and itemId', async () => {
+    // Fixture
+    const dbOutput = {id:1, name: 'John', surname: 'Doe', items: 
+    [{id:1, type: 'ELECTRONICS', dimensions: 'SMALL'}, {id:2, type: 'ELECTRONICS', dimensions: 'MEDIUM'}]};
+    const expected = {id:1, type: 'ELECTRONICS', dimensions: 'SMALL'};
+
+    // Mock DB Query
+    findUnique.withArgs({
+      where: {
+        id: 1,
+    },
+      include: {
+        items: {
+          select: {
+            type: true,
+            dimensions: true,
+          },
+          where: {
+            id: 1,
+          },
+        },
+      },
+    }).resolves(dbOutput)
+
+    // API Call
+    axios.get(`${host}/api/v1/users/1/items/1`).then(res => {
+      assert.equal(res.status, 200);
+      assert.deepEqual(res.data, expected);
+    });
+  });
+
+  it('should return 404 when trying to get a non-existing item asociated to an user giving an userId and itemId', async () => {
+    // Fixture
+    const dbOutput = {id:1, name: 'John', surname: 'Doe'};
+    const expected = 'Item not found';
+
+    // Mock DB Query
+    findUnique.withArgs({
+      where: {
+        id: 1,
+    },
+      include: {
+        items: {
+          select: {
+            type: true,
+            dimensions: true,
+          },
+          where: {
+            id: 1,
+          },
+        },
+      },
+    }).resolves(dbOutput)
+
+    // API Call
+    axios.get(`${host}/api/v1/users/1/items/1`).then(res => {
+      assert.equal(res.status, 404);
+      assert.deepEqual(res.data, expected);
+    });
+  });
+
+  it('should return 404 when trying to get an existing item asociated to a non-existing user giving an userId and itemId', async () => {
+    // Fixture
+    const dbOutput = undefined;
+    const expected = 'User not found';
+
+    // Mock DB Query
+    findUnique.withArgs({
+      where: {
+        id: 1,
+    },
+      include: {
+        items: {
+          select: {
+            type: true,
+            dimensions: true,
+          },
+          where: {
+            id: 1,
+          },
+        },
+      },
+    }).resolves(dbOutput)
+
+    // API Call
+    axios.get(`${host}/api/v1/users/1/items/1`).then(res => {
+      assert.equal(res.status, 404);
+      assert.deepEqual(res.data, expected);
+    });
+  });
 }
