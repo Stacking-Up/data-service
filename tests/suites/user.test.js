@@ -109,6 +109,45 @@ module.exports = (prisma) => {
     });
   });
 
+it('should return an concrete rental when a userId and rental Id is given', async () => {
+    // Fixture
+    const dbOutput = {id:1, name: 'John', surname: 'Doe', avatar: null, 
+    rentals:[{id:1, initialDate: '2020-04-10T00:00:00.000Z', finalDate: '2021-03-17T00:00:00.000Z', 
+    cost: 50, type: 'HOUR', meters: 100, spaceId: 1, renterId: 1}]};
+
+    const expected = {id:1, initialDate: '2020-04-10T00:00:00.000Z', finalDate: '2021-03-17T00:00:00.000Z', 
+    cost: 50, type: 'HOUR', meters: 100, spaceId: 1, renterId: 1};
+
+    // Mock DB Query
+    findUnique.withArgs({
+      where:{
+        id: 1
+      },
+      include: {
+        rentals:{
+          select: {
+            initialDate:true,
+            finalDate:true, 
+            cost:true, 
+            type: true,
+            meters: true,
+            spaceId: true,
+            renterId: true
+          },
+          where: {
+            id:1
+          }
+        }
+      }
+    }).resolves(dbOutput)
+
+    // API Call
+  await axios.get(`${host}/api/v1/users/1/rentals/1`).then(res => {
+      assert.equal(res.status, 200);
+      assert.deepEqual(res.data, expected);
+    });
+  });
+
   it('should return 404 when trying to get non-existing items asociated to a user giving an userId', async () => {
     // Fixture
     const dbOutput = {id:1, name: 'John', surname: 'Doe'};
@@ -224,6 +263,43 @@ module.exports = (prisma) => {
     });
   });
 
+  it('should return 404 when is given a user with no rentals', async () => {
+    // Fixture
+    const dbOutput = {id:1, name: 'John', surname: 'Doe', avatar: null, 
+    rentals:{}};
+
+    const expected = 'Rental not found';
+
+    // Mock DB Query
+    findUnique.withArgs({
+      where:{
+        id: 1
+      },
+      include: {
+        rentals:{
+          select: {
+            initialDate:true,
+            finalDate:true, 
+            cost:true, 
+            type: true,
+            meters: true,
+            spaceId: true,
+            renterId: true
+          },
+          where: {
+            id:1
+          }
+        }
+      }
+    }).resolves(dbOutput)
+
+    // API Call
+  axios.get(`${host}/api/v1/users/1/rentals/1`).then(res => {
+      assert.equal(res.status, 404);
+      assert.deepEqual(res.data, expected);
+    });
+  });
+
   it('should return 404 when trying to get an existing item asociated to a non-existing user giving an userId and itemId', async () => {
     // Fixture
     const dbOutput = undefined;
@@ -249,6 +325,42 @@ module.exports = (prisma) => {
 
     // API Call
     axios.get(`${host}/api/v1/users/1/items/1`).then(res => {
+      assert.equal(res.status, 404);
+      assert.deepEqual(res.data, expected);
+    });
+  });
+  
+it('should return 404 when is given a non-existing user with rentals', async () => {
+
+    // Fixture
+    const dbOutput = undefined;
+    const expected = 'User not found';
+
+    // Mock DB Query
+    findUnique.withArgs({
+      where:{
+        id: 1
+      },
+      include: {
+        rentals:{
+          select: {
+            initialDate:true,
+            finalDate:true, 
+            cost:true, 
+            type: true,
+            meters: true,
+            spaceId: true,
+            renterId: true
+          },
+          where: {
+            id:1
+          }
+        }
+      }
+    }).resolves(dbOutput)
+
+    // API Call
+  axios.get(`${host}/api/v1/users/1/rentals/1`).then(res => {
       assert.equal(res.status, 404);
       assert.deepEqual(res.data, expected);
     });
