@@ -253,4 +253,71 @@ module.exports = (prisma) => {
       assert.deepEqual(res.data, expected);
     });
   });
+
+  it('should return ratings that an user has given or received', async () => {
+    // Fixture
+    const dbOutput = {id:1, name: 'John', surname: 'Doe', ratings: 
+    [{id:1, title: 'given_rating', description: 'given_rating', rating: 5, reviewerId: 1, receiverId: 2}, 
+    {id:2, title: 'received_rating', description: 'received_rating', rating: 7, reviewerId: 2, receiverId: 1}]};
+    const expected = [{id:1, title: 'given_rating', description: 'given_rating', rating: 5, reviewerId: 1, receiverId: 2}, 
+                      {id:2, title: 'received_rating', description: 'received_rating', rating: 7, reviewerId: 2, receiverId: 1}];
+
+    // Mock DB Query
+    findMany.withArgs({
+      skip: undefined,
+      take: undefined,
+      where: {
+        OR: [
+          { receiverId: { equals: 1, }, },
+          { reviewerId: { equals: 1, }, },
+        ],
+      },
+      select:
+        {
+          title: true,
+          description: true,
+          rating: true,
+          reviewerId: true,
+          receiverId: true,
+      },
+    }).resolves(dbOutput)
+
+    // API Call
+    axios.get(`${host}/api/v1/users/1/ratings`).then(res => {
+      assert.equal(res.status, 200);
+      assert.deepEqual(res.data, expected);
+    });
+  });
+
+  it('should return 404 when trying to get non-existing ratings that an user has given or received', async () => {
+    // Fixture
+    const dbOutput = {id:1, name: 'John', surname: 'Doe'};
+    const expected = 'Ratings not found';
+
+    // Mock DB Query
+    findMany.withArgs({
+      skip: undefined,
+      take: undefined,
+      where: {
+        OR: [
+          { receiverId: { equals: 1, }, },
+          { reviewerId: { equals: 1, }, },
+        ],
+      },
+      select:
+        {
+          title: true,
+          description: true,
+          rating: true,
+          reviewerId: true,
+          receiverId: true,
+      },
+    }).resolves(dbOutput)
+
+    // API Call
+    axios.get(`${host}/api/v1/users/1/ratings`).then(res => {
+      assert.equal(res.status, 404);
+      assert.deepEqual(res.data, expected);
+    });
+  });
 }
