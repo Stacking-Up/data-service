@@ -42,4 +42,42 @@ module.exports = (prisma) => {
       assert.deepEqual(res.data, expected);
     });
   });
+
+  it('should return 404 when a non-existing userId is given', async () => {
+    // Fixture
+    const dbOutput = undefined;
+    const expected = 'User not found';
+
+    // Mock DB Query
+    findUnique.withArgs({
+      where:{
+        id: 1
+      }
+    }).resolves(dbOutput)
+
+    // API Call
+    axios.get(`${host}/api/v1/users/1`).then(res => {
+      assert.equal(res.status, 404);
+      assert.deepEqual(res.data, expected);
+    });
+  });
+
+  it('should return an user in DB when an userId is given', async () => {
+    // Fixture
+    const dbOutput = [{id:1, name: 'John', surname: 'Doe', avatar: null}];
+    const expected = [{id:1, name: 'John', surname: 'Doe'}];;
+
+    // Mock DB Query
+    findUnique.withArgs({
+      where:{
+        id: 1
+      }
+    }).resolves(dbOutput)
+
+    // API Call
+    axios.get(`${host}/api/v1/users/1`).then(res => {
+      assert.equal(res.status, 200);
+      assert.deepEqual(res.data, expected);
+    });
+  });
 }
