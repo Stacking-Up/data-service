@@ -49,7 +49,7 @@ module.exports.getUserItems = function getUserItems (req, res, next) {
   })
     .then(user => {
       if (!user) { res.status(404).send("User not found"); }
-      else if (!user.items[0]) { res.status(404).send("Items not found"); }
+      else if (!user.items) { res.status(404).send("Items not found"); }
       else { res.send(user.items); }      
    })
     .catch(err => {
