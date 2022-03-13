@@ -544,6 +544,70 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
+    put:
+      security:
+        - cookieAuth: []
+      tags:
+        - Spaces
+      x-swagger-router-controller: SpaceController
+      description: Update space by id
+      operationId: putSpace
+      parameters:
+        - name: spaceId
+          in: path
+          description: Space's id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        x-name: body
+        description: Space object to be published
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - space
+              properties:
+                space:   
+                  $ref: '#/components/schemas/space'
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
   '/api/v1/spaces/{spaceId}/rentals':
     get:
       tags:
