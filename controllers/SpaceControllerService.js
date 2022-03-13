@@ -99,15 +99,7 @@ module.exports.postSpace = async function postSpace (req, res, next) {
 module.exports.putSpace = async function putSpace (req, res, next) {
   const authToken = req.cookies?.authToken;
   const spaceId = req.swagger.params.spaceId.value;
-  const imagesToBeUpdated = req.swagger.params.body.files;
-  let spaceToBeUpdated;
-  try {
-    spaceToBeUpdated = JSON.parse(req.swagger.params.body.value.space);
-  } catch (err) {
-    console.error(err);
-    res.status(400).send('Bad Request : Invalid JSON');
-    return;
-  }
+  const spaceToBeUpdated = req.swagger.params.body.value;
 
   if (authToken) {
     try {
@@ -117,17 +109,17 @@ module.exports.putSpace = async function putSpace (req, res, next) {
         return;
       }
 
-      if (decoded.role === 'USER' || decoded.userId !== parseInt(spaceToBeUpdated.ownerId)) {
+      if (decoded.role === 'USER' || parseInt(decoded.userId) !== parseInt(spaceToBeUpdated.ownerId)) {
         res.status(403).send('Forbidden');
         return;
       }
 
-      if (isNaN(spaceId)) {
+      if (!spaceId.match(/^\d+$/)) {
         res.status(400).send('Invalid spaceId. It must be an integer number');
         return;
       }
 
-      const errors = utils.checkSpaceValidity(spaceToBeUpdated, imagesToBeUpdated);
+      const errors = utils.checkSpaceValidity(spaceToBeUpdated);
       if (errors.length > 0) {
         res.status(400).send(`Bad Request: ${errors[0]}`);
         return;
@@ -164,8 +156,8 @@ module.exports.putSpace = async function putSpace (req, res, next) {
           },
           images: {
             deleteMany: {},
-            create: imagesToBeUpdated?.map(image => {
-              return { image: image.buffer, name: image.originalname, mimetype: image.mimetype, size: image.size };
+            create: spaceToBeUpdated.images?.map(base64 => {
+              return {image: Buffer.from(base64, 'base64'), mimetype: base64.indexOf('/9j/') === 0 ? 'image/jpeg' : 'image/png'};
             })
           }
         }

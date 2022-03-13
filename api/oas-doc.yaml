@@ -554,19 +554,9 @@ paths:
         description: Space object to be published
         required: true
         content:
-          multipart/form-data:
+          application/json:
             schema:
-              type: object
-              required:
-                - space
-              properties:
-                space:   
-                  $ref: '#/components/schemas/space'
-                images:
-                  type: array
-                  items:
-                    type: string
-                    format: binary
+              $ref: '#/components/schemas/space'
       responses:
         '201':
           description: Success
