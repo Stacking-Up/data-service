@@ -47,10 +47,8 @@ module.exports.getUserItems = function getUserItems (req, res, next) {
     }
   })
     .then(user => {
-      if (!user) { res.status(404).send("User not found"); }
-      else if (!user.items) { res.status(404).send("Items not found"); }
-      else { res.send(user.items); }      
-   })
+      if (!user) { res.status(404).send('User not found'); } else if (!user.items) { res.status(404).send('Items not found'); } else { res.send(user.items); }
+    })
     .catch(err => {
       console.error(err);
       res.status(500).send('Server error: Could not get users');
@@ -75,9 +73,7 @@ module.exports.getUserItem = function getUserItem (req, res, next) {
     }
   })
     .then(user => {
-      if (!user) { res.status(404).send("User not found"); }
-      else if (!user.items || user.items.length === 0) { res.status(404).send("Item not found"); }
-      else { res.send(user.items[0]); }      
+      if (!user) { res.status(404).send('User not found'); } else if (!user.items || user.items.length === 0) { res.status(404).send('Item not found'); } else { res.send(user.items[0]); }
     })
     .catch(err => {
       console.error(err);
@@ -135,7 +131,7 @@ module.exports.getUserRating = function getUserRating (req, res, next) {
     }
   })
     .then(user => {
-      if (!user) { res.status(404).send('User not found'); } else if (!user.ratings[0]) { res.status(404).send('Rating not found'); } else { res.send(user.ratings[0]); }
+      if (!user) { res.status(404).send('User not found'); } else if (!user.ratings || user.ratings.length === 0) { res.status(404).send('Rating not found'); } else { res.send(user.ratings[0]); }
     })
     .catch(err => {
       console.error(err);
