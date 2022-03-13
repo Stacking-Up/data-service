@@ -474,6 +474,85 @@ module.exports = (prisma) => {
     });
   });
 
+  it('should return an unic space that an user owns', async () => {
+    // Fixture
+    const dbOutput = {id:1, name: 'John', surname: 'Doe', spaces: 
+    [{id:1, name: 'space1', description: 'space1', initialDate: '1970-01-01T00:00:00.000Z', location: 'Sevilla', dimensions: 'Big', shared: true, ownerId: 1}]};
+    const expected = {id:1, name: 'space1', description: 'space1', initialDate: '1970-01-01T00:00:00.000Z', location: 'Sevilla', dimensions: 'Big', shared: true, ownerId: 1};
+
+    // Mock DB Query
+    findUnique.withArgs({
+      where: {
+        id: 1,
+      },
+      include: {
+        spaces: {
+          where: {
+            id: 1,
+          }
+        }
+      }
+    }).resolves(dbOutput)
+
+    // API Call
+    axios.get(`${host}/api/v1/users/1/spaces/1`).then(res => {
+      assert.equal(res.status, 200);
+      assert.deepEqual(res.data, expected);
+    });
+  });
+
+  it('should return 404 when trying to get a non-existing space that an user owns', async () => {
+    // Fixture
+    const dbOutput = {id:1, name: 'John', surname: 'Doe'};
+    const expected = 'Space not found';
+
+    // Mock DB Query
+    findUnique.withArgs({
+      where: {
+        id: 1,
+      },
+      include: {
+        spaces: {
+          where: {
+            id: 1,
+          }
+        }
+      }
+    }).resolves(dbOutput)
+
+    // API Call
+    axios.get(`${host}/api/v1/users/1/spaces/1`).then(res => {
+      assert.equal(res.status, 404);
+      assert.deepEqual(res.data, expected);
+    });
+  });
+
+  it('should return 404 when trying to get a existing space owned by a non-existing user', async () => {
+    // Fixture
+    const dbOutput = undefined;
+    const expected = 'User not found';
+
+    // Mock DB Query
+    findUnique.withArgs({
+      where: {
+        id: 1,
+      },
+      include: {
+        spaces: {
+          where: {
+            id: 1,
+          }
+        }
+      }
+    }).resolves(dbOutput)
+
+    // API Call
+    axios.get(`${host}/api/v1/users/1/spaces/1`).then(res => {
+      assert.equal(res.status, 404);
+      assert.deepEqual(res.data, expected);
+    });
+  });
+
   it('should return an concrete rental when a userId and rental Id is given', async () => {
     // Fixture
     const dbOutput = {id:1, name: 'John', surname: 'Doe', avatar: null, 
