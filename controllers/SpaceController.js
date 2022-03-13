@@ -21,3 +21,7 @@ module.exports.postSpace = function postSpace (req, res, next) {
 module.exports.putSpace = function putSpace (req, res, next) {
   varSpaceController.putSpace(req, res, next);
 };
+
+module.exports.deleteSpace = function deleteSpace (req, res, next) {
+  varSpaceController.deleteSpace(req, res, next);
+};

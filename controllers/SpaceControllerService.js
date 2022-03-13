@@ -73,7 +73,7 @@ module.exports.postSpace = async function postSpace (req, res, next) {
           },
           images: {
             create: spaceToBePublished.images?.map(base64 => {
-              return {image: Buffer.from(base64, 'base64'), mimetype: base64.indexOf('/9j/') === 0 ? 'image/jpeg' : 'image/png'};
+              return { image: Buffer.from(base64, 'base64'), mimetype: base64.indexOf('/9j/') === 0 ? 'image/jpeg' : 'image/png' };
             })
           }
         }
@@ -152,19 +152,96 @@ module.exports.putSpace = async function putSpace (req, res, next) {
                 where: { tag: String(tag) },
                 create: { tag: String(tag) }
               };
-            }),
+            })
           },
           images: {
             deleteMany: {},
             create: spaceToBeUpdated.images?.map(base64 => {
-              return {image: Buffer.from(base64, 'base64'), mimetype: base64.indexOf('/9j/') === 0 ? 'image/jpeg' : 'image/png'};
+              return { image: Buffer.from(base64, 'base64'), mimetype: base64.indexOf('/9j/') === 0 ? 'image/jpeg' : 'image/png' };
             })
           }
         }
       }).then(() => {
         res.status(201).send('Space updated successfully');
       }).catch((err) => {
-        if(err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+          res.status(400).send('No space records found');
+        } else {
+          console.error(err);
+          res.status(500).send('Internal Server Error');
+        }
+      });
+    } catch (err) {
+      if (err instanceof jwt.JsonWebTokenError) {
+        res.status(401).send(`Unauthorized: ${err.message}`);
+      } else {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+      }
+    }
+  } else {
+    res.status(401).send('Unauthorized');
+  }
+};
+
+module.exports.deleteSpace = async function deleteSpace (req, res, next) {
+  const authToken = req.cookies?.authToken;
+  const spaceId = req.swagger.params.spaceId.value;
+
+  if (authToken) {
+    try {
+      const decoded = jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
+
+      if (!spaceId.match(/^\d+$/)) {
+        res.status(400).send('Invalid spaceId. It must be an integer number');
+        return;
+      }
+
+      const space = await prisma.space.findUnique({
+        where: {
+          id: parseInt(spaceId)
+        }
+      });
+
+      if (!space) {
+        res.status(400).send('No space records found to delete');
+        return;
+      }
+
+      if (decoded.role === 'USER' || parseInt(decoded.userId) !== parseInt(space.ownerId)) {
+        res.status(403).send('Forbidden');
+        return;
+      }
+
+      // Check RN09
+      const rentals = await prisma.rental.findMany({
+        where: {
+          space: {
+            id: parseInt(spaceId)
+          }
+        }
+      });
+
+      if (rentals && rentals.length > 0) {
+        res.status(400).send('Space is being rented');
+        return;
+      }
+
+      await prisma.user.update({
+        where: {
+          id: parseInt(space.ownerId)
+        },
+        data: {
+          spaces: {
+            delete: {
+              id: parseInt(spaceId)
+            }
+          }
+        }
+      }).then(() => {
+        res.status(200).send('Space deleted successfully');
+      }).catch((err) => {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
           res.status(400).send('No space records found');
         } else {
           console.error(err);
