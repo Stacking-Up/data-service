@@ -459,7 +459,35 @@ paths:
             type: array
             items:
               type: string
-
+              enum: 
+                - FLOOR_1
+                - FLOOR_2
+                - FLOOR_3UP
+                - HOUSE_ROOM
+                - FLAT_ROOM
+                - BASEMENT
+                - GARAGE
+                - STORAGE_ROOM
+                - INDUSTRIAL_WAREHOUSE
+                - OFFICE_ROOM
+                - PENTHOUSE
+                - ELEVATOR
+                - WET
+                - DRY
+                - COLD
+                - WARM
+                - HOT
+                - SECURITY_ALARM
+                - VIDEO_MONITORING
+                - FIRE_ALARM
+                - GROUND_FLOOR
+                - SOCKET
+                - INDOOR
+                - OUTDOOR
+                - NARROW_ACCESS
+                - MEDIUM_WIDTH_ACCESS
+                - WIDE_ACCESS
+                
         - name: shared
           in: query
           description: 'Filter for shared category'
@@ -543,6 +571,13 @@ paths:
           required: false
           schema:
             type: boolean
+
+        - name: orderBy
+          in: query
+          description: 'Order by price or initial date'
+          required: false
+          schema:
+            type: string
 
         
       responses:
