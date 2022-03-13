@@ -421,6 +421,59 @@ module.exports = (prisma) => {
     });
   });
 
+  it('should return spaces that an user owns', async () => {
+    // Fixture
+    const dbOutput = {id:1, name: 'John', surname: 'Doe', spaces: 
+    [{id:1, name: 'space1', description: 'space1', initialDate: '1970-01-01T00:00:00.000Z', location: 'Sevilla', dimensions: 'Big', shared: true, ownerId: 1}, 
+    {id:2, name: 'space2', description: 'space2', initialDate: '1970-01-01T00:00:00.000Z', location: 'Sevilla', dimensions: 'Small', shared: false, ownerId: 1}]};
+    const expected = [{id:1, name: 'space1', description: 'space1', initialDate: '1970-01-01T00:00:00.000Z', location: 'Sevilla', dimensions: 'Big', shared: true, ownerId: 1}, 
+    {id:2, name: 'space2', description: 'space2', initialDate: '1970-01-01T00:00:00.000Z', location: 'Sevilla', dimensions: 'Small', shared: false, ownerId: 1}];
+
+    // Mock DB Query
+    findMany.withArgs({
+      skip: undefined,
+      take: undefined,
+      where: {
+        ownerId: 1
+      },
+      include: {
+        image: true,
+        tags: true
+      }
+    }).resolves(dbOutput)
+
+    // API Call
+    axios.get(`${host}/api/v1/users/1/spaces`).then(res => {
+      assert.equal(res.status, 200);
+      assert.deepEqual(res.data, expected);
+    });
+  });
+
+  it('should return 404 when trying to get non-existing spaces that an user owns', async () => {
+    // Fixture
+    const dbOutput = {id:1, name: 'John', surname: 'Doe'};
+    const expected = 'Spaces not found';
+
+    // Mock DB Query
+    findMany.withArgs({
+      skip: undefined,
+      take: undefined,
+      where: {
+        ownerId: 1
+      },
+      include: {
+        image: true,
+        tags: true
+      }
+    }).resolves(dbOutput)
+
+    // API Call
+    axios.get(`${host}/api/v1/users/1/spaces`).then(res => {
+      assert.equal(res.status, 404);
+      assert.deepEqual(res.data, expected);
+    });
+  });
+
   it('should return an concrete rental when a userId and rental Id is given', async () => {
     // Fixture
     const dbOutput = {id:1, name: 'John', surname: 'Doe', avatar: null, 
