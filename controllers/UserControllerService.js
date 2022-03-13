@@ -174,7 +174,7 @@ module.exports.getUserSpace = function getUserSpace (req, res, next) {
     }
   })
     .then(users => {
-      if (!users) { res.status(404).send('User not found'); } else if (!users.spaces[0]) { res.status(404).send('Space not found'); } else { res.send(users.spaces.map(space => utils.excludeNulls(space))[0]); }
+      if (!users) { res.status(404).send('User not found'); } else if (!users.spaces || users.spaces.length === 0) { res.status(404).send('Space not found'); } else { res.send(users.spaces.map(space => utils.excludeNulls(space))[0]); }
     })
     .catch(err => {
       console.error(err);
