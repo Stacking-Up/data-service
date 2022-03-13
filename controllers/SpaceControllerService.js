@@ -3,7 +3,7 @@
 const utils = require('../utils');
 const prisma = require('../prisma');
 
-module.exports.getSpaces = function getSpaces(req, res, next) {
+module.exports.getSpaces = function getSpaces (req, res, next) {
   // Get tags selected for tag filtering
   const tagsFilter = req.tag.value !== undefined ? utils.parseTags(req.tag.value) : [];
 
@@ -22,25 +22,27 @@ module.exports.getSpaces = function getSpaces(req, res, next) {
   // Get max and min values for priceMonth filtering
   const minPriceMonth = req.minPriceMonth.value !== undefined ? req.minPriceMonth.value : 0;
   const maxPriceMonth = req.maxPriceMonth.value !== undefined ? req.maxPriceMonth.value : Number.MAX_VALUE;
-  
-  let sort = {};
-  if(req.orderBy.value !==undefined && req.orderBy.value.match(/(?:price(?:Hour|Day|Month)|initialDate)-(?:asc|desc)/)){  
-    let [key,value] = req.orderBy.value.split("-");
-    sort[key] = value? value : 'desc';
+
+  const sort = {};
+  if (req.orderBy.value !== undefined && req.orderBy.value.match(/(?:price(?:Hour|Day|Month)|initialDate)-(?:asc|desc)/)) {
+    const [key, value] = req.orderBy.value.split('-');
+    sort[key] = value || 'desc';
   }
 
-  let actualDate = new Date();
+  const actualDate = new Date();
   actualDate.setMilliseconds(0);
   prisma.space.findMany({
     take: req.limit.value,
     skip: req.offset.value,
-    where:{
-      AND:[
-        {shared: { equals: req.shared.value }},
-        {OR:[
-          {finalDate: {gte:actualDate}},
-          {finalDate: {equals:null}}
-        ]}
+    where: {
+      AND: [
+        { shared: { equals: req.shared.value } },
+        {
+          OR: [
+            { finalDate: { gte: actualDate } },
+            { finalDate: { equals: null } }
+          ]
+        }
       ]
     },
     include: {
@@ -49,7 +51,6 @@ module.exports.getSpaces = function getSpaces(req, res, next) {
     orderBy: sort
   })
     .then(spaces => {
-
       res.send(spaces.filter(space =>
         utils.inRange(minDimension, maxDimension, utils.getMeters(space.dimensions)) &&
         utils.includesTags(tagsFilter, utils.tagsToArray(space.tags)) &&
@@ -60,7 +61,6 @@ module.exports.getSpaces = function getSpaces(req, res, next) {
         utils.isRentedPer(req.isRentPerDay.value, space.priceDay) &&
         utils.isRentedPer(req.isRentPerMonth.value, space.priceMonth)
       ).map(space => utils.notNulls(space)));
-
     })
     .catch(err => {
       console.error(err);
@@ -68,13 +68,13 @@ module.exports.getSpaces = function getSpaces(req, res, next) {
     });
 };
 
-module.exports.getSpace = function getSpace(req, res, next) {
+module.exports.getSpace = function getSpace (req, res, next) {
   res.send({
     message: 'This is the mockup controller for getSpace'
   });
 };
 
-module.exports.getSpaceRentals = function getSpaceRentals(req, res, next) {
+module.exports.getSpaceRentals = function getSpaceRentals (req, res, next) {
   res.send({
     message: 'This is the mockup controller for getSpaceRentals'
   });

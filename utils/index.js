@@ -28,7 +28,7 @@ module.exports.tagsToArray = (object) => {
 };
 
 module.exports.includesTags = (selectedTags, spaceTags) => {
-  const enumTags = Object.values(require("@prisma/client").TagEnum);
+  const enumTags = Object.values(require('@prisma/client').TagEnum);
   let res = true;
   if (selectedTags.length !== 0) {
     res = selectedTags.every(tag => enumTags.includes(tag) && spaceTags.includes(tag));
