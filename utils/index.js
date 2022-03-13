@@ -2,10 +2,10 @@
 
 const { TagEnum } = require('@prisma/client');
 
-module.exports.checkSpaceValidity = (space, images) => {
+module.exports.checkSpaceValidity = (space) => {
   const errors = [];
 
-  _checkSpaceConstraints(space, images, errors);
+  _checkSpaceConstraints(space, errors);
   if (errors.length > 0) return errors;
 
   _checkSpaceBusinessLogic(space, errors);
@@ -37,7 +37,7 @@ function _checkSpaceConstraints (space, images, errors) {
     errors.push('Tags must be an array');
   } else if (space.tags && !space.tags.every(tag => Object.values(TagEnum).includes(tag))) {
     errors.push('Tags must be one of the following: ' + Object.values(TagEnum).join(', '));
-  } else if (images && !images.every(image => image.mimetype === 'image/jpeg' || image.mimetype === 'image/png')) {
+  } else if (images && !images.every(image => image.indexOf('iVBORw0KGgo') === 0 || image.indexOf('/9j/') === 0)) {
     errors.push('Images must be jpeg or png');
   }
   return errors;

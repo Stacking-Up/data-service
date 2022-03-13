@@ -24,7 +24,6 @@
     "cookie-parser": "^1.4.6",
     "express": "^4.16.3",
     "js-yaml": "^3.3.0",
-    "multer": "^1.4.4",
     "oas-tools": "^2.1.4"
   },
   "devDependencies": {

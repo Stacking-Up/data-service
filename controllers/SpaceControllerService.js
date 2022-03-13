@@ -25,16 +25,7 @@ module.exports.getSpaceRentals = function getSpaceRentals (req, res, next) {
 
 module.exports.postSpace = async function postSpace (req, res, next) {
   const authToken = req.cookies?.authToken;
-  const imagesToBePublished = req.swagger.params.body.files;
-
-  let spaceToBePublished;
-  try {
-    spaceToBePublished = JSON.parse(req.swagger.params.body.value.space);
-  } catch (err) {
-    console.error(err);
-    res.status(400).send('Bad Request : Invalid JSON');
-    return;
-  }
+  const spaceToBePublished = req.swagger.params.body.value;
 
   if (authToken) {
     try {
@@ -44,12 +35,12 @@ module.exports.postSpace = async function postSpace (req, res, next) {
         return;
       }
 
-      if (decoded.role === 'USER' || decoded.userId !== parseInt(spaceToBePublished.ownerId)) {
+      if (decoded.role === 'USER' || parseInt(decoded.userId) !== parseInt(spaceToBePublished.ownerId)) {
         res.status(403).send('Forbidden');
         return;
       }
 
-      const errors = utils.checkSpaceValidity(spaceToBePublished, imagesToBePublished);
+      const errors = utils.checkSpaceValidity(spaceToBePublished);
       if (errors.length > 0) {
         res.status(400).send(`Bad Request: ${errors[0]}`);
         return;
@@ -81,8 +72,8 @@ module.exports.postSpace = async function postSpace (req, res, next) {
             })
           },
           images: {
-            create: imagesToBePublished?.map(image => {
-              return { image: image.buffer, name: image.originalname, mimetype: image.mimetype, size: image.size };
+            create: spaceToBePublished.images?.map(base64 => {
+              return {image: Buffer.from(base64, 'base64'), mimetype: base64.indexOf('/9j/') === 0 ? 'image/jpeg' : 'image/png'};
             })
           }
         }

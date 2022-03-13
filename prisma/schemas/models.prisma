@@ -97,9 +97,7 @@ enum Dimensions {
 model Image {
   id          Int @id @default(autoincrement())
   image       Bytes
-  name        String
   mimetype    String
-  size        Int
 
   user        User? @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int?
