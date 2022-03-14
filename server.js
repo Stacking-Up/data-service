@@ -1,6 +1,5 @@
 'use strict';
 
-
 const deploy = (env) => {
   return new Promise((resolve, reject) => {
     try {
