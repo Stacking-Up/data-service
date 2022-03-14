@@ -200,30 +200,24 @@ module.exports.deleteSpace = async function deleteSpace (req, res, next) {
       const space = await prisma.space.findUnique({
         where: {
           id: parseInt(spaceId)
+        },
+        include: {
+          rentals: true
         }
       });
 
-      if (!space) {
-        res.status(400).send('No space records found to delete');
-        return;
-      }
-
-      if (decoded.role === 'USER' || parseInt(decoded.userId) !== parseInt(space.ownerId)) {
-        res.status(403).send('Forbidden');
-        return;
-      }
-
-      // Check RN09
-      const rentals = await prisma.rental.findMany({
-        where: {
-          space: {
-            id: parseInt(spaceId)
-          }
+      if (space) {
+        if (decoded.role === 'USER' || parseInt(decoded.userId) !== parseInt(space.ownerId)) {
+          res.status(403).send('Forbidden');
+          return;
         }
-      });
-
-      if (rentals && rentals.length > 0) {
-        res.status(400).send('Space is being rented');
+        // Check RN09
+        if (space.rentals && space.rentals.length > 0) {
+          res.status(400).send('Cannot delete space containing rentals');
+          return;
+        }
+      } else {
+        res.status(400).send('No space records found');
         return;
       }
 
@@ -241,12 +235,8 @@ module.exports.deleteSpace = async function deleteSpace (req, res, next) {
       }).then(() => {
         res.status(200).send('Space deleted successfully');
       }).catch((err) => {
-        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
-          res.status(400).send('No space records found');
-        } else {
-          console.error(err);
-          res.status(500).send('Internal Server Error');
-        }
+        console.error(err);
+        res.status(500).send('Internal Server Error');
       });
     } catch (err) {
       if (err instanceof jwt.JsonWebTokenError) {
