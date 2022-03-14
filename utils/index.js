@@ -12,7 +12,7 @@ module.exports.checkSpaceValidity = (space) => {
   return errors;
 };
 
-function _checkSpaceConstraints (space, images, errors) {
+function _checkSpaceConstraints (space, errors) {
   if (!space.name || !space.description || !space.initialDate || !space.location || !space.dimensions || space.shared === undefined) {
     errors.push('Missing required attributes');
   } else if (space.name.length < 3 || space.name.length > 50) {
@@ -37,7 +37,7 @@ function _checkSpaceConstraints (space, images, errors) {
     errors.push('Tags must be an array');
   } else if (space.tags && !space.tags.every(tag => Object.values(TagEnum).includes(tag))) {
     errors.push('Tags must be one of the following: ' + Object.values(TagEnum).join(', '));
-  } else if (images && !images.every(image => image.indexOf('iVBORw0KGgo') === 0 || image.indexOf('/9j/') === 0)) {
+  } else if (space.images && !space.images.every(image => image.indexOf('iVBORw0KGgo') === 0 || image.indexOf('/9j/') === 0)) {
     errors.push('Images must be jpeg or png');
   }
   return errors;
