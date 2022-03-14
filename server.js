@@ -6,9 +6,14 @@ const deploy = (env) => {
       const fs = require('fs');
       const http = require('http');
       const path = require('path');
-
+      const cookieParser = require('cookie-parser');
       const express = require('express');
+      const cors = require('cors');
       const app = express();
+
+      app.use(express.json({ limit: '50mb' }));
+      app.use(cookieParser());
+      app.use(cors());
 
       const oasTools = require('oas-tools');
       const jsyaml = require('js-yaml');

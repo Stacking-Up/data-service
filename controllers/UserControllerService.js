@@ -147,7 +147,6 @@ module.exports.getUserSpaces = function getUserSpaces (req, res, next) {
       ownerId: parseInt(req.userId.value)
     },
     include: {
-      image: true,
       tags: true
     }
   })

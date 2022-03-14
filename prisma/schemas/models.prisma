@@ -97,6 +97,7 @@ enum Dimensions {
 model Image {
   id          Int @id @default(autoincrement())
   image       Bytes
+  mimetype    String
 
   user        User? @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int?
@@ -118,7 +119,7 @@ model Space {
   priceMonth  Float?
   shared      Boolean @default(false)
 
-  image       Image?
+  images      Image[]
   owner       User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId     Int
   rentals     Rental[]
@@ -126,11 +127,39 @@ model Space {
 }
 
 model Tag {
-  id          Int @id @default(autoincrement())
-  key         String
-  value       String
+  tag         TagEnum @id
 
   spaces      Space[]
+}
+
+enum TagEnum {
+  FLOOR_1
+  FLOOR_2
+  FLOOR_3UP
+  HOUSE_ROOM
+  FLAT_ROOM
+  BASEMENT
+  GARAGE
+  STORAGE_ROOM
+  INDUSTRIAL_WAREHOUSE
+  OFFICE_ROOM
+  PENTHOUSE
+  ELEVATOR
+  WET
+  DRY
+  COLD
+  WARM
+  HOT
+  SECURITY_ALARM
+  VIDEO_MONITORING
+  FIRE_ALARM
+  GROUND_FLOOR
+  SOCKET
+  INDOOR
+  OUTDOOR
+  NARROW_ACCESS
+  MEDIUM_WIDTH_ACCESS
+  WIDE_ACCESS
 }
 
 // Rental model
