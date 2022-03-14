@@ -883,6 +883,59 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
+  '/api/v1/spaces/{spaceId}/images':
+    get:
+      tags:
+        - Spaces
+      x-swagger-router-controller: SpaceController
+      description: Returns all the images of a space
+      operationId: getSpaceImages
+      parameters:
+        - name: spaceId
+          in: path
+          description: Space's id
+          required: true
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/image'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
   /api/v1/rentals:
     get:
       tags:
@@ -1128,6 +1181,9 @@ components:
         renterId:
           type: integer
           format: int32
+    image:
+      type: string
+      format: byte
   securitySchemes:
     cookieAuth:
       type: apiKey

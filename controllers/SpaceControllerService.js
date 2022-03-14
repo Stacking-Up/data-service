@@ -330,3 +330,28 @@ module.exports.deleteSpace = async function deleteSpace (req, res, next) {
     res.status(401).send('Unauthorized');
   }
 };
+
+module.exports.getSpaceImages = async function getSpaceImages (req, res, next) {
+  await prisma.image.findMany({
+    skip: req.offset.value,
+    take: req.limit.value,
+    where: {
+      spaceId: req.spaceId.value
+    }
+  })
+    .then(images => {
+      if (!images || images.length === 0) { 
+        res.status(404).send('Images not found or non existing space with this Id.'); 
+      } else { 
+        res.send(images.map(img => img.image.toString('base64'))); 
+      }
+    })
+    .catch(err => {
+      if ([req.spaceId.value, req.offset.value, req.limit.value].some(s => s && !s.toString().match(/^\d+$/))) {
+        res.status(400).send('Invalid parameter. It must be an integer number');
+      } else {
+        console.error(err);
+        res.status(500).send('Server error: Could not get spaces.');
+      }
+    });
+}

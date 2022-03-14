@@ -25,3 +25,7 @@ module.exports.putSpace = function putSpace (req, res, next) {
 module.exports.deleteSpace = function deleteSpace (req, res, next) {
   varSpaceController.deleteSpace(req, res, next);
 };
+
+module.exports.getSpaceImages = function getSpaceImages (req, res, next) {
+  varSpaceController.getSpaceImages(req.swagger.params, res, next);
+};
