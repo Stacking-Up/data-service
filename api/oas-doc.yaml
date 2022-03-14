@@ -448,6 +448,53 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
+    post:
+      security:
+        - cookieAuth: []
+      tags:
+        - Spaces
+      x-swagger-router-controller: SpaceController
+      description: Checks the validity of a logged-in user's token and publishes the space
+      operationId: postSpace      
+      requestBody:
+        x-name: body
+        description: Space object to be published
+        required: true
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/space'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
   '/api/v1/spaces/{spaceId}':
     get:
       tags:
@@ -477,6 +524,106 @@ paths:
                 $ref: '#/components/schemas/errorModel'
         '404':
           description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+    put:
+      security:
+        - cookieAuth: []
+      tags:
+        - Spaces
+      x-swagger-router-controller: SpaceController
+      description: Update space by id
+      operationId: putSpace
+      parameters:
+        - name: spaceId
+          in: path
+          description: Space's id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        x-name: body
+        description: Space object to be published
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/space'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+    delete:
+      security:
+        - cookieAuth: []
+      tags:
+        - Spaces
+      x-swagger-router-controller: SpaceController
+      description: Delete space by id
+      operationId: deleteSpace
+      parameters:
+        - name: spaceId
+          in: path
+          description: Space's id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Space deleted succesfully
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
           content:
             application/json:
               schema:
@@ -583,6 +730,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  /api/v1/tags:
+    get:
+      tags:
+        - SpaceTags
+      x-swagger-router-controller: TagController
+      description: Returns all existing tags
+      operationId: getTags
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
         '500':
           description: Internal Server Error
           content:
@@ -704,13 +873,15 @@ components:
         ownerId:
           type: integer
           format: int32
-        image:
-          type: string
-          format: binary
         tags:
           type: array
           items:
-            $ref: '#/components/schemas/tag'
+            type: string
+        image:
+          type: array
+          items:
+            type: string
+            format: byte
     rental:
       type: object
       required:
@@ -745,13 +916,8 @@ components:
         renterId:
           type: integer
           format: int32
-    tag:
-      type: object
-      required:
-        - key
-        - value
-      properties:
-        key:
-          type: string
-        value:
-          type: string
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: authToken
