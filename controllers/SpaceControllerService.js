@@ -340,10 +340,10 @@ module.exports.getSpaceImages = async function getSpaceImages (req, res, next) {
     }
   })
     .then(images => {
-      if (!images || images.length === 0) { 
-        res.status(404).send('Images not found or non existing space with this Id.'); 
-      } else { 
-        res.send(images.map(img => img.image.toString('base64'))); 
+      if (!images || images.length === 0) {
+        res.status(404).send('Images not found or non existing space with this Id.');
+      } else {
+        res.send(images.map(img => img.image.toString('base64')));
       }
     })
     .catch(err => {
@@ -354,4 +354,4 @@ module.exports.getSpaceImages = async function getSpaceImages (req, res, next) {
         res.status(500).send('Server error: Could not get spaces.');
       }
     });
-}
+};

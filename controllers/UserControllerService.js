@@ -228,3 +228,26 @@ module.exports.getUserRental = function getUserRental (req, res, next) {
       res.status(500).send('Server error: Could not get rental.');
     });
 };
+
+module.exports.getUserAvatar = async function getUserAvatar (req, res, next) {
+  await prisma.image.findUnique({
+    where: {
+      userId: req.userId.value
+    }
+  })
+    .then(img => {
+      if (!img) {
+        res.status(404).send('No image found for this userdId');
+      } else {
+        res.send(img.image.toString('base64'));
+      }
+    })
+    .catch(err => {
+      if (!req.userId.value || !req.userId.value.toString().match(/^\d+$/)) {
+        res.status(400).send('Invalid userId parameter. It must be an integer number');
+      } else {
+        console.error(err);
+        res.status(500).send('Server error: Could not get user avatar.');
+      }
+    });
+};

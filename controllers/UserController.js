@@ -41,3 +41,7 @@ module.exports.getUserRentals = function getUserRentals (req, res, next) {
 module.exports.getUserRental = function getUserRental (req, res, next) {
   varUserController.getUserRental(req.swagger.params, res, next);
 };
+
+module.exports.getUserAvatar = function getUserAvatar (req, res, next) {
+  varUserController.getUserAvatar(req.swagger.params, res, next);
+};

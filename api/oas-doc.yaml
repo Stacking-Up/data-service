@@ -475,6 +475,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
+  '/api/v1/users/{userId}/avatar':
+    get:
+      tags:
+        - Users
+      x-swagger-router-controller: UserController
+      description: Returns the avatar of an user
+      operationId: getUserAvatar
+      parameters:
+        - name: userId
+          in: path
+          description: User's id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/image'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
   /api/v1/spaces:
     get:
       tags:
