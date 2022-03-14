@@ -1,12 +1,14 @@
 **
 
 # Allow files and directories
-!/api/**
-!/controllers/**
-!/prisma/**/models.prisma
-!/prisma/migrations/**
-!/utils/**
+!api/**
+!controllers/**
+!prisma/schemas/models.prisma
+!prisma/migrations/**
+!prisma/index.js
+!utils/**
 !index.js
 !server.js
 !package.json
 !package-lock.json
+!deploy.sh

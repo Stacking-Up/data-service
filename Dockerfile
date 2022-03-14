@@ -1,6 +1,8 @@
 
 FROM node:16.13.0-alpine3.14
 
+WORKDIR /opt/app
+
 COPY . .
 
 RUN npm install --only=prod
@@ -12,4 +14,5 @@ ARG PORT=80
 ENV PORT $PORT
 EXPOSE $PORT
 
-CMD ["npm", "run", "deploy"]
+RUN chmod +x ./deploy.sh
+CMD ["./deploy.sh"]
