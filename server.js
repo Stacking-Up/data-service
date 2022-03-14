@@ -1,5 +1,6 @@
 'use strict';
 
+
 const deploy = (env) => {
   return new Promise((resolve, reject) => {
     try {
@@ -8,10 +9,12 @@ const deploy = (env) => {
       const path = require('path');
       const cookieParser = require('cookie-parser');
       const express = require('express');
+      const cors = require('cors');
       const app = express();
 
-      app.use(express.json());
+      app.use(express.json({ limit: '50mb' }));
       app.use(cookieParser());
+      app.use(cors());
 
       const oasTools = require('oas-tools');
       const jsyaml = require('js-yaml');
