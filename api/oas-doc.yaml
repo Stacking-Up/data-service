@@ -18,6 +18,19 @@ paths:
       x-swagger-router-controller: UserController
       description: Returns all users
       operationId: getUsers
+      parameters:
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: Success
@@ -27,13 +40,19 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/user'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
         '500':
           description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}':
+  /api/v1/users/{userId}:
     get:
       tags:
         - Users
@@ -46,7 +65,7 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
@@ -72,7 +91,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/items':
+  /api/v1/users/{userId}/items:
     get:
       tags:
         - Users
@@ -85,7 +104,7 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
@@ -113,7 +132,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/items/{itemId}':
+  /api/v1/users/{userId}/items/{itemId}:
     get:
       tags:
         - Users
@@ -126,13 +145,13 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
         - name: itemId
           in: path
           description: Item's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
@@ -158,7 +177,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/ratings':
+  /api/v1/users/{userId}/ratings:
     get:
       tags:
         - Users
@@ -171,7 +190,7 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
         - name: filter
           in: query
           description: 'Filter for given, received or both'
@@ -182,6 +201,18 @@ paths:
               - given
               - received
               - all
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: Success
@@ -209,7 +240,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/ratings/{ratingId}':
+  /api/v1/users/{userId}/ratings/{ratingId}:
     get:
       tags:
         - Users
@@ -222,13 +253,13 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
         - name: ratingId
           in: path
           description: Rating's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
@@ -254,7 +285,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/spaces':
+  /api/v1/users/{userId}/spaces:
     get:
       tags:
         - Users
@@ -267,7 +298,19 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: Success
@@ -295,7 +338,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/spaces/{spaceId}':
+  /api/v1/users/{userId}/spaces/{spaceId}:
     get:
       tags:
         - Users
@@ -308,13 +351,13 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
         - name: spaceId
           in: path
           description: Space's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
@@ -340,7 +383,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/rentals':
+  /api/v1/users/{userId}/rentals:
     get:
       tags:
         - Users
@@ -353,7 +396,19 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: Success
@@ -381,7 +436,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/rentals/{rentalId}':
+  /api/v1/users/{userId}/rentals/{rentalId}:
     get:
       tags:
         - Users
@@ -394,13 +449,13 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
         - name: rentalId
           in: path
           description: Rental's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
@@ -408,6 +463,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/rental'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  '/api/v1/users/{userId}/avatar':
+    get:
+      tags:
+        - Users
+      x-swagger-router-controller: UserController
+      description: Returns the avatar of an user
+      operationId: getUserAvatar
+      parameters:
+        - name: userId
+          in: path
+          description: User's id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/image'
         '400':
           description: Bad Request
           content:
@@ -655,7 +749,7 @@ paths:
           description: Space's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
@@ -794,7 +888,19 @@ paths:
           description: Space's id
           required: true
           schema:
-            type: string
+            type: integer
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: Success
@@ -822,6 +928,59 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
+  '/api/v1/spaces/{spaceId}/images':
+    get:
+      tags:
+        - Spaces
+      x-swagger-router-controller: SpaceController
+      description: Returns all the images of a space
+      operationId: getSpaceImages
+      parameters:
+        - name: spaceId
+          in: path
+          description: Space's id
+          required: true
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/image'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
   /api/v1/rentals:
     get:
       tags:
@@ -829,6 +988,19 @@ paths:
       x-swagger-router-controller: RentalController
       description: Returns all rentals
       operationId: getRentals
+      parameters:
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: Success
@@ -838,13 +1010,19 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/rental'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
         '500':
           description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/rentals/{rentalId}':
+  /api/v1/rentals/{rentalId}:
     get:
       tags:
         - Rentals
@@ -857,7 +1035,7 @@ paths:
           description: Rental's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
@@ -946,20 +1124,11 @@ components:
       required:
         - type
         - dimensions
-        - ownerId
       properties:
         type:
           type: string
-          enum:
-            - Muy grande
-            - Grande
-            - Mediano
-            - Pequeño
         dimensions:
           type: string
-        ownerId:
-          type: integer
-          format: int32
     rating:
       type: object
       required:
@@ -1063,6 +1232,9 @@ components:
         renterId:
           type: integer
           format: int32
+    image:
+      type: string
+      format: byte
   securitySchemes:
     cookieAuth:
       type: apiKey
