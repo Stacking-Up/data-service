@@ -12,8 +12,12 @@ module.exports.getUsers = function getUsers (req, res, next) {
       res.send(users.map(user => utils.excludeNulls(user)));
     })
     .catch(err => {
-      console.error(err);
-      res.status(500).send('Server error: Could not get users');
+      if ([req.offset.value, req.limit.value].some(s => s && !s.toString().match(/^\d+$/))) {
+        res.status(400).send('Invalid query. It must be an integer number');
+      } else {
+        console.error(err);
+        res.status(500).send('Server error: Could not get users');
+      }
     });
 };
 
@@ -24,11 +28,19 @@ module.exports.getUser = function getUser (req, res, next) {
     }
   })
     .then(user => {
-      if (!user) { res.status(404).send('User not found'); } else { res.send(utils.excludeNulls(user)); }
+      if (!user) {
+        res.status(404).send('User not found');
+      } else {
+        res.send(utils.excludeNulls(user));
+      }
     })
     .catch(err => {
-      console.error(err);
-      res.status(500).send('Server error: Could not get users');
+      if (!req.userId.value || !req.userId.value.toString().match(/^\d+$/)) {
+        res.status(400).send('Invalid userId parameter. It must be an integer number');
+      } else {
+        console.error(err);
+        res.status(500).send('Server error: Could not get user');
+      }
     });
 };
 
@@ -47,11 +59,21 @@ module.exports.getUserItems = function getUserItems (req, res, next) {
     }
   })
     .then(user => {
-      if (!user) { res.status(404).send('User not found'); } else if (!user.items) { res.status(404).send('Items not found'); } else { res.send(user.items); }
+      if (!user) {
+        res.status(404).send('User not found');
+      } else if (!user.items || user.items.length === 0) {
+        res.status(404).send('Items not found');
+      } else {
+        res.send(user.items);
+      }
     })
     .catch(err => {
-      console.error(err);
-      res.status(500).send('Server error: Could not get users');
+      if (!req.userId.value || !req.userId.value.toString().match(/^\d+$/)) {
+        res.status(400).send('Invalid userId parameter. It must be an integer number');
+      } else {
+        console.error(err);
+        res.status(500).send('Server error: Could not get items');
+      }
     });
 };
 
@@ -73,11 +95,21 @@ module.exports.getUserItem = function getUserItem (req, res, next) {
     }
   })
     .then(user => {
-      if (!user) { res.status(404).send('User not found'); } else if (!user.items || user.items.length === 0) { res.status(404).send('Item not found'); } else { res.send(user.items[0]); }
+      if (!user) {
+        res.status(404).send('User not found');
+      } else if (!user.items || user.items.length === 0) {
+        res.status(404).send('Item not found');
+      } else {
+        res.send(user.items[0]);
+      }
     })
     .catch(err => {
-      console.error(err);
-      res.status(500).send('Server error: Could not get users');
+      if ([req.userId.value, req.itemId.value].some(s => s && !s.toString().match(/^\d+$/))) {
+        res.status(400).send('Invalid parameter. It must be an integer number');
+      } else {
+        console.error(err);
+        res.status(500).send('Server error: Could not get the item of the user.');
+      }
     });
 };
 
@@ -101,12 +133,21 @@ module.exports.getUserRatings = function getUserRatings (req, res, next) {
       }
   })
     .then(rating => {
-      if (!rating) { res.status(404).send('Ratings not found'); }
-      req.filter.value ? res.send(utils.filterRatings(rating, req)) : res.send(rating);
+      if (!rating || rating.length === 0) {
+        res.status(404).send('Ratings not found');
+      } else if (req.filter.value && !['all', 'received', 'given'].includes(req.filter.value.toLowerCase())) {
+        res.status(400).send('Invalid filter parameter. It must be one of the following: all, received, given');
+      } else {
+        res.send(utils.filterRatings(rating, req));
+      }
     })
     .catch(err => {
-      console.error(err);
-      res.status(500).send('Server error: Could not get ratings');
+      if ([req.userId.value, req.offset.value, req.limit.value].some(s => s && !s.toString().match(/^\d+$/))) {
+        res.status(400).send('Invalid parameter. It must be an integer number');
+      } else {
+        console.error(err);
+        res.status(500).send('Server error: Could not get ratings.');
+      }
     });
 };
 
@@ -131,11 +172,21 @@ module.exports.getUserRating = function getUserRating (req, res, next) {
     }
   })
     .then(user => {
-      if (!user) { res.status(404).send('User not found'); } else if (!user.ratings || user.ratings.length === 0) { res.status(404).send('Rating not found'); } else { res.send(user.ratings[0]); }
+      if (!user) {
+        res.status(404).send('User not found');
+      } else if (!user.ratings || user.ratings.length === 0) {
+        res.status(404).send('Rating not found');
+      } else {
+        res.send(user.ratings[0]);
+      }
     })
     .catch(err => {
-      console.error(err);
-      res.status(500).send('Server error: Could not get rating');
+      if ([req.userId.value, req.ratingId.value].some(s => s && !s.toString().match(/^\d+$/))) {
+        res.status(400).send('Invalid parameter. It must be an integer number');
+      } else {
+        console.error(err);
+        res.status(500).send('Server error: Could not get the rating of the user.');
+      }
     });
 };
 
@@ -151,11 +202,19 @@ module.exports.getUserSpaces = function getUserSpaces (req, res, next) {
     }
   })
     .then(spaces => {
-      !spaces ? res.status(404).send('Spaces not found') : res.send(spaces.map(space => utils.excludeNulls(space)));
+      if (!spaces || spaces.length === 0) {
+        res.status(404).send('Spaces not found');
+      } else {
+        res.send(spaces.map(space => utils.excludeNulls(space)));
+      }
     })
     .catch(err => {
-      console.error(err);
-      res.status(500).send('Server error: Could not get spaces');
+      if (!req.userId.value || !req.userId.value.toString().match(/^\d+$/)) {
+        res.status(400).send('Invalid userId parameter. It must be an integer number');
+      } else {
+        console.error(err);
+        res.status(500).send('Server error: Could not get items');
+      }
     });
 };
 
@@ -173,11 +232,21 @@ module.exports.getUserSpace = function getUserSpace (req, res, next) {
     }
   })
     .then(users => {
-      if (!users) { res.status(404).send('User not found'); } else if (!users.spaces || users.spaces.length === 0) { res.status(404).send('Space not found'); } else { res.send(users.spaces.map(space => utils.excludeNulls(space))[0]); }
+      if (!users) {
+        res.status(404).send('User not found');
+      } else if (!users.spaces || users.spaces.length === 0) {
+        res.status(404).send('Space not found');
+      } else {
+        res.send(users.spaces.map(space => utils.excludeNulls(space))[0]);
+      }
     })
     .catch(err => {
-      console.error(err);
-      res.status(500).send('Server error: Could not get space');
+      if ([req.userId.value, req.spaceId.value].some(s => s && !s.toString().match(/^\d+$/))) {
+        res.status(400).send('Invalid parameter. It must be an integer number');
+      } else {
+        console.error(err);
+        res.status(500).send('Server error: Could not get space');
+      }
     });
 };
 
@@ -190,11 +259,19 @@ module.exports.getUserRentals = function getUserRentals (req, res, next) {
     }
   })
     .then(rentals => {
-      if (!rentals) { res.status(404).send('Rentals not found'); } else if (rentals.length === 0) { res.status(404).send('Rentals not found or non existing user with this Id.'); } else { res.send(rentals.map(rental => utils.excludeNulls(rental))); }
+      if (!rentals || rentals.length === 0) {
+        res.status(404).send('Rentals not found');
+      } else {
+        res.send(rentals.map(rental => utils.excludeNulls(rental)));
+      }
     })
     .catch(err => {
-      console.error(err);
-      res.status(500).send('Server error: Could not get rentals.');
+      if (!req.userId.value || !req.userId.value.toString().match(/^\d+$/)) {
+        res.status(400).send('Invalid userId parameter. It must be an integer number');
+      } else {
+        console.error(err);
+        res.status(500).send('Server error: Could not get rentals.');
+      }
     });
 };
 
@@ -221,11 +298,21 @@ module.exports.getUserRental = function getUserRental (req, res, next) {
     }
   })
     .then(user => {
-      if (!user) { res.status(404).send('User not found'); } else if (!user.rentals[0]) { res.status(404).send('Rental not found'); } else { res.send(user.rentals[0]); }
+      if (!user) {
+        res.status(404).send('User not found');
+      } else if (!user.rentals || user.rentals.length === 0) {
+        res.status(404).send('Rental not found');
+      } else {
+        res.send(user.rentals[0]);
+      }
     })
     .catch(err => {
-      console.error(err);
-      res.status(500).send('Server error: Could not get rental.');
+      if ([req.userId.value, req.rentalId.value].some(s => s && !s.toString().match(/^\d+$/))) {
+        res.status(400).send('Invalid parameter. It must be an integer number');
+      } else {
+        console.error(err);
+        res.status(500).send('Server error: Could not get rental.');
+      }
     });
 };
 

@@ -40,6 +40,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/user'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
         '500':
           description: Internal Server Error
           content:
@@ -1004,6 +1010,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/rental'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
         '500':
           description: Internal Server Error
           content:

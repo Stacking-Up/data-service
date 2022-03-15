@@ -77,11 +77,19 @@ module.exports.getSpace = function getSpace (req, res, next) {
     }
   })
     .then(space => {
-      if (!space) { res.status(404).send('Space not found'); } else { res.send(utils.excludeNulls(space)); }
+      if (!space) {
+        res.status(404).send('Space not found');
+      } else {
+        res.send(utils.excludeNulls(space));
+      }
     })
     .catch(err => {
-      console.error(err);
-      res.status(500).send('Server error: Could not get spaces.');
+      if (!req.spaceId.value || !req.spaceId.value.toString().match(/^\d+$/)) {
+        res.status(400).send('Invalid parameter. It must be an integer number');
+      } else {
+        console.error(err);
+        res.status(500).send('Server error: Could not get space');
+      }
     });
 };
 
@@ -95,11 +103,19 @@ module.exports.getSpaceRentals = function getSpaceRentals (req, res, next) {
   })
 
     .then(rentals => {
-      if (!rentals) { res.status(404).send('Rentals not found'); } else if (rentals.length === 0) { res.status(404).send('Rentals not found or non existing space with this Id.'); } else { res.send(rentals.map(rental => utils.excludeNulls(rental))); }
+      if (!rentals || rentals.length === 0) {
+        res.status(404).send('Rentals not found');
+      } else {
+        res.send(rentals.map(rental => utils.excludeNulls(rental)));
+      }
     })
     .catch(err => {
-      console.error(err);
-      res.status(500).send('Server error: Could not get rentals.');
+      if ([req.spaceId.value, req.offset.value, req.limit.value].some(s => s && !s.toString().match(/^\d+$/))) {
+        res.status(400).send('Invalid parameter. It must be an integer number');
+      } else {
+        console.error(err);
+        res.status(500).send('Server error: Could not get rentals.');
+      }
     });
 };
 
@@ -194,7 +210,7 @@ module.exports.putSpace = async function putSpace (req, res, next) {
         return;
       }
 
-      if (!spaceId.match(/^\d+$/)) {
+      if (!spaceId.toString().match(/^\d+$/)) {
         res.status(400).send('Invalid spaceId. It must be an integer number');
         return;
       }
@@ -272,7 +288,7 @@ module.exports.deleteSpace = async function deleteSpace (req, res, next) {
     try {
       const decoded = jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
 
-      if (!spaceId.match(/^\d+$/)) {
+      if (!spaceId.toString().match(/^\d+$/)) {
         res.status(400).send('Invalid spaceId. It must be an integer number');
         return;
       }

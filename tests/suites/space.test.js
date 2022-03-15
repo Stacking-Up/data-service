@@ -64,11 +64,59 @@ module.exports = (prisma, jwt) => {
       }).resolves(dbOutput)
     
       // API Call
-      axios.get(`${host}/api/v1/spaces/1`).then(res => {
-        assert.equal(res.status, 404);
-        assert.deepEqual(res.data, expected);
+      await axios.get(`${host}/api/v1/spaces/1`).then(res => {
+        assert.fail();
+      })
+      .catch(err => {
+        assert.equal(err.response.status, 404);
+        assert.equal(err.response.data, expected);
       });
     
+    });
+
+    it('should return a 400 when trying to get a space when a non integer spaceId', async () => {
+      // Fixture    
+      const expected = "Invalid parameter. It must be an integer number" 
+    
+      // Mock DB Query
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }
+      }).rejects();
+    
+      // API Call
+      await axios.get(`${host}/api/v1/spaces/invalid`).then(res => {
+        assert.fail();
+      })
+      .catch(err => {
+        assert.equal(err.response.status, 400);
+        assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('should return a 500 when unexpected error happens getting a space', async () => {
+      // Fixture    
+      const expected = "Server error: Could not get space" 
+    
+      //Mock console.log to avoid printing errors
+      console.error = sinon.stub();
+
+      // Mock DB Query
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }
+      }).rejects();
+    
+      // API Call
+      await axios.get(`${host}/api/v1/spaces/1`).then(res => {
+        assert.fail();
+      })
+      .catch(err => {
+        assert.equal(err.response.status, 500);
+        assert.equal(err.response.data, expected);
+      });
     });
 
     it('Should return spaces that can not be shared', async () => {
@@ -1401,6 +1449,112 @@ module.exports = (prisma, jwt) => {
         assert.equal(err.response.data, expected);
       });
     });
+
+    it('should return spaces that an user owns', async () => {
+      // Fixture
+      const dbOutput = [{id: 1, name: 'space1', description: 'space1', initialDate: '1970-01-01T00:00:00.000Z', finalDate: '1971-01-01T00:00:00.000Z', location: '44.4,45.3', dimensions: '2x2', priceHour: 33, priceDay: 345, priceMonth: 3444, shared: true, ownerId: 1}, 
+      {id: 2, name: 'space2', description: 'space2', initialDate: '1970-01-01T00:00:00.000Z', finalDate: '1971-01-01T00:00:00.000Z', location: '44.4,45.3', dimensions: '2x2', priceHour: 33, priceDay: 345, priceMonth: 3444, shared: false, ownerId: 1}];
+      const expected = [{id: 1, name: 'space1', description: 'space1', initialDate: '1970-01-01T00:00:00.000Z', finalDate: '1971-01-01T00:00:00.000Z', location: '44.4,45.3', dimensions: '2x2', priceHour: 33, priceDay: 345, priceMonth: 3444, shared: true, ownerId: 1}, 
+      {id: 2, name: 'space2', description: 'space2', initialDate: '1970-01-01T00:00:00.000Z', finalDate: '1971-01-01T00:00:00.000Z', location: '44.4,45.3', dimensions: '2x2', priceHour: 33, priceDay: 345, priceMonth: 3444, shared: false, ownerId: 1}];
+
+      // Mock DB Query
+      findMany.withArgs({
+        skip: undefined,
+        take: undefined,
+        where: {
+          ownerId: 1
+        },
+        include: {
+          tags: true
+        }
+      }).resolves(dbOutput);
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/spaces`).then(res => {
+        assert.equal(res.status, 200);
+        assert.deepEqual(res.data, expected);
+      });
+    });
+
+    it('should return 404 when trying to get non-existing spaces that an user owns', async () => {
+      // Fixture
+      const dbOutput = undefined;
+      const expected = 'Spaces not found';
+
+      // Mock DB Query
+      findMany.withArgs({
+        skip: undefined,
+        take: undefined,
+        where: {
+          ownerId: 1
+        },
+        include: {
+          tags: true
+        }
+      }).resolves(dbOutput)
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/spaces`).then(res => {
+        assert.fail();
+      })
+      .catch(err => {
+        assert.equal(err.response.status, 404);
+        assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('should return 400 when trying to get spaces with non integers userId', async () => {
+      // Fixture
+      const expected = 'Invalid userId parameter. It must be an integer number';
+
+      // Mock DB Query
+      findMany.withArgs({
+        skip: undefined,
+        take: undefined,
+        where: {
+          ownerId: "invalid"
+        },
+        include: {
+          tags: true
+        }
+      }).rejects();
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/invalid/spaces`).then(res => {
+        assert.fail();
+      })
+      .catch(err => {
+        assert.equal(err.response.status, 400);
+        assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('should return 500 unexpected error when trying to get spaces of an user', async () => {
+      // Fixture
+      const expected = 'Server error: Could not get items';
+
+      // Mock DB Query
+      findMany.withArgs({
+        skip: undefined,
+        take: undefined,
+        where: {
+          ownerId: 1
+        },
+        include: {
+          tags: true
+        }
+      }).rejects();
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/spaces`).then(res => {
+        assert.fail();
+      })
+      .catch(err => {
+        assert.equal(err.response.status, 500);
+        assert.equal(err.response.data, expected);
+      });
+    });
+
   });
 
   describe('POST Endpoint tests:', () => {
@@ -1412,6 +1566,7 @@ module.exports = (prisma, jwt) => {
       name: "test",
       description: "test",
       initialDate: new Date("2022-03-10T18:18:14.049Z"),
+      finalDate: new Date("2023-03-10T18:18:14.049Z"),
       location: "44.43,43.21",
       dimensions: "2x2",
       shared: true,
@@ -1944,6 +2099,7 @@ module.exports = (prisma, jwt) => {
         name: "test",
         description: "test",
         initialDate: new Date("2022-03-10T18:18:14.049Z"),
+        finalDate: new Date("2023-03-10T18:18:14.049Z"),
         location: "44.43,43.21",
         dimensions: "2x2",
         shared: true,
