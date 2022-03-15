@@ -28,7 +28,7 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
   const sort = {};
   if (req.orderBy.value?.match(/(?:price(?:Hour|Day|Month)|initialDate)-(?:asc|desc)/)) {
     const [key, value] = req.orderBy.value.split('-');
-    sort[key] = value || 'desc';
+    sort[key] = value;
   }
 
   const actualDate = new Date();
@@ -53,16 +53,21 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
     orderBy: sort
   })
     .then(spaces => {
-      res.send(spaces.filter(space =>
-        utils.inRange(minDimension, maxDimension, utils.getMeters(space.dimensions)) &&
-        utils.includesTags(tagsFilter, utils.tagsToArray(space.tags)) &&
-        utils.inRange(minPriceHour, maxPriceHour, space.priceHour) &&
-        utils.inRange(minPriceDay, maxPriceDay, space.priceDay) &&
-        utils.inRange(minPriceMonth, maxPriceMonth, space.priceMonth) &&
-        utils.isRentedPer(req.isRentPerHour.value, space.priceHour) &&
-        utils.isRentedPer(req.isRentPerDay.value, space.priceDay) &&
-        utils.isRentedPer(req.isRentPerMonth.value, space.priceMonth)
-      ).map(space => utils.notNulls(space)));
+      utils.spaceFilter(spaces, async (space) => {
+        const inRangeDimension = utils.inRange(minDimension, maxDimension, utils.getMeters(space.dimensions));
+        const fieldSearch = await utils.fieldSearch(space.name, space.description, space.location, req.search.value);
+        const includeTags = utils.includesTags(tagsFilter, utils.tagsToArray(space.tags));
+        const inRangePriceHour = utils.inRange(minPriceHour, maxPriceHour, space.priceHour);
+        const inRangePriceDay = utils.inRange(minPriceDay, maxPriceDay, space.priceDay);
+        const inRangePriceMonth = utils.inRange(minPriceMonth, maxPriceMonth, space.priceMonth);
+        const isRentPerHour = utils.isRentedPer(req.isRentPerHour.value, space.priceHour);
+        const isRentedPerDay = utils.isRentedPer(req.isRentPerDay.value, space.priceDay);
+        const isRentedPerMonth = utils.isRentedPer(req.isRentPerMonth.value, space.priceMonth);
+
+        return inRangeDimension && fieldSearch && includeTags && inRangePriceHour && inRangePriceDay && inRangePriceMonth && isRentPerHour && isRentedPerDay && isRentedPerMonth;
+      }).then(spacesFiltered => {
+        res.send(spacesFiltered.map(space => utils.notNulls(space)).reduce((acc, space) => { space.tags = space.tags?.map(tag => tag.tag); return [...acc, space]; }, []));
+      });
     })
     .catch(err => {
       console.error(err);
