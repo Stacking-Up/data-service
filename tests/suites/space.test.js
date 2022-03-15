@@ -729,6 +729,46 @@ module.exports = (prisma, jwt) => {
       });
     });
 
+    it('Should not return spaces which price is undefined and therefore outside the price range filter', async () => {
+      // Fixture
+      const dbOutput = [{
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
+        dimensions: "1x3", priceHour: null, priceDay: 56, priceMonth: null, shared: true, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }]
+      }
+      ];
+
+      const expected = [];
+
+      //Set Actual Date
+      let actualDate = new Date();
+      actualDate.setMilliseconds(0);
+
+      // Mock DB Query
+      findMany.withArgs({
+        take: undefined, skip: undefined,
+        where: {
+          AND: [
+            { shared: { equals: undefined } },
+            {
+              OR: [
+                { finalDate: { gte: actualDate } },
+                { finalDate: { equals: null } }
+              ]
+            }
+          ]
+        }, include: { tags: true }, orderBy: {}
+      }).resolves(dbOutput);
+
+      // API Call
+      await axios.get(`${host}/api/v1/spaces?maxPriceMonth=460`).then(res => {
+        assert.equal(res.status, 200);
+        assert.equal(res.data.length, 0);
+        assert.deepEqual(res.data, expected);
+      }).catch(() => {
+        assert.fail("Server error: Could not get spaces");
+      });
+    });
+
     it('Should return spaces that can not be rented per hours', async () => {
       // Fixture
       const dbOutput = [{
@@ -777,6 +817,10 @@ module.exports = (prisma, jwt) => {
       const dbOutput = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
         dimensions: "1x3", priceHour: 10, priceDay: 56, priceMonth: 456, shared: false, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }]
+      },
+      {
+        id: 2, name: "garaje", description: "Esto es un garaje", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Sevilla",
+        dimensions: "1x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: false, ownerId: 2
       }
       ];
 
@@ -820,6 +864,10 @@ module.exports = (prisma, jwt) => {
       const dbOutput = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
         dimensions: "1x3", priceHour: 5, priceDay: null, priceMonth: 456, shared: false, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }]
+      },
+      {
+        id: 2, name: "garaje", description: "Esto es un garaje", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
+        dimensions: "1x3", priceHour: 5, priceDay: 57, priceMonth: 456, shared: true, ownerId: 2
       }
       ];
 
@@ -1021,7 +1069,7 @@ module.exports = (prisma, jwt) => {
       }).resolves(dbOutput);
 
       // API Call
-      await axios.get(`${host}/api/v1/spaces?tags=DRY,GARAGE`).then(res => {
+      await axios.get(`${host}/api/v1/spaces?tag=DRY,GARAGE`).then(res => {
         assert.equal(res.status, 200);
         assert.equal(res.data.length, 1);
         assert.deepEqual(res.data, expected);
@@ -1064,7 +1112,7 @@ module.exports = (prisma, jwt) => {
       }).resolves(dbOutput);
 
       // API Call
-      await axios.get(`${host}/api/v1/spaces?tags=DRY`).then(res => {
+      await axios.get(`${host}/api/v1/spaces?tag=DRY`).then(res => {
         assert.equal(res.status, 200);
         assert.equal(res.data.length, 1);
         assert.deepEqual(res.data, expected);
@@ -1498,6 +1546,53 @@ module.exports = (prisma, jwt) => {
         assert.equal(res.data.length, 1);
         assert.deepEqual(res.data, expected);
       }).catch(() => {
+        assert.fail("Server error: Could not get spaces");
+      });
+    });
+
+    it('Should return spaces which contains search text in mapQuery', async () => {
+      // Fixture
+      const dbOutput = [{
+        id: 1, name: "sotano", description: "Eso es una guarida", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "36.8551,-5.32362",
+        dimensions: "1x3", priceHour: 8, priceDay: 58, priceMonth: 440, shared: false, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }]
+      }
+      ];
+
+      const expected = [{
+        id: 1, name: "sotano", description: "Eso es una guarida", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "36.8551,-5.32362",
+        dimensions: "1x3", priceHour: 8, priceDay: 58, priceMonth: 440, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+      }
+      ];
+      //Set Actual Date
+      let actualDate = new Date();
+      actualDate.setMilliseconds(0);
+
+      // Mock DB Query
+      let sandbox = sinon.createSandbox();
+      sandbox.stub(axios, 'get').resolves({ data: {features: [{geometry: {coordinates: [-5.32362, 36.8551]}}]}});
+      findMany.withArgs({
+        take: undefined, skip: undefined,
+        where: {
+          AND: [
+            { shared: { equals: undefined } },
+            {
+              OR: [
+                { finalDate: { gte: actualDate } },
+                { finalDate: { equals: null } }
+              ]
+            }
+          ]
+        }, include: { tags: true }, orderBy: { }
+      }).resolves(dbOutput);
+
+      // API Call
+      await axios({method: 'GET', url: `${host}/api/v1/spaces?search=esto`}).then(res => {
+        assert.equal(res.status, 200);
+        assert.equal(res.data.length, 1);
+        assert.deepEqual(res.data, expected);
+        sandbox.restore();
+      }).catch(() => {
+        sandbox.restore();
         assert.fail("Server error: Could not get spaces");
       });
     });

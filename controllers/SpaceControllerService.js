@@ -28,7 +28,7 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
   const sort = {};
   if (req.orderBy.value?.match(/(?:price(?:Hour|Day|Month)|initialDate)-(?:asc|desc)/)) {
     const [key, value] = req.orderBy.value.split('-');
-    sort[key] = value || 'desc';
+    sort[key] = value;
   }
 
   const actualDate = new Date();

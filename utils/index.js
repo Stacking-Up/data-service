@@ -161,18 +161,16 @@ const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
 const mapBoxSearch = async (searchPlace, dimensions) => {
   let resBool = false;
   const [latitudDB, longitudDB] = dimensions.split(',');
-  if (searchPlace !== undefined) {
-    resBool = await axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${searchPlace}.json?access_token=${process.env.MAPBOX_API_KEY}&country=es&limit=1`)
-      .then(res => {
-        const latitudSearch = res.data.features[0].geometry.coordinates[1];
-        const longitudSearch = res.data.features[0].geometry.coordinates[0];
-        const euclideanDistance = getDistanceFromLatLonInKm(latitudSearch, longitudSearch, latitudDB, longitudDB);
-        const resMap = euclideanDistance <= 15.0;
-        return resMap;
-      }).catch(err => {
-        console.error(err);
-      });
-  }
+  resBool = await axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${searchPlace}.json?access_token=${process.env.MAPBOX_API_KEY}&country=es&limit=1`)
+    .then(res => {
+      const latitudSearch = res.data.features[0].geometry.coordinates[1];
+      const longitudSearch = res.data.features[0].geometry.coordinates[0];
+      const euclideanDistance = getDistanceFromLatLonInKm(latitudSearch, longitudSearch, latitudDB, longitudDB);
+      const resMap = euclideanDistance <= 15.0;
+      return resMap;
+    }).catch(err => {
+      console.error(err);
+    });
   return resBool;
 };
 
