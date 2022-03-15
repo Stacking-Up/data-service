@@ -1,4 +1,5 @@
 'use-strict';
+const { default: axios } = require('axios');
 
 module.exports.notNulls = (obj) => {
   const res = {};
@@ -114,3 +115,60 @@ function _checkSpaceBusinessLogic (space, errors) {
   }
   return errors;
 }
+
+const deg2rad = (deg) => {
+  return deg * (Math.PI / 180);
+};
+
+const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+  const R = 6371;
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c;
+  return d;
+};
+
+const mapBoxSearch = async (searchPlace, dimensions) => {
+  let resBool = false;
+  const [latitudDB, longitudDB] = dimensions.split(',');
+  if (searchPlace !== undefined) {
+    resBool = await axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${searchPlace}.json?access_token=${process.env.MAPBOX_API_KEY}&country=es&limit=1`)
+      .then(res => {
+        const latitudSearch = res.data.features[0].geometry.coordinates[1];
+        const longitudSearch = res.data.features[0].geometry.coordinates[0];
+        const euclideanDistance = getDistanceFromLatLonInKm(latitudSearch, longitudSearch, latitudDB, longitudDB);
+        const resMap = euclideanDistance <= 15.0;
+        return resMap;
+      }).catch(err => {
+        console.error(err);
+      });
+  }
+  return resBool;
+};
+
+const parseField = (field, searchValue) => {
+  const values = field.split(/\s+/).map(value => value.length > 3 && value.toLowerCase());
+  const res = values.includes(searchValue.toLowerCase());
+  return res;
+};
+
+module.exports.fieldSearch = async (title, description, location, query) => {
+  let res = true;
+  if (query !== undefined) {
+    const values = query.split(/\s+/);
+    const mapQuery = await mapBoxSearch(values, location);
+    res = values.some(value => parseField(title, value) || parseField(description, value)) || mapQuery;
+  }
+
+  return res;
+};
+
+module.exports.spaceFilter = async (arr, predicate) => {
+  const results = await Promise.all(arr.map(predicate));
+  return arr.filter((_v, index) => results[index]);
+};
