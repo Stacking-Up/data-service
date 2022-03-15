@@ -76,15 +76,52 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
 };
 
 module.exports.getSpace = function getSpace (req, res, next) {
-  res.send({
-    message: 'This is the mockup controller for getSpace'
-  });
+  prisma.space.findUnique({
+    where: {
+      id: parseInt(req.spaceId.value)
+    }
+  })
+    .then(space => {
+      if (!space) {
+        res.status(404).send('Space not found');
+      } else {
+        res.send(utils.excludeNulls(space));
+      }
+    })
+    .catch(err => {
+      if (!req.spaceId.value || !req.spaceId.value.toString().match(/^\d+$/)) {
+        res.status(400).send('Invalid parameter. It must be an integer number');
+      } else {
+        console.error(err);
+        res.status(500).send('Server error: Could not get space');
+      }
+    });
 };
 
 module.exports.getSpaceRentals = function getSpaceRentals (req, res, next) {
-  res.send({
-    message: 'This is the mockup controller for getSpaceRentals'
-  });
+  prisma.rental.findMany({
+    skip: req.offset.value,
+    take: req.limit.value,
+    where: {
+      spaceId: parseInt(req.spaceId.value)
+    }
+  })
+
+    .then(rentals => {
+      if (!rentals || rentals.length === 0) {
+        res.status(404).send('Rentals not found');
+      } else {
+        res.send(rentals.map(rental => utils.excludeNulls(rental)));
+      }
+    })
+    .catch(err => {
+      if ([req.spaceId.value, req.offset.value, req.limit.value].some(s => s && !s.toString().match(/^\d+$/))) {
+        res.status(400).send('Invalid parameter. It must be an integer number');
+      } else {
+        console.error(err);
+        res.status(500).send('Server error: Could not get rentals.');
+      }
+    });
 };
 
 module.exports.postSpace = async function postSpace (req, res, next) {
@@ -178,7 +215,7 @@ module.exports.putSpace = async function putSpace (req, res, next) {
         return;
       }
 
-      if (!spaceId.match(/^\d+$/)) {
+      if (!spaceId.toString().match(/^\d+$/)) {
         res.status(400).send('Invalid spaceId. It must be an integer number');
         return;
       }
@@ -256,7 +293,7 @@ module.exports.deleteSpace = async function deleteSpace (req, res, next) {
     try {
       const decoded = jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
 
-      if (!spaceId.match(/^\d+$/)) {
+      if (!spaceId.toString().match(/^\d+$/)) {
         res.status(400).send('Invalid spaceId. It must be an integer number');
         return;
       }
@@ -313,4 +350,29 @@ module.exports.deleteSpace = async function deleteSpace (req, res, next) {
   } else {
     res.status(401).send('Unauthorized');
   }
+};
+
+module.exports.getSpaceImages = async function getSpaceImages (req, res, next) {
+  await prisma.image.findMany({
+    skip: req.offset.value,
+    take: req.limit.value,
+    where: {
+      spaceId: req.spaceId.value
+    }
+  })
+    .then(images => {
+      if (!images || images.length === 0) {
+        res.status(404).send('Images not found or non existing space with this Id.');
+      } else {
+        res.send(images.map(img => img.image.toString('base64')));
+      }
+    })
+    .catch(err => {
+      if ([req.spaceId.value, req.offset.value, req.limit.value].some(s => s && !s.toString().match(/^\d+$/))) {
+        res.status(400).send('Invalid parameter. It must be an integer number');
+      } else {
+        console.error(err);
+        res.status(500).send('Server error: Could not get spaces.');
+      }
+    });
 };
