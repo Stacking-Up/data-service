@@ -1,12 +1,12 @@
 #!/bin/sh
 
-npx prisma generate --schema=./prisma/schemas/models.prisma
-npx prisma migrate deploy --schema=./prisma/schemas/models.prisma
+npx prisma generate
+npx prisma migrate deploy
 
 if [[ $NODE_ENV = "development" ]]
 then
   echo "deploying prisma studio..."
-  nohup npx prisma studio --schema=./prisma/schemas/models.prisma &
+  nohup npx prisma studio &
 
   echo "Done! deploying the app..."
   node index.js
