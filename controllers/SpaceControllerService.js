@@ -79,6 +79,9 @@ module.exports.getSpace = function getSpace (req, res, next) {
   prisma.space.findUnique({
     where: {
       id: parseInt(req.spaceId.value)
+    },
+    include: {
+      tags: true
     }
   })
     .then(space => {

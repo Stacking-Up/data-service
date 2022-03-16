@@ -39,6 +39,9 @@ module.exports = (prisma, jwt) => {
       findUnique.withArgs({
         where:{
           id: 1
+        },
+        include: {
+          tags: true
         }
       }).resolves(dbOutput)
     
@@ -60,6 +63,9 @@ module.exports = (prisma, jwt) => {
       findUnique.withArgs({
         where:{
           id: 1
+        },
+        include: {
+          tags: true
         }
       }).resolves(dbOutput)
     
@@ -82,6 +88,9 @@ module.exports = (prisma, jwt) => {
       findUnique.withArgs({
         where:{
           id: 1
+        },
+        include: {
+          tags: true
         }
       }).rejects();
     
@@ -106,6 +115,9 @@ module.exports = (prisma, jwt) => {
       findUnique.withArgs({
         where:{
           id: 1
+        },
+        include: {
+          tags: true
         }
       }).rejects();
     
