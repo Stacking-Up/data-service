@@ -12,6 +12,7 @@ module.exports = (prisma, jwt) => {
   let findMany = sinon.stub(prisma.space, 'findMany').rejects("Not implemented");
   let findUnique = sinon.stub(prisma.space, 'findUnique').rejects("Not implemented");
   let updateUser = sinon.stub(prisma.user, 'update').rejects("Not implemented");
+  let createRental = sinon.stub(prisma.rental, 'create').rejects("Not implemented");
 
   before(() => {
     sinon.replace(prisma.space, 'create', create);
@@ -19,6 +20,7 @@ module.exports = (prisma, jwt) => {
     sinon.replace(prisma.space, 'findMany', findMany);
     sinon.replace(prisma.space, 'findUnique', findUnique);
     sinon.replace(prisma.user, 'update', updateUser);
+    sinon.replace(prisma.rental, 'create', createRental);
   });
 
 /***************************************************************************
@@ -2301,7 +2303,733 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
+    it('Should post a rental of a space', async () => {
+      //Fixture
+      const spaceToAddRental={
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
+        dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 2
+      }
+      const expected='Rental created successfully';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+     
+      const rentalToBeCreated={
+        initialDate: "2900-01-01T00:00:00.000Z",
+        finalDate: "2999-01-01T00:00:00.000Z",
+        cost: 456,
+        type: 'MONTH', 
+        meters: 5,
+        spaceId: 1, 
+        renterId: 1
+      };
+    
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+      createRental.resolves();
+
+
+      //API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToBeCreated, { 
+        withCredentials: true, 
+        headers: {Cookie: 'authToken=testToken;'}
+      })
+      .then( res => {
+        assert.equal(res.status, 201);
+        assert.equal(res.data, expected);
+      })
+    });
+
+    it('Should return 401 when token is missing', async () => {
+      // Fixture
+      const expected = 'Unauthorized';
+        
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, {})
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 401 when JWTError is thrown on verification', async () => {
+      // Fixture
+      const expected = 'Unauthorized: Invalid token';
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').throws(new jwt.JsonWebTokenError('Invalid token'));
+      
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, {}, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when renterId is not a number', async () => {
+      // Fixture
+      const expected = 'Invalid renterId. It must be an integer number';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, {renterId:"invalid_id"}, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when renterId does not exists', async () => {
+      // Fixture
+      const expected = 'Invalid renterId. It must be an integer number';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, {renterId:undefined}, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when spaceId does not exists', async () => {
+      // Fixture
+      const expected = 'Invalid spaceId. It must be an integer number';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToBeCreated={
+        initialDate: new Date("2021-03-10T18:18:14.049Z"),
+        finalDate: new Date("2022-03-10T20:18:14.049Z"),
+        cost: 456,
+        type: 'MONTH', 
+        meters: 5,
+        renterId: 1
+      };
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToBeCreated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when spaceId is not a number', async () => {
+      // Fixture
+      const expected = 'Invalid spaceId. It must be an integer number';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToBeCreated={
+        initialDate: new Date("2021-03-10T18:18:14.049Z"),
+        finalDate: new Date("2022-03-10T20:18:14.049Z"),
+        cost: 456,
+        type: 'MONTH', 
+        meters: 5,
+        spaceId:"invalid_id",
+        renterId: 1
+      };
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToBeCreated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when spaceId of a rental is not the same as the spaceId given in the path', async () => {
+      // Fixture
+      const expected = 'Invalid spaceId. spaceId parameter and spaceId rental value must be the same';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToBeCreated={
+        initialDate: new Date("2021-03-10T18:18:14.049Z"),
+        finalDate: new Date("2022-03-10T20:18:14.049Z"),
+        cost: 456,
+        type: 'MONTH', 
+        meters: 5,
+        spaceId: 1,
+        renterId: 1
+      };
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/2/rentals`, rentalToBeCreated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when spaceId is not a number', async () => {
+      // Fixture
+      const expected = 'Invalid spaceId parameter. It must be an integer number';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToBeCreated={
+        initialDate: new Date("2021-03-10T18:18:14.049Z"),
+        finalDate: new Date("2022-03-10T20:18:14.049Z"),
+        cost: 456,
+        type: 'MONTH', 
+        meters: 5,
+        spaceId: 1,
+        renterId: 1
+      };
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/invalid/rentals`, rentalToBeCreated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 403 when someone pretends to rent in name of another user', async () => {
+      // Fixture
+      const expected = 'Cannot rent space in name of another user';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToBeCreated={
+        initialDate: new Date("2021-03-10T18:18:14.049Z"),
+        finalDate: new Date("2022-03-10T20:18:14.049Z"),
+        cost: 456,
+        type: 'MONTH', 
+        meters: 5,
+        spaceId: 1,
+        renterId: 3
+      };
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToBeCreated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 403);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when the space given in the path does not exist', async () => {
+      const spaceToAddRental=undefined
+      const expected='No space found with this Id';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+     
+      const rentalToBeCreated={
+        initialDate: "2900-01-01T00:00:00.000Z",
+        finalDate: "2999-01-01T00:00:00.000Z",
+        cost: 456,
+        type: 'MONTH', 
+        meters: 5,
+        spaceId: 1, 
+        renterId: 1
+      };
+    
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+      createRental.resolves();
+
+
+      //API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToBeCreated, { 
+        withCredentials: true, 
+        headers: {Cookie: 'authToken=testToken;'}
+      })
+      .then( () => {
+        assert.fail();
+      }).catch( err => {
+        assert.equal(err.response.status, 400);
+        assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when an user want to rent a space twice', async () => {
+      const spaceToAddRental={
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
+        dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, 
+        rentals:[{id: 1,initialDate: "2799-01-01T00:00:00.000Z",
+        finalDate: "2800-01-01T00:00:00.000Z",
+        cost: 456,
+        type: 'MONTH', 
+        meters: 5,
+        spaceId: 1, 
+        renterId: 2}]
+      }
+      const expected='Cannot rent space twice. Please update or delete your previous rental of this space';
+      const decodedJwt = { userId: 2, role: 'USER', email: 'test@test.com' };
+     
+      const rentalToBeCreated={
+        initialDate: "2900-01-01T00:00:00.000Z",
+        finalDate: "2999-01-01T00:00:00.000Z",
+        cost: 456,
+        type: 'MONTH', 
+        meters: 5,
+        spaceId: 1, 
+        renterId: 2
+      };
+    
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+      createRental.resolves();
+
+
+      //API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToBeCreated, { 
+        withCredentials: true, 
+        headers: {Cookie: 'authToken=testToken;'}
+      })
+      .then( () => {
+        assert.fail();
+      }).catch( err => {
+        assert.equal(err.response.status, 400);
+        assert.equal(err.response.data, expected);
+      });
+    });
+
+
+    it('Should return 400 when an user want to rent his own space', async () => {
+      const spaceToAddRental={
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
+        dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 2
+      }
+      const expected='Cannot rent your own space';
+      const decodedJwt = { userId: 2, role: 'USER', email: 'test@test.com' };
+     
+      const rentalToBeCreated={
+        initialDate: "2900-01-01T00:00:00.000Z",
+        finalDate: "2999-01-01T00:00:00.000Z",
+        cost: 456,
+        type: 'MONTH', 
+        meters: 5,
+        spaceId: 1, 
+        renterId: 2
+      };
+    
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+      createRental.resolves();
+
+
+      //API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToBeCreated, { 
+        withCredentials: true, 
+        headers: {Cookie: 'authToken=testToken;'}
+      })
+      .then( () => {
+        assert.fail();
+      }).catch( err => {
+        assert.equal(err.response.status, 400);
+        assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 500 when prisma create rental fails', async () => {
+      // Fixture
+      
+      const expected = 'Internal Server Error';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToBeCreated={
+        initialDate: "2900-01-01T00:00:00.000Z",
+        finalDate: "2999-01-01T00:00:00.000Z",
+        cost: 456,
+        type: 'MONTH', 
+        meters: 5,
+        spaceId: 1, 
+        renterId: 1
+      };
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      createRental.rejects();
+    
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToBeCreated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 500 when an unexpected error is thrown while creating a rental', async () => {
+      // Fixture
+      const expected = 'Internal Server Error';
+
+      // Mock Auth and DB Query
+      console.error = sinon.stub(); // Avoid logging intentionally provoked error
+      verify.withArgs('testToken', 'stackingupsecretlocal').throws(new Error('Unexpected Error'));
+      
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, {}, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when a required field is missing in rental', async () => {
+      // Fixture
+      const expected = 'Bad Request: Missing required attributes';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const testRental={
+        initialDate: "2900-01-01T00:00:00.000Z",
+        finalDate: "2999-01-01T00:00:00.000Z",
+        cost: 456,
+        type: 'MONTH', 
+        meters: 5,
+        spaceId: 1, 
+        renterId: 1
+      };
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      Object.keys(testRental).forEach( async key => {
+        let rentalToPublish = Object.keys(testRental).filter(k => k !== key).reduce((obj, k) => {obj[k] = testRental[k]; return obj}, {spaceId:1, renterId: 1});
+        await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+          { 
+            withCredentials: true, 
+            headers: {Cookie: 'authToken=testToken;'}
+          })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+      });
+    });
+
+    it('Should return 400 when cost is not a number', async () => {
+      // Fixture
+      const expected = 'Bad Request: Cost must be a number';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToPublish={
+        initialDate: "2900-01-01T00:00:00.000Z",
+        finalDate: "2999-01-01T00:00:00.000Z",
+        cost: "invalid",
+        type: 'MONTH', 
+        meters: 5,
+        spaceId: 1, 
+        renterId: 1
+      };
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+          { 
+            withCredentials: true, 
+            headers: {Cookie: 'authToken=testToken;'}
+          })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+      });
+
+      it('Should return 400 when meters are not a number', async () => {
+        // Fixture
+        const expected = 'Bad Request: Meters must be a number';
+        const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+        const rentalToPublish={
+          initialDate: "2900-01-01T00:00:00.000Z",
+          finalDate: "2999-01-01T00:00:00.000Z",
+          cost: 456,
+          type: 'MONTH', 
+          meters: "invalid",
+          spaceId: 1, 
+          renterId: 1
+        };
+        // Mock Auth and DB Query
+        verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      
+        // API Call
+        await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+            { 
+              withCredentials: true, 
+              headers: {Cookie: 'authToken=testToken;'}
+            })
+          .then( () => {
+            assert.fail();
+          }).catch( err => {
+            assert.equal(err.response.status, 400);
+            assert.equal(err.response.data, expected);
+          });
+        });
+
+    it('Should return 400 when type is not valid', async () => {
+      // Fixture
+      const expected = 'Bad Request: Type must be one of the following: HOUR, DAY, MONTH';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToPublish={
+        initialDate: "2900-01-01T00:00:00.000Z",
+        finalDate: "2999-01-01T00:00:00.000Z",
+        cost: 456,
+        type: "TEST", 
+        meters: 5,
+        spaceId: 1, 
+        renterId: 1
+      };
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+          { 
+            withCredentials: true, 
+            headers: {Cookie: 'authToken=testToken;'}
+          })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+      });
+
+      it('Should return 400 when meters are not a number', async () => {
+        // Fixture
+        const expected = 'Bad Request: Meters must be a number';
+        const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+        const rentalToPublish={
+          initialDate: "2900-01-01T00:00:00.000Z",
+          finalDate: "2999-01-01T00:00:00.000Z",
+          cost: 456,
+          type: 'MONTH', 
+          meters: "invalid",
+          spaceId: 1, 
+          renterId: 1
+        };
+        // Mock Auth and DB Query
+        verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      
+        // API Call
+        await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+            { 
+              withCredentials: true, 
+              headers: {Cookie: 'authToken=testToken;'}
+            })
+          .then( () => {
+            assert.fail();
+          }).catch( err => {
+            assert.equal(err.response.status, 400);
+            assert.equal(err.response.data, expected);
+          });
+        });
+
+    it('Should return 400 when finalDate of a rental is before initialDate', async () => {
+      // Fixture
+      const expected = 'Bad Request: Final date must be after initial date';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToPublish={
+        initialDate: "2900-01-01T00:00:00.000Z",
+        finalDate: "2800-01-01T00:00:00.000Z",
+        cost: 456,
+        type: "HOUR", 
+        meters: 5,
+        spaceId: 1, 
+        renterId: 1
+      };
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+          { 
+            withCredentials: true, 
+            headers: {Cookie: 'authToken=testToken;'}
+          })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+      });
+
+      it('Should return 400 when initialDate is before today', async () => {
+        // Fixture
+
+        const spaceToAddRental={
+          id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
+          dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 2
+        }
+        const expected = 'Bad Request: Initial date must be a Date after today';
+        const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+        const rentalToPublish={
+          initialDate: "2020-01-01T00:00:00.000Z",
+          finalDate: "2900-01-01T00:00:00.000Z",
+          cost: 456,
+          type: "HOUR", 
+          meters: 5,
+          spaceId: 1, 
+          renterId: 1
+        };
+        // Mock Auth and DB Query
+        verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+        findUnique.withArgs({
+          where:{
+            id: 1
+          }, include: {
+            rentals: true
+          }
+        }).resolves(spaceToAddRental)
+        createRental.resolves()
+
+        // API Call
+        await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+            { 
+              withCredentials: true, 
+              headers: {Cookie: 'authToken=testToken;'}
+            })
+          .then( () => {
+            assert.fail();
+          }).catch( err => {
+            assert.equal(err.response.status, 400);
+            assert.equal(err.response.data, expected);
+          });
+        });
+
+    it('Should return 400 when finalDate is before today', async () => {
+      // Fixture
+
+      const spaceToAddRental={
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
+        dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 2
+      }
+      const expected = 'Bad Request: Final date must be a Date after today';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToPublish={
+        initialDate: "2900-01-01T00:00:00.000Z",
+        finalDate: "2021-01-01T00:00:00.000Z",
+        cost: 456,
+        type: "HOUR", 
+        meters: 5,
+        spaceId: 1, 
+        renterId: 1
+      };
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+      createRental.resolves()
+
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+          { 
+            withCredentials: true, 
+            headers: {Cookie: 'authToken=testToken;'}
+          })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+      });
+
   });
+
+
 
   describe('PUT Endpoint tests:', () => {
     it('Should update a space', async () => {
@@ -2573,7 +3301,14 @@ module.exports = (prisma, jwt) => {
       
       // Mock Auth and DB Queries
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
-      findUnique.resolves(spaceToBeDeleted);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, 
+        include: {
+          rentals: true
+        }
+      }).resolves(spaceToBeDeleted);
       updateUser.resolves();
 
       // API Call
@@ -2650,7 +3385,14 @@ module.exports = (prisma, jwt) => {
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
-      findUnique.resolves(spaceToBeDeleted);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, 
+        include: {
+          rentals: true
+        }
+      }).resolves(spaceToBeDeleted);
 
       // API Call
       await axios.delete(`${host}/api/v1/spaces/1`, { 
@@ -2693,7 +3435,14 @@ module.exports = (prisma, jwt) => {
       
       // Mock Auth and DB Queries
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
-      findUnique.resolves(null);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, 
+        include: {
+          rentals: true
+        }
+      }).resolves(null);
 
       // API Call
       await axios.delete(`${host}/api/v1/spaces/1`, { 
@@ -2716,7 +3465,14 @@ module.exports = (prisma, jwt) => {
       
       // Mock Auth and DB Queries
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
-      findUnique.resolves(spaceToBeDeleted);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, 
+        include: {
+          rentals: true
+        }
+      }).resolves(spaceToBeDeleted);
 
       // API Call
       await axios.delete(`${host}/api/v1/spaces/1`, { 
@@ -2739,7 +3495,14 @@ module.exports = (prisma, jwt) => {
       
       // Mock Auth and DB Queries
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
-      findUnique.resolves(spaceToBeDeleted);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, 
+        include: {
+          rentals: true
+        }
+      }).resolves(spaceToBeDeleted);
       updateUser.rejects('Unknown error');
 
       // API Call

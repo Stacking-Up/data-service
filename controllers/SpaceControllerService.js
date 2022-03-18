@@ -4,7 +4,6 @@ const jwt = require('jsonwebtoken');
 const utils = require('../utils');
 const prisma = require('../prisma');
 const { Prisma } = require('@prisma/client');
-const { space } = require('../prisma');
 
 module.exports.getSpaces = async function getSpaces (req, res, next) {
   // Get tags selected for tag filtering
@@ -421,13 +420,12 @@ module.exports.postSpaceRental = async function postSpaceRental (req, res, next)
           rentals: true
         }
       });
-
       if (!spaceToAddRental) {
         res.status(400).send('No space found with this Id');
         return;
       }
 
-      if (space.finalDate && space.finalDate <= new Date()) {
+      if (spaceToAddRental.finalDate && spaceToAddRental.finalDate <= new Date()) {
         res.status(400).send('Space cannot be rented after its final date');
         return;
       }
@@ -441,7 +439,6 @@ module.exports.postSpaceRental = async function postSpaceRental (req, res, next)
         res.status(400).send('Cannot rent space twice. Please update or delete your previous rental of this space');
         return;
       }
-
       const errors = utils.checkRentalValidity(rentalToBeCreated, spaceToAddRental);
       if (errors.length > 0) {
         res.status(400).send(`Bad Request: ${errors[0]}`);
