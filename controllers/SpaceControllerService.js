@@ -404,7 +404,7 @@ module.exports.postSpaceRental = async function postSpaceRental (req, res, next)
       }
 
       if (parseInt(decoded.userId) !== parseInt(rentalToBeCreated.renterId)) {
-        res.status(400).send('Cannot rent space in name of another user');
+        res.status(403).send('Cannot rent space in name of another user');
         return;
       }
 
