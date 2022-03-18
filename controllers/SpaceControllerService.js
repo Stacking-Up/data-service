@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const utils = require('../utils');
 const prisma = require('../prisma');
 const { Prisma } = require('@prisma/client');
+const { space } = require('../prisma');
 
 module.exports.getSpaces = async function getSpaces (req, res, next) {
   // Get tags selected for tag filtering
@@ -375,4 +376,112 @@ module.exports.getSpaceImages = async function getSpaceImages (req, res, next) {
         res.status(500).send('Server error: Could not get spaces.');
       }
     });
+};
+
+module.exports.postSpaceRental = async function postSpaceRental (req, res, next) {
+  const authToken = req.cookies?.authToken;
+  const spaceId = req.swagger.params.spaceId.value;
+  const rentalToBeCreated = req.swagger.params.body.value;
+
+  // RN001
+  if (authToken) {
+    try {
+      const decoded = jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
+
+      if (!rentalToBeCreated.renterId || !rentalToBeCreated.renterId.toString().match(/^\d+$/)) {
+        res.status(400).send('Invalid renterId. It must be an integer number');
+        return;
+      }
+
+      if (!rentalToBeCreated.spaceId || !rentalToBeCreated.spaceId.toString().match(/^\d+$/)) {
+        res.status(400).send('Invalid spaceId. It must be an integer number');
+        return;
+      }
+
+      if (!spaceId || !spaceId.toString().match(/^\d+$/)) {
+        res.status(400).send('Invalid spaceId parameter. It must be an integer number');
+        return;
+      }
+
+      if (parseInt(decoded.userId) !== parseInt(rentalToBeCreated.renterId)) {
+        res.status(400).send('Cannot rent space in name of another user');
+        return;
+      }
+
+      if (parseInt(spaceId) !== parseInt(rentalToBeCreated.spaceId)) {
+        res.status(400).send('Invalid spaceId. spaceId parameter and spaceId rental value must be the same');
+        return;
+      }
+
+      const spaceToAddRental = await prisma.space.findUnique({
+        where: {
+          id: parseInt(spaceId)
+        },
+        include: {
+          rentals: true
+        }
+      });
+
+      if (!spaceToAddRental) {
+        res.status(400).send('No space found with this Id');
+        return;
+      }
+
+      if (space.finalDate && space.finalDate <= new Date()) {
+        res.status(400).send('Space cannot be rented after its final date');
+        return;
+      }
+
+      if (parseInt(decoded.userId) === parseInt(spaceToAddRental.ownerId)) {
+        res.status(400).send('Cannot rent your own space');
+        return;
+      }
+
+      if (spaceToAddRental.rentals && spaceToAddRental.rentals.length > 0 && spaceToAddRental.rentals.some(rental => parseInt(rental.renterId) === parseInt(decoded.userId))) {
+        res.status(400).send('Cannot rent space twice. Please update or delete your previous rental of this space');
+        return;
+      }
+
+      const errors = utils.checkRentalValidity(rentalToBeCreated, spaceToAddRental);
+      if (errors.length > 0) {
+        res.status(400).send(`Bad Request: ${errors[0]}`);
+        return;
+      }
+
+      await prisma.rental.create({
+        data: {
+          initialDate: new Date(rentalToBeCreated.initialDate),
+          finalDate: new Date(rentalToBeCreated.finalDate),
+          cost: parseFloat(rentalToBeCreated.cost),
+          type: rentalToBeCreated.type,
+          meters: parseFloat(rentalToBeCreated.meters),
+          space: {
+            connect: {
+              id: parseInt(rentalToBeCreated.spaceId)
+            }
+          },
+          renter: {
+            connect: {
+              id: parseInt(rentalToBeCreated.renterId)
+            }
+          }
+        }
+
+      }).then(() => {
+        res.status(201).send('Rental created successfully');
+      }).catch((err) => {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+      });
+    } catch (err) {
+      if (err instanceof jwt.JsonWebTokenError) {
+        res.status(401).send(`Unauthorized: ${err.message}`);
+      } else {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+      }
+    }
+  } else {
+    res.status(401).send('Unauthorized');
+  }
 };

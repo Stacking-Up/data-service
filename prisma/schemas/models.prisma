@@ -160,6 +160,7 @@ enum TagEnum {
   NARROW_ACCESS
   MEDIUM_WIDTH_ACCESS
   WIDE_ACCESS
+  OTHERS
 }
 
 // Rental model
