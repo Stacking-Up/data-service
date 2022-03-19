@@ -1,6 +1,10 @@
 'use-strict';
 const { default: axios } = require('axios');
+const { TagEnum } = require('@prisma/client');
 
+module.exports = {
+  smartSearch: require('./recommender')
+}
 module.exports.excludeNulls = (obj) => {
   const res = {};
   Object.entries(obj).forEach(([key, value]) => {
@@ -85,7 +89,6 @@ module.exports.isRentedPer = (value, price) => {
   }
   return res;
 };
-const { TagEnum } = require('@prisma/client');
 
 module.exports.checkSpaceValidity = (space) => {
   const errors = [];
