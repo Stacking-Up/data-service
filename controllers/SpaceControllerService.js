@@ -7,7 +7,7 @@ const { Prisma } = require('@prisma/client');
 
 module.exports.getSpaces = async function getSpaces (req, res, next) {
   // Get tags selected for tag filtering
-  const tagsFilter = req.tag.value !== undefined ? utils.parseTags(req.tag.value) : [];
+  const tagsFilter = req.tag.value !== undefined ? utils.space.parseTags(req.tag.value) : [];
 
   // Get max and min values for dimensions filtering
   const minDimension = req.minDim.value || 0;
@@ -53,20 +53,20 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
     orderBy: sort
   })
     .then(spaces => {
-      utils.spaceFilter(spaces, async (space) => {
-        const inRangeDimension = utils.inRange(minDimension, maxDimension, utils.getMeters(space.dimensions));
-        const fieldSearch = await utils.fieldSearch(space.name, space.description, space.location, req.search.value);
-        const includeTags = utils.includesTags(tagsFilter, utils.tagsToArray(space.tags));
-        const inRangePriceHour = utils.inRange(minPriceHour, maxPriceHour, space.priceHour);
-        const inRangePriceDay = utils.inRange(minPriceDay, maxPriceDay, space.priceDay);
-        const inRangePriceMonth = utils.inRange(minPriceMonth, maxPriceMonth, space.priceMonth);
-        const isRentPerHour = utils.isRentedPer(req.isRentPerHour.value, space.priceHour);
-        const isRentedPerDay = utils.isRentedPer(req.isRentPerDay.value, space.priceDay);
-        const isRentedPerMonth = utils.isRentedPer(req.isRentPerMonth.value, space.priceMonth);
+      utils.space.spaceFilter(spaces, async (space) => {
+        const inRangeDimension = utils.space.inRange(minDimension, maxDimension, utils.space.getMeters(space.dimensions));
+        const fieldSearch = await utils.space.fieldSearch(space.name, space.description, space.location, req.search.value);
+        const includeTags = utils.space.includesTags(tagsFilter, utils.space.tagsToArray(space.tags));
+        const inRangePriceHour = utils.space.inRange(minPriceHour, maxPriceHour, space.priceHour);
+        const inRangePriceDay = utils.space.inRange(minPriceDay, maxPriceDay, space.priceDay);
+        const inRangePriceMonth = utils.space.inRange(minPriceMonth, maxPriceMonth, space.priceMonth);
+        const isRentPerHour = utils.space.isRentedPer(req.isRentPerHour.value, space.priceHour);
+        const isRentedPerDay = utils.space.isRentedPer(req.isRentPerDay.value, space.priceDay);
+        const isRentedPerMonth = utils.space.isRentedPer(req.isRentPerMonth.value, space.priceMonth);
 
         return inRangeDimension && fieldSearch && includeTags && inRangePriceHour && inRangePriceDay && inRangePriceMonth && isRentPerHour && isRentedPerDay && isRentedPerMonth;
       }).then(spacesFiltered => {
-        res.send(spacesFiltered.map(space => utils.notNulls(space)).reduce((acc, space) => { space.tags = space.tags?.map(tag => tag.tag); return [...acc, space]; }, []));
+        res.send(spacesFiltered.map(space => utils.commons.notNulls(space)).reduce((acc, space) => { space.tags = space.tags?.map(tag => tag.tag); return [...acc, space]; }, []));
       });
     })
     .catch(err => {
@@ -88,7 +88,7 @@ module.exports.getSpace = function getSpace (req, res, next) {
       if (!space) {
         res.status(404).send('Space not found');
       } else {
-        res.send(utils.excludeNulls(space));
+        res.send(utils.commons.excludeNulls(space));
       }
     })
     .catch(err => {
@@ -114,7 +114,7 @@ module.exports.getSpaceRentals = function getSpaceRentals (req, res, next) {
       if (!rentals || rentals.length === 0) {
         res.status(404).send('Rentals not found');
       } else {
-        res.send(rentals.map(rental => utils.excludeNulls(rental)));
+        res.send(rentals.map(rental => utils.commons.excludeNulls(rental)));
       }
     })
     .catch(err => {
@@ -144,7 +144,7 @@ module.exports.postSpace = async function postSpace (req, res, next) {
         return;
       }
 
-      const errors = utils.checkSpaceValidity(spaceToBePublished);
+      const errors = utils.space.checkSpaceValidity(spaceToBePublished);
       if (errors.length > 0) {
         res.status(400).send(`Bad Request: ${errors[0]}`);
         return;
@@ -223,7 +223,7 @@ module.exports.putSpace = async function putSpace (req, res, next) {
         return;
       }
 
-      const errors = utils.checkSpaceValidity(spaceToBeUpdated);
+      const errors = utils.space.checkSpaceValidity(spaceToBeUpdated);
       if (errors.length > 0) {
         res.status(400).send(`Bad Request: ${errors[0]}`);
         return;
