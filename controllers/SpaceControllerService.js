@@ -48,7 +48,8 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
       ]
     },
     include: {
-      tags: true
+      tags: true,
+      images: true
     },
     orderBy: sort
   })
@@ -66,7 +67,7 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
 
         return inRangeDimension && fieldSearch && includeTags && inRangePriceHour && inRangePriceDay && inRangePriceMonth && isRentPerHour && isRentedPerDay && isRentedPerMonth;
       }).then(spacesFiltered => {
-        res.send(spacesFiltered.map(space => utils.notNulls(space)).reduce((acc, space) => { space.tags = space.tags?.map(tag => tag.tag); return [...acc, space]; }, []));
+        res.send(spacesFiltered.map(space => utils.notNulls(space)).reduce((acc, space) => { space.tags = space.tags?.map(tag => tag.tag); space.images = (space.images && space.images.length !== 0) ? [{ image: space.images[0].image.toString('base64'), mimetype: space.images[0].mimetype }] : []; return [...acc, space]; }, []));
       });
     })
     .catch(err => {

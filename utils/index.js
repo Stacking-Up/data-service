@@ -102,7 +102,7 @@ function _checkSpaceConstraints (space, errors) {
     errors.push('Missing required attributes');
   } else if (space.name.length < 3 || space.name.length > 50) {
     errors.push('Name must be between 2 and 50 characters');
-  } else if (new Date(space.initialDate).toString() === 'Invalid Date' || new Date(space.initialDate) >= new Date()) {
+  } else if (new Date(space.initialDate).toString() === 'Invalid Date' || new Date(space.initialDate) < new Date()) {
     errors.push('Initial date must be a Date after today');
   } else if (space.finalDate && new Date(space.finalDate).toString() === 'Invalid Date') {
     errors.push('Final date must be a Date');
