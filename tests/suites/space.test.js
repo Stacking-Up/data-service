@@ -1975,7 +1975,7 @@ module.exports = (prisma, jwt) => {
 
     it('Should return 400 when providing a space with an invalid initial date', async () => {
       // Fixture
-      const expected = 'Bad Request: Initial date must be a Date';
+      const expected = 'Bad Request: Initial date must be a Date after today';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
       const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: 'not_a_date', location: '1,1', dimensions: '1x1', shared:true};
 

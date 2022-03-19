@@ -218,7 +218,7 @@ module.exports.putSpace = async function putSpace (req, res, next) {
         return;
       }
 
-      if (!spaceId.toString().match(/^\d+$/)) {
+      if (!spaceId || !spaceId.toString().match(/^\d+$/)) {
         res.status(400).send('Invalid spaceId. It must be an integer number');
         return;
       }
@@ -296,7 +296,7 @@ module.exports.deleteSpace = async function deleteSpace (req, res, next) {
     try {
       const decoded = jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
 
-      if (!spaceId.toString().match(/^\d+$/)) {
+      if (!spaceId || !spaceId.toString().match(/^\d+$/)) {
         res.status(400).send('Invalid spaceId. It must be an integer number');
         return;
       }
