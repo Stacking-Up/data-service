@@ -7,6 +7,8 @@ const jwt = require('jsonwebtoken');
 module.exports.getSpaces = async function getSpaces (req, res, next) {
   const authToken = req.cookies?.authToken;
   const items = req.swagger.params.items.value;
+  const latitude = req.swagger.params.latitude.value;
+  const longitude = req.swagger.params.longitude.value;
   let recommendedSpaces = [];
 
   if (!items || items.length === 0) {
@@ -43,8 +45,32 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
   } else {
     console.warn('No token found. User is not logged in.');
   }
-  // TODO recomenation based on tags and location
-  res.status(200).send(recommendedSpaces);
+  // Recomendations based on tags and location
+  const diccTags = smartSearch.dictItemsTags;
+  const itemTags = [...new Set(items.flatMap(item => diccTags[item.type]))];
+
+  await prisma.space.findMany({
+    where: {
+      id: { in: recommendedSpaces.map(space => space.id) }
+    },
+    include: {
+      tags: true
+    }
+  }).then(allSpaces => {
+    let scoredSpaces = [];
+    allSpaces.forEach(space => {
+      const [latitudDB, longitudDB] = space.location.split(',');
+      const tagScore = smartSearch.scoreTags(itemTags, space.tags.map(tag => tag.tag));
+      const locationScore = 1 - smartSearch.calculaDistanceBtw2Points(latitudDB, longitudDB, latitude, longitude) / 15;
+      const score = recommendedSpaces.length === 0 ? 0.6 * tagScore + 0.4 * locationScore : recommendedSpaces.find(s => s.id === space.id).score * 0.3 + tagScore * 0.4 + locationScore * 0.3;
+      scoredSpaces.push({ id: space.id, score: score });
+      scoredSpaces = scoredSpaces.sort((a, b) => b.score - a.score).slice(0, 15);
+    });
+    res.status(200).send(scoredSpaces);
+  }).catch(err => {
+    console.error(err);
+    res.status(500).send('Internal server error');
+  });
 };
 
 module.exports.postTrainSpaces = async function postTrainSpaces (req, res, next) {

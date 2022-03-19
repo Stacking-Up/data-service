@@ -1097,6 +1097,23 @@ paths:
       x-swagger-router-controller: SmartSearchController
       description: Search for spaces through an advanced algorithm
       operationId: getSpaces
+      parameters: 
+        - name: latitude
+          in: query
+          description: 'User latitude'
+          required: false
+          schema:
+            type: number
+            format: float
+        
+        - name: longitude
+          in: query
+          description: 'User longitude'
+          required: false
+          schema:
+            type: number
+            format: float
+
       requestBody:
         x-name: items
         description: Items to search for
@@ -1104,6 +1121,8 @@ paths:
         content:
           application/json:
             schema:
+              type: array
+              items:
                 $ref: '#/components/schemas/item'
       responses:
         '200':

@@ -55,7 +55,7 @@ const _createVectorFromSpaces = (spaces) => {
 
 const _calcSimilarities = (spacesVectors) => {
   const MAX_SIMILAR = 15;
-  const MIN_SCORE = 0.2;
+  const MIN_SCORE = 0.0;
   const data = {};
 
   for (const spaceVector of spacesVectors) {
@@ -86,4 +86,37 @@ const _calcSimilarities = (spacesVectors) => {
   });
 
   return data;
+};
+
+module.exports.dictItemsTags = {
+  APPLIANCES: ['FLOOR_1', 'BASEMENT', 'GARAGE', 'STORAGE_ROOM', 'INDUSTRIAL_WAREHOUSE', 'ELEVATOR', 'DRY',
+    'SECURITY_ALARM', 'VIDEO_MONITORING', 'FIRE_ALARM', 'GROUND_FLOOR', 'SOCKET', 'INDOOR', 'MEDIUM_WIDTH_ACCESS', 'WIDE_ACCESS'],
+  ELECTRONICS: ['DRY', 'COLD', 'SECURITY_ALARM', 'VIDEO_MONITORING', 'FIRE_ALARM', 'SOCKET', 'INDOOR', 'NARROW_ACCESS'],
+  CLOTHES: ['HOUSE_ROOM', 'FLAT_ROOM', 'DRY', 'INDOOR', 'NARROW_ACCESS'],
+  FURNITURE: ['FLOOR_1', 'BASEMENT', 'GARAGE', 'STORAGE_ROOM', 'INDUSTRIAL_WAREHOUSE', 'ELEVATOR', 'DRY', 'SECURITY_ALARM',
+    'VIDEO_MONITORING', 'FIRE_ALARM', 'INDOOR', 'MEDIUM_WIDTH_ACCESS', 'WIDE_ACCESS'],
+  DIYs: ['BASEMENT', 'GARAGE', 'STORAGE_ROOM', 'INDUSTRIAL_WAREHOUSE', 'DRY', 'SECURITY_ALARM', 'INDOOR', 'NARROW_ACCESS'],
+  OTHER: ['SECURITY_ALARM', 'VIDEO_MONITORING', 'FIRE_ALARM', 'OUTDOOR']
+};
+
+module.exports.scoreTags = (selectedTags, spaceTags) => {
+  const intersection = selectedTags.filter(tag => spaceTags.includes(tag));
+  return intersection.length / selectedTags.length;
+};
+
+const _deg2rad = (deg) => {
+  return deg * (Math.PI / 180);
+};
+
+module.exports.calculaDistanceBtw2Points = (lat1, lon1, lat2, lon2) => {
+  const R = 6371;
+  const dLat = _deg2rad(lat2 - lat1);
+  const dLon = _deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(_deg2rad(lat1)) * Math.cos(_deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c;
+  return d;
 };
