@@ -41,6 +41,9 @@ module.exports = (prisma, jwt) => {
       findUnique.withArgs({
         where:{
           id: 1
+        },
+        include: {
+          tags: true
         }
       }).resolves(dbOutput)
     
@@ -62,6 +65,9 @@ module.exports = (prisma, jwt) => {
       findUnique.withArgs({
         where:{
           id: 1
+        },
+        include: {
+          tags: true
         }
       }).resolves(dbOutput)
     
@@ -84,6 +90,9 @@ module.exports = (prisma, jwt) => {
       findUnique.withArgs({
         where:{
           id: 1
+        },
+        include: {
+          tags: true
         }
       }).rejects();
     
@@ -108,6 +117,9 @@ module.exports = (prisma, jwt) => {
       findUnique.withArgs({
         where:{
           id: 1
+        },
+        include: {
+          tags: true
         }
       }).rejects();
     
@@ -135,11 +147,11 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceDay: 56, priceMonth: 456, shared: false, ownerId: 1, "tags": [ "GARAGE", "DRY" ]
+        dimensions: "1x3", priceDay: 56, priceMonth: 456, shared: false, ownerId: 1, "tags": [ "GARAGE", "DRY" ], images: []
       },
       {
         id: 2, name: "casa", description: "Esto es una casa", initialDate: "1970-01-01T00:00:00.000Z", location: "Sevilla",
-        dimensions: "2x4", priceHour: 8, priceMonth: 760, shared: false, ownerId: 1, tags: [ "DRY" ]
+        dimensions: "2x4", priceHour: 8, priceMonth: 760, shared: false, ownerId: 1, tags: [ "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -159,7 +171,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true}, orderBy: {},
       }).resolves(dbOutput);
 
       // API Call
@@ -176,15 +188,14 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const dbOutput = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }]
+        dimensions: "1x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }], images: [{image: fs.readFileSync(`${__dirname}/../assets/Test.png`, 'base64'), mimetype: "image/png"}]
       }
       ];
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ]
-      }
-      ];
+        dimensions: "1x3", priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: [{image: fs.readFileSync(`${__dirname}/../assets/Test.png`, 'base64'), mimetype: "image/png"}]
+      }];
       //Set Actual Date
       let actualDate = new Date();
       actualDate.setMilliseconds(0);
@@ -202,7 +213,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true}, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -225,7 +236,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -245,7 +256,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true}, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -268,7 +279,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -288,7 +299,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -311,7 +322,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -331,7 +342,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -354,7 +365,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -374,7 +385,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -397,7 +408,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -417,7 +428,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -440,7 +451,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -460,7 +471,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -483,7 +494,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -503,7 +514,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -526,7 +537,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -546,7 +557,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -569,7 +580,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -589,7 +600,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -612,7 +623,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -632,7 +643,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -655,7 +666,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -675,7 +686,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -698,7 +709,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -718,7 +729,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -758,7 +769,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -781,7 +792,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceDay: 56, priceMonth: 456, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceDay: 56, priceMonth: 456, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -801,7 +812,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -828,7 +839,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 10, priceDay: 56, priceMonth: 456, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 10, priceDay: 56, priceMonth: 456, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -848,7 +859,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -875,7 +886,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceMonth: 456, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceMonth: 456, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -895,7 +906,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -918,7 +929,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 456, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 456, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -938,7 +949,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -961,7 +972,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 55, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -981,7 +992,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -1004,7 +1015,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -1024,7 +1035,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -1047,7 +1058,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -1067,7 +1078,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -1090,7 +1101,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -1110,7 +1121,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -1142,7 +1153,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).resolves([]);
 
       // API Call
@@ -1169,11 +1180,11 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       },
       {
         id: 2, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 8, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 8, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -1194,7 +1205,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: { priceHour: 'asc' }
+        }, include: { tags: true, images: true }, orderBy: { priceHour: 'asc' }
       }).resolves(dbOutput);
 
       // API Call
@@ -1221,11 +1232,11 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 8, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 8, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       },
       {
         id: 2, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -1246,7 +1257,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: { priceHour: 'desc' }
+        }, include: { tags: true, images: true }, orderBy: { priceHour: 'desc' }
       }).resolves(dbOutput);
 
       // API Call
@@ -1273,11 +1284,11 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 8, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 8, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       },
       {
         id: 2, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 58, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 58, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -1298,7 +1309,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: { priceDay: 'asc' }
+        }, include: { tags: true, images: true }, orderBy: { priceDay: 'asc' }
       }).resolves(dbOutput);
 
       // API Call
@@ -1325,11 +1336,11 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 8, priceDay: 58, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 8, priceDay: 58, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       },
       {
         id: 2, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -1350,7 +1361,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: { priceDay: 'desc' }
+        }, include: { tags: true, images: true }, orderBy: { priceDay: 'desc' }
       }).resolves(dbOutput);
 
       // API Call
@@ -1377,11 +1388,11 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 8, priceDay: 58, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 8, priceDay: 58, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       },
       {
         id: 2, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 440, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 440, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -1402,7 +1413,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: { priceMonth: 'asc' }
+        }, include: { tags: true, images: true }, orderBy: { priceMonth: 'asc' }
       }).resolves(dbOutput);
 
       // API Call
@@ -1429,11 +1440,11 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 8, priceDay: 58, priceMonth: 440, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 8, priceDay: 58, priceMonth: 440, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       },
       {
         id: 2, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -1453,7 +1464,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: { priceMonth: 'desc' }
+        }, include: { tags: true, images: true }, orderBy: { priceMonth: 'desc' }
       }).resolves(dbOutput);
 
       // API Call
@@ -1476,7 +1487,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es una guarida", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "36.8551,-5.32362",
-        dimensions: "1x3", priceHour: 8, priceDay: 58, priceMonth: 440, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 8, priceDay: 58, priceMonth: 440, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -1496,7 +1507,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: { }
+        }, include: { tags: true, images: true }, orderBy: { }
       }).resolves(dbOutput);
 
       // API Call
@@ -1519,7 +1530,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es una guarida", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "36.8551,-5.32362",
-        dimensions: "1x3", priceHour: 8, priceDay: 58, priceMonth: 440, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 8, priceDay: 58, priceMonth: 440, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -1539,7 +1550,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: { }
+        }, include: { tags: true, images: true }, orderBy: { }
       }).resolves(dbOutput);
 
       // API Call
@@ -1562,7 +1573,7 @@ module.exports = (prisma, jwt) => {
 
       const expected = [{
         id: 1, name: "sotano", description: "Eso es una guarida", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "36.8551,-5.32362",
-        dimensions: "1x3", priceHour: 8, priceDay: 58, priceMonth: 440, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ]
+        dimensions: "1x3", priceHour: 8, priceDay: 58, priceMonth: 440, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -1584,7 +1595,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: { }
+        }, include: { tags: true, images: true }, orderBy: { }
       }).resolves(dbOutput);
 
       // API Call
@@ -1618,7 +1629,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: { }
+        }, include: { tags: true, images: true }, orderBy: { }
       }).resolves([]);
 
       // API Call
@@ -1653,7 +1664,7 @@ module.exports = (prisma, jwt) => {
               ]
             }
           ]
-        }, include: { tags: true }, orderBy: {}
+        }, include: { tags: true, images: true }, orderBy: {}
       }).rejects('Unknown Error');
 
       // API Call
@@ -1780,8 +1791,8 @@ module.exports = (prisma, jwt) => {
     const spaceToBePublished = {
       name: "test",
       description: "test",
-      initialDate: new Date("2022-03-10T18:18:14.049Z"),
-      finalDate: new Date("2023-03-10T18:18:14.049Z"),
+      initialDate: new Date("2099-03-10T18:18:14.049Z"),
+      finalDate: new Date("3923-03-10T18:18:14.049Z"),
       location: "44.43,43.21",
       dimensions: "2x2",
       shared: true,
@@ -1965,7 +1976,7 @@ module.exports = (prisma, jwt) => {
 
     it('Should return 400 when providing a space with an invalid initial date', async () => {
       // Fixture
-      const expected = 'Bad Request: Initial date must be a Date';
+      const expected = 'Bad Request: Initial date must be a Date after today';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
       const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: 'not_a_date', location: '1,1', dimensions: '1x1', shared:true};
 
@@ -1989,7 +2000,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: Final date must be a Date';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: new Date(), finalDate: 'not_a_date', location: '1,1', dimensions: '1x1', shared:true};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: "3923-03-10T18:18:14.049Z", finalDate: 'not_a_date', location: '1,1', dimensions: '1x1', shared:true};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2011,7 +2022,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: Location must be a valid latitude,longitude pair';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: new Date(), location: '1,180.1', dimensions: '1x1', shared:true};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: "3923-03-10T18:18:14.049Z", location: '1,180.1', dimensions: '1x1', shared:true};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2033,7 +2044,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: Dimensions must be a valid width,height pair';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: new Date(), location: '1,1', dimensions: '1', shared:true};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1', shared:true};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2055,7 +2066,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: PriceHour must be a number';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceHour:'not_num', initialDate: new Date(), location: '1,1', dimensions: '1x1', shared:true};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceHour:'not_num', initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:true};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2077,7 +2088,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: PriceDay must be a number';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceDay:'not_num', initialDate: new Date(), location: '1,1', dimensions: '1x1', shared:true};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceDay:'not_num', initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:true};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2099,7 +2110,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: PriceMonth must be a number';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceMonth:'not_num', initialDate: new Date(), location: '1,1', dimensions: '1x1', shared:true};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceMonth:'not_num', initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:true};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2121,7 +2132,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: Shared must be true or false';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceMonth: 1, initialDate: new Date(), location: '1,1', dimensions: '1x1', shared:'not_true'};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceMonth: 1, initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:'not_true'};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2143,7 +2154,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: Tags must be an array';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceMonth: 1, initialDate: new Date(), location: '1,1', dimensions: '1x1', shared:true, tags:'not_array'};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceMonth: 1, initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:true, tags:'not_array'};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2164,7 +2175,7 @@ module.exports = (prisma, jwt) => {
     it('Should return 400 when invalid tags provided', async () => {
       // Fixture
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceMonth: 1, initialDate: new Date(), location: '1,1', dimensions: '1x1', shared:true, tags:['INVALID_TAG']};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceMonth: 1, initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:true, tags:['INVALID_TAG']};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2186,7 +2197,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: Images must be jpeg or png';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceMonth: 1, initialDate: new Date(), location: '1,1', dimensions: '1x1', shared:true, images:['invalid_img']};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceMonth: 1, initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:true, images:['invalid_img']};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2208,7 +2219,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: You must defined at least one valid price greater than 0';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: new Date(), location: '1,1', dimensions: '1x1', shared:true};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:true};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2232,7 +2243,7 @@ module.exports = (prisma, jwt) => {
       bad_date.setDate(bad_date.getDate() - 1);
       const expected = 'Bad Request: Final date must be after initial date';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceDay: 1, initialDate: new Date(), finalDate: bad_date, location: '1,1', dimensions: '1x1', shared:true};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceDay: 1, initialDate: "3923-03-10T18:18:14.049Z", finalDate: bad_date, location: '1,1', dimensions: '1x1', shared:true};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2278,7 +2289,7 @@ module.exports = (prisma, jwt) => {
       const spaceToBePublished = {
         name: "test",
         description: "test",
-        initialDate: new Date("2022-03-10T18:18:14.049Z"),
+        initialDate: "3923-03-10T18:18:14.049Z",
         location: "44.43,43.21",
         dimensions: "2x2",
         shared: true,
@@ -3537,8 +3548,8 @@ module.exports = (prisma, jwt) => {
       const spaceToBeUpdated = {
         name: "test",
         description: "test",
-        initialDate: new Date("2022-03-10T18:18:14.049Z"),
-        finalDate: new Date("2023-03-10T18:18:14.049Z"),
+        initialDate: "3923-03-10T18:18:14.049Z",   
+        finalDate: "3999-03-10T18:18:14.049Z",
         location: "44.43,43.21",
         dimensions: "2x2",
         shared: true,
@@ -3708,7 +3719,7 @@ module.exports = (prisma, jwt) => {
       const spaceToBeUpdated = {
         name: "test",
         description: "test",
-        initialDate: new Date("2022-03-10T18:18:14.049Z"),
+        initialDate: "3923-03-10T18:18:14.049Z",   
         location: "44.43,43.21",
         dimensions: "2x2",
         shared: true,
@@ -3742,7 +3753,7 @@ module.exports = (prisma, jwt) => {
       const spaceToBeUpdated = {
         name: "test",
         description: "test",
-        initialDate: new Date("2022-03-10T18:18:14.049Z"),
+        initialDate: "3923-03-10T18:18:14.049Z",   
         location: "44.43,43.21",
         dimensions: "2x2",
         shared: true,
