@@ -50,7 +50,9 @@
     "exclude": [
       "tests",
       "server.js",
-      "prisma"
+      "prisma",
+      "controllers/SmartSearch*",
+      "utils/recommender.js"
     ]
   }
 }
