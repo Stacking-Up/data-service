@@ -2315,18 +2315,114 @@ module.exports = (prisma, jwt) => {
         });
     });
 
-    it('Should post a rental of a space', async () => {
+    it('Should post a rental of a space (shared, not overlapping)', async () => {
       //Fixture
       const spaceToAddRental={
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
-        dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 2
+        dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 2, rentals:
+        [{
+          initialDate: new Date("2125-01-01T00:00:00.000Z"), finalDate: new Date("2130-01-01T00:00:00.000Z"), 
+          cost: 456, type: "HOUR", meters: 299, spaceId: 1, renterId: 3
+        }]
       }
       const expected='Rental created successfully';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
      
       const rentalToBeCreated={
-        initialDate: "2900-01-01T00:00:00.000Z",
-        finalDate: "2999-01-01T00:00:00.000Z",
+        initialDate: new Date("2900-01-01T00:00:00.000Z"),
+        finalDate: new Date("2999-01-01T00:00:00.000Z"),
+        cost: 456,
+        type: 'MONTH', 
+        meters: 5,
+        spaceId: 1, 
+        renterId: 1
+      };
+    
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+      createRental.resolves();
+
+
+      //API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToBeCreated, { 
+        withCredentials: true, 
+        headers: {Cookie: 'authToken=testToken;'}
+      })
+      .then( res => {
+        assert.equal(res.status, 201);
+        assert.equal(res.data, expected);
+      })
+    });
+
+    it('Should post a rental of a space (shared, overlapping)', async () => {
+      //Fixture
+      const spaceToAddRental={
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
+        dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 2, rentals:
+        [{
+          initialDate: new Date("2125-01-01T00:00:00.000Z"), finalDate: new Date("2130-01-01T00:00:00.000Z"), 
+          cost: 456, type: "HOUR", meters: 200, spaceId: 1, renterId: 3
+        }]
+      }
+      const expected='Rental created successfully';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+     
+      const rentalToBeCreated={
+        initialDate: new Date("2127-01-01T00:00:00.000Z"),
+        finalDate: new Date("2300-01-01T00:00:00.000Z"),
+        cost: 456,
+        type: 'MONTH', 
+        meters: 5,
+        spaceId: 1, 
+        renterId: 1
+      };
+    
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+      createRental.resolves();
+
+
+      //API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToBeCreated, { 
+        withCredentials: true, 
+        headers: {Cookie: 'authToken=testToken;'}
+      })
+      .then( res => {
+        assert.equal(res.status, 201);
+        assert.equal(res.data, expected);
+      })
+    });
+
+    it('Should post a rental of a space (not shared, not overlapping)', async () => {
+      //Fixture
+      const spaceToAddRental={
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
+        dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: false, ownerId: 2, rentals:
+        [{
+          initialDate: new Date("2125-01-01T00:00:00.000Z"), finalDate: new Date("2130-01-01T00:00:00.000Z"), 
+          cost: 456, type: "HOUR", meters: 299, spaceId: 1, renterId: 3
+        }]
+      }
+      const expected='Rental created successfully';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+     
+      const rentalToBeCreated={
+        initialDate: new Date("2900-01-01T00:00:00.000Z"),
+        finalDate: new Date("2999-01-01T00:00:00.000Z"),
         cost: 456,
         type: 'MONTH', 
         meters: 5,
@@ -2672,7 +2768,6 @@ module.exports = (prisma, jwt) => {
       });
     });
 
-
     it('Should return 400 when an user want to rent his own space', async () => {
       const spaceToAddRental={
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
@@ -3006,48 +3101,48 @@ module.exports = (prisma, jwt) => {
         });
       });
 
-  it('Should return 400 when space finalDate is before today', async () => {
-    // Fixture
+    it('Should return 400 when space finalDate is before today', async () => {
+      // Fixture
 
-    const spaceToAddRental={
-      id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("2021-01-01T00:00:00.000Z"), location: "41.2,45.3",
-      dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 2
-    }
-    const expected = 'Space cannot be rented after its final date';
-    const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
-    const rentalToPublish={
-      initialDate: new Date("2900-01-01T00:00:00.000Z"),
-      finalDate: new Date("3001-01-01T00:00:00.000Z"),
-      cost: 456,
-      type: "HOUR", 
-      meters: 5,
-      spaceId: 1, 
-      renterId: 1
-    };
-    // Mock Auth and DB Query
-    verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
-    findUnique.withArgs({
-      where:{
-        id: 1
-      }, include: {
-        rentals: true
+      const spaceToAddRental={
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("2021-01-01T00:00:00.000Z"), location: "41.2,45.3",
+        dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 2
       }
-    }).resolves(spaceToAddRental)
-    createRental.rejects()
+      const expected = 'Space cannot be rented after its final date';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToPublish={
+        initialDate: new Date("2900-01-01T00:00:00.000Z"),
+        finalDate: new Date("3001-01-01T00:00:00.000Z"),
+        cost: 456,
+        type: "HOUR", 
+        meters: 5,
+        spaceId: 1, 
+        renterId: 1
+      };
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+      createRental.rejects()
 
-    // API Call
-    await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
-        { 
-          withCredentials: true, 
-          headers: {Cookie: 'authToken=testToken;'}
-        })
-      .then( () => {
-        assert.fail();
-      }).catch( err => {
-        assert.equal(err.response.status, 400);
-        assert.equal(err.response.data, expected);
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+          { 
+            withCredentials: true, 
+            headers: {Cookie: 'authToken=testToken;'}
+          })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
       });
-    });
 
     it('Should return 400 when newRentalInitialDate >= existingRentalIntialDate and newRentalFinalDate <= existingRentalFinalDate', async () => {
       // Fixture
@@ -3056,7 +3151,9 @@ module.exports = (prisma, jwt) => {
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("3000-01-01T00:00:00.000Z"), location: "41.2,45.3",
         dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: false, ownerId: 2, rentals: [{
           initialDate: new Date("2023-01-01T00:00:00.000Z"), finalDate: new Date("2030-01-01T00:00:00.000Z"), 
-          cost: 456, type: "HOUR", meters: 300, spaceId: 1, renterId: 3}]
+          cost: 456, type: "HOUR", meters: 300, spaceId: 1, renterId: 3},
+          { initialDate: new Date("2031-01-01T00:00:00.000Z"), finalDate: new Date("2040-01-01T00:00:00.000Z"), 
+            cost: 456, type: "HOUR", meters: 300, spaceId: 1, renterId: 3}]
       }
       const expected = 'Bad Request: Space not available or space capacity exceeded';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
@@ -3365,7 +3462,9 @@ module.exports = (prisma, jwt) => {
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("3000-01-01T00:00:00.000Z"), location: "41.2,45.3",
         dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 2, rentals: [{
           initialDate: new Date("2023-01-01T00:00:00.000Z"), finalDate: new Date("2030-01-01T00:00:00.000Z"), 
-          cost: 456, type: "HOUR", meters: 100, spaceId: 1, renterId: 3}]
+          cost: 456, type: "HOUR", meters: 100, spaceId: 1, renterId: 3}, 
+          {initialDate: new Date("2031-01-01T00:00:00.000Z"), finalDate: new Date("2040-01-01T00:00:00.000Z"), 
+            cost: 456, type: "HOUR", meters: 100, spaceId: 1, renterId: 3}]
       }
       const expected = 'Bad Request: Space not available or space capacity exceeded';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
