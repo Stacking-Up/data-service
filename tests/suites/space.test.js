@@ -2881,36 +2881,6 @@ module.exports = (prisma, jwt) => {
         });
       });
 
-    it('Should return 400 when meters are not a number', async () => {
-      // Fixture
-      const expected = 'Bad Request: Meters must be a number';
-      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
-      const rentalToPublish={
-        initialDate: "2900-01-01T00:00:00.000Z",
-        finalDate: "2999-01-01T00:00:00.000Z",
-        cost: 456,
-        type: 'MONTH', 
-        meters: "invalid",
-        spaceId: 1, 
-        renterId: 1
-      };
-      // Mock Auth and DB Query
-      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
-    
-      // API Call
-      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
-          { 
-            withCredentials: true, 
-            headers: {Cookie: 'authToken=testToken;'}
-          })
-        .then( () => {
-          assert.fail();
-        }).catch( err => {
-          assert.equal(err.response.status, 400);
-          assert.equal(err.response.data, expected);
-        });
-      });
-
     it('Should return 400 when finalDate of a rental is before initialDate', async () => {
       // Fixture
       const expected = 'Bad Request: Final date must be after initial date';
@@ -3349,6 +3319,186 @@ module.exports = (prisma, jwt) => {
         cost: 456,
         type: "HOUR", 
         meters: 200,
+        spaceId: 1, 
+        renterId: 1
+      };
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+      createRental.rejects()
+  
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+          { 
+            withCredentials: true, 
+            headers: {Cookie: 'authToken=testToken;'}
+          })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+      });
+
+    it('Should return 400 when newRental meters exceed and newRentalInitialDate >= existingRentalIntialDate and newRentalFinalDate <= existingRentalFinalDate', async () => {
+      // Fixture
+  
+      const spaceToAddRental={
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("3000-01-01T00:00:00.000Z"), location: "41.2,45.3",
+        dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 2, rentals: [{
+          initialDate: new Date("2023-01-01T00:00:00.000Z"), finalDate: new Date("2030-01-01T00:00:00.000Z"), 
+          cost: 456, type: "HOUR", meters: 100, spaceId: 1, renterId: 3}]
+      }
+      const expected = 'Bad Request: Space not available or space capacity exceeded';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToPublish={
+        initialDate: new Date("2024-01-01T00:00:00.000Z"),
+        finalDate: new Date("2029-01-01T00:00:00.000Z"),
+        cost: 456,
+        type: "HOUR", 
+        meters: 300,
+        spaceId: 1, 
+        renterId: 1
+      };
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+      createRental.rejects()
+  
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+          { 
+            withCredentials: true, 
+            headers: {Cookie: 'authToken=testToken;'}
+          })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+      });
+
+    it('Should return 400 when newRental meters exceed and newRentalInitialDate < existingRentalIntialDate and newRentalFinalDate <= existingRentalFinalDate', async () => {
+      // Fixture
+  
+      const spaceToAddRental={
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("3000-01-01T00:00:00.000Z"), location: "41.2,45.3",
+        dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 2, rentals: [{
+          initialDate: new Date("2024-01-01T00:00:00.000Z"), finalDate: new Date("2030-01-01T00:00:00.000Z"), 
+          cost: 456, type: "HOUR", meters: 100, spaceId: 1, renterId: 3}]
+      }
+      const expected = 'Bad Request: Space not available or space capacity exceeded';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToPublish={
+        initialDate: new Date("2023-01-01T00:00:00.000Z"),
+        finalDate: new Date("2028-01-01T00:00:00.000Z"),
+        cost: 456,
+        type: "HOUR", 
+        meters: 300,
+        spaceId: 1, 
+        renterId: 1
+      };
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+      createRental.rejects()
+  
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+          { 
+            withCredentials: true, 
+            headers: {Cookie: 'authToken=testToken;'}
+          })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+      });
+    
+    it('Should return 400 when newRental meters exceed and newRentalInitialDate >= existingRentalIntialDate and newRentalFinalDate > existingRentalFinalDate', async () => {
+      // Fixture
+  
+      const spaceToAddRental={
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("3000-01-01T00:00:00.000Z"), location: "41.2,45.3",
+        dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 2, rentals: [{
+          initialDate: new Date("2023-01-01T00:00:00.000Z"), finalDate: new Date("2030-01-01T00:00:00.000Z"), 
+          cost: 456, type: "HOUR", meters: 100, spaceId: 1, renterId: 3}]
+      }
+      const expected = 'Bad Request: Space not available or space capacity exceeded';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToPublish={
+        initialDate: new Date("2024-01-01T00:00:00.000Z"),
+        finalDate: new Date("2031-01-01T00:00:00.000Z"),
+        cost: 456,
+        type: "HOUR", 
+        meters: 300,
+        spaceId: 1, 
+        renterId: 1
+      };
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+      createRental.rejects()
+  
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+          { 
+            withCredentials: true, 
+            headers: {Cookie: 'authToken=testToken;'}
+          })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+      });
+    
+    it('Should return 400 when newRental meters exceed and newRentalInitialDate < existingRentalIntialDate and newRentalFinalDate > existingRentalFinalDate', async () => {
+      // Fixture
+  
+      const spaceToAddRental={
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("3000-01-01T00:00:00.000Z"), location: "41.2,45.3",
+        dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 2, rentals: [{
+          initialDate: new Date("2024-01-01T00:00:00.000Z"), finalDate: new Date("2030-01-01T00:00:00.000Z"), 
+          cost: 456, type: "HOUR", meters: 100, spaceId: 1, renterId: 3}]
+      }
+      const expected = 'Bad Request: Space not available or space capacity exceeded';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToPublish={
+        initialDate: new Date("2023-01-01T00:00:00.000Z"),
+        finalDate: new Date("2031-01-01T00:00:00.000Z"),
+        cost: 456,
+        type: "HOUR", 
+        meters: 300,
         spaceId: 1, 
         renterId: 1
       };
