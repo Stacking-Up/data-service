@@ -1255,6 +1255,50 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
+  /api/v1/items/types:
+    get:
+      tags:
+        - Items
+      x-swagger-router-controller: ItemController
+      description: Returns all existing items types
+      operationId: getItemsTypes
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  /api/v1/items/dimensions:
+    get:
+      tags:
+        - Items
+      x-swagger-router-controller: ItemController
+      description: Returns all existing items dimensions
+      operationId: getItemsDimensions
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
 components:
   schemas:
     errorModel:
