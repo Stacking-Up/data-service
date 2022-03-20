@@ -102,8 +102,8 @@ function _checkSpaceConstraints (space, errors) {
     errors.push('Missing required attributes');
   } else if (space.name.length < 3 || space.name.length > 50) {
     errors.push('Name must be between 2 and 50 characters');
-  } else if (new Date(space.initialDate).toString() === 'Invalid Date') {
-    errors.push('Initial date must be a Date');
+  } else if (new Date(space.initialDate).toString() === 'Invalid Date' || new Date(space.initialDate) < new Date()) {
+    errors.push('Initial date must be a Date after today');
   } else if (space.finalDate && new Date(space.finalDate).toString() === 'Invalid Date') {
     errors.push('Final date must be a Date');
   } else if (!space.location.match(/^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/)) {
@@ -135,7 +135,7 @@ function _checkSpaceBusinessLogic (space, errors) {
   }
 
   // RN04
-  if (space.finalDate && space.finalDate < space.initialDate) {
+  if (space.finalDate && new Date(space.finalDate) < new Date(space.initialDate)) {
     errors.push('Final date must be after initial date');
   }
   return errors;
