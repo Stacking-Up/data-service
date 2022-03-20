@@ -255,7 +255,7 @@ function _isSpaceAvailable (rentalInitialDateToBeCreated, rentalFinalDateToBeCre
         } else if (rentalInitialDateToBeCreated < rental.initialDate && rentalFinalDateToBeCreated > rental.finalDate) {
           metersRented += rental.meters;
         }
-        res = (metersRented + rentalMetersToBeCreated) > module.exports.getMeters(space.dimensions);
+        res = (metersRented + rentalMetersToBeCreated) < module.exports.getMeters(space.dimensions);
       }
     });
   }
