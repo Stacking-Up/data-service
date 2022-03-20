@@ -9,7 +9,7 @@ module.exports.getUsers = function getUsers (req, res, next) {
     take: req.limit.value
   })
     .then(users => {
-      res.send(users.map(user => utils.excludeNulls(user)));
+      res.send(users.map(user => utils.commons.excludeNulls(user)));
     })
     .catch(err => {
       if ([req.offset.value, req.limit.value].some(s => s && !s.toString().match(/^\d+$/))) {
@@ -31,7 +31,7 @@ module.exports.getUser = function getUser (req, res, next) {
       if (!user) {
         res.status(404).send('User not found');
       } else {
-        res.send(utils.excludeNulls(user));
+        res.send(utils.commons.excludeNulls(user));
       }
     })
     .catch(err => {
@@ -138,7 +138,7 @@ module.exports.getUserRatings = function getUserRatings (req, res, next) {
       } else if (req.filter.value && !['all', 'received', 'given'].includes(req.filter.value.toLowerCase())) {
         res.status(400).send('Invalid filter parameter. It must be one of the following: all, received, given');
       } else {
-        res.send(utils.filterRatings(rating, req));
+        res.send(utils.user.filterRatings(rating, req));
       }
     })
     .catch(err => {
@@ -205,7 +205,7 @@ module.exports.getUserSpaces = function getUserSpaces (req, res, next) {
       if (!spaces || spaces.length === 0) {
         res.status(404).send('Spaces not found');
       } else {
-        res.send(spaces.map(space => utils.excludeNulls(space)));
+        res.send(spaces.map(space => utils.commons.excludeNulls(space)));
       }
     })
     .catch(err => {
@@ -237,7 +237,7 @@ module.exports.getUserSpace = function getUserSpace (req, res, next) {
       } else if (!users.spaces || users.spaces.length === 0) {
         res.status(404).send('Space not found');
       } else {
-        res.send(users.spaces.map(space => utils.excludeNulls(space))[0]);
+        res.send(users.spaces.map(space => utils.commons.excludeNulls(space))[0]);
       }
     })
     .catch(err => {
@@ -262,7 +262,7 @@ module.exports.getUserRentals = function getUserRentals (req, res, next) {
       if (!rentals || rentals.length === 0) {
         res.status(404).send('Rentals not found');
       } else {
-        res.send(rentals.map(rental => utils.excludeNulls(rental)));
+        res.send(rentals.map(rental => utils.commons.excludeNulls(rental)));
       }
     })
     .catch(err => {

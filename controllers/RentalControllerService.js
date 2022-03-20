@@ -1,6 +1,6 @@
 'use strict';
 
-const utils = require('../utils');
+const { commons } = require('../utils');
 const prisma = require('../prisma');
 
 module.exports.getRentals = function getRentals (req, res, next) {
@@ -9,7 +9,7 @@ module.exports.getRentals = function getRentals (req, res, next) {
     take: req.limit.value
   })
     .then(rentals => {
-      res.send(rentals.map(rental => utils.excludeNulls(rental)));
+      res.send(rentals.map(rental => commons.excludeNulls(rental)));
     })
     .catch(err => {
       if ([req.offset.value, req.limit.value].some(s => s && !s.toString().match(/^\d+$/))) {
@@ -31,7 +31,7 @@ module.exports.getRental = function getRental (req, res, next) {
       if (!rental) {
         res.status(404).send('Rental not found');
       } else {
-        res.send(utils.excludeNulls(rental));
+        res.send(commons.excludeNulls(rental));
       }
     })
     .catch(err => {
