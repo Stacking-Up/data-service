@@ -1201,7 +1201,60 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  
+  /api/v1/smartSearch/renters:
+    get:
+      tags:
+        - SmartSearch
+      x-swagger-router-controller: SmartSearchController
+      description: Search for renters through an advanced algorithm
+      operationId: getRenters
+      parameters: 
+        - name: spaceId
+          in: query
+          description: 'space to search renters for'
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/smartSearchResult'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
 components:
   schemas:
     errorModel:
