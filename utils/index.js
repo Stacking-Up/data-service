@@ -4,5 +4,6 @@ module.exports = {
   smartSearch: require('./recommender'),
   commons: require('./commons'),
   space: require('./space'),
-  user: require('./user')
+  user: require('./user'),
+  rental: require('./rental')
 };
