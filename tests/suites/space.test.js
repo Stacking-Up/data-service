@@ -1680,9 +1680,11 @@ module.exports = (prisma, jwt) => {
     it('should return spaces that an user owns', async () => {
       // Fixture
       const dbOutput = [{id: 1, name: 'space1', description: 'space1', initialDate: '1970-01-01T00:00:00.000Z', finalDate: '1971-01-01T00:00:00.000Z', location: '44.4,45.3', dimensions: '2x2', priceHour: 33, priceDay: 345, priceMonth: 3444, shared: true, ownerId: 1}, 
-      {id: 2, name: 'space2', description: 'space2', initialDate: '1970-01-01T00:00:00.000Z', finalDate: '1971-01-01T00:00:00.000Z', location: '44.4,45.3', dimensions: '2x2', priceHour: 33, priceDay: 345, priceMonth: 3444, shared: false, ownerId: 1}];
-      const expected = [{id: 1, name: 'space1', description: 'space1', initialDate: '1970-01-01T00:00:00.000Z', finalDate: '1971-01-01T00:00:00.000Z', location: '44.4,45.3', dimensions: '2x2', priceHour: 33, priceDay: 345, priceMonth: 3444, shared: true, ownerId: 1}, 
-      {id: 2, name: 'space2', description: 'space2', initialDate: '1970-01-01T00:00:00.000Z', finalDate: '1971-01-01T00:00:00.000Z', location: '44.4,45.3', dimensions: '2x2', priceHour: 33, priceDay: 345, priceMonth: 3444, shared: false, ownerId: 1}];
+      {id: 2, name: 'space2', description: 'space2', initialDate: '1970-01-01T00:00:00.000Z', finalDate: '1971-01-01T00:00:00.000Z', location: '44.4,45.3', dimensions: '2x2', priceHour: 33, priceDay: 345, priceMonth: 3444, shared: false, ownerId: 1, 
+      images: [ {image: fs.readFileSync(`${__dirname}/../assets/Test.png`, 'base64'), mimetype: 'image/png'} ], tags: [{tag: 'FLOOR_1'}]}];
+      const expected = [{id: 1, name: 'space1', description: 'space1', initialDate: '1970-01-01T00:00:00.000Z', finalDate: '1971-01-01T00:00:00.000Z', location: '44.4,45.3', dimensions: '2x2', priceHour: 33, priceDay: 345, priceMonth: 3444, shared: true, ownerId: 1, images: []}, 
+      {id: 2, name: 'space2', description: 'space2', initialDate: '1970-01-01T00:00:00.000Z', finalDate: '1971-01-01T00:00:00.000Z', location: '44.4,45.3', dimensions: '2x2', priceHour: 33, priceDay: 345, priceMonth: 3444, shared: false, ownerId: 1, 
+      images: [ {image: fs.readFileSync(`${__dirname}/../assets/Test.png`, 'base64'), mimetype: 'image/png'}], tags: ['FLOOR_1']}];
 
       // Mock DB Query
       findMany.withArgs({
@@ -1692,7 +1694,8 @@ module.exports = (prisma, jwt) => {
           ownerId: 1
         },
         include: {
-          tags: true
+          tags: true,
+          images: true
         }
       }).resolves(dbOutput);
 
@@ -1716,7 +1719,8 @@ module.exports = (prisma, jwt) => {
           ownerId: 1
         },
         include: {
-          tags: true
+          tags: true,
+          images: true
         }
       }).resolves(dbOutput)
 
@@ -1768,7 +1772,8 @@ module.exports = (prisma, jwt) => {
           ownerId: 1
         },
         include: {
-          tags: true
+          tags: true,
+          images: true
         }
       }).rejects();
 

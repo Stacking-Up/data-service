@@ -198,14 +198,19 @@ module.exports.getUserSpaces = function getUserSpaces (req, res, next) {
       ownerId: parseInt(req.userId.value)
     },
     include: {
-      tags: true
+      tags: true,
+      images: true
     }
   })
     .then(spaces => {
       if (!spaces || spaces.length === 0) {
         res.status(404).send('Spaces not found');
       } else {
-        res.send(spaces.map(space => utils.commons.excludeNulls(space)));
+        res.send(spaces.map(space => utils.commons.excludeNulls(space)).reduce((acc, space) => {
+          space.tags = space.tags?.map(tag => tag.tag);
+          space.images = (space.images && space.images.length !== 0) ? [{ image: space.images[0].image.toString('base64'), mimetype: space.images[0].mimetype }] : [];
+          return [...acc, space];
+        }, []));
       }
     })
     .catch(err => {

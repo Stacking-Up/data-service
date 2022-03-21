@@ -71,9 +71,9 @@ function _checkRentalBusinessLogic (rentalToBeCreated, space, errors) {
   // RN05 - RN06 junto a funcion para comprobar si el espacio esta disponible para alquilar - RN07
   if (rentalToBeCreated.finalDate < rentalToBeCreated.initialDate) {
     errors.push('Final date must be after initial date');
-  } else if (rentalInitialDateToBeCreated < space.initialDate || rentalInitialDateToBeCreated > space.finalDate) {
+  } else if (rentalInitialDateToBeCreated < space.initialDate || (space.finalDate && rentalInitialDateToBeCreated > space.finalDate)) {
     errors.push('Initial date must be between space dates');
-  } else if (rentalFinalDateToBeCreated < space.initialDate || rentalFinalDateToBeCreated > space.finalDate) {
+  } else if (rentalFinalDateToBeCreated < space.initialDate || (space.finalDate && rentalFinalDateToBeCreated > space.finalDate)) {
     errors.push('Final date must be between space dates');
   } else if (!_isSpaceAvailable(rentalInitialDateToBeCreated, rentalFinalDateToBeCreated, rentalMetersToBeCreated, space)) {
     errors.push('Space not available or space capacity exceeded');
