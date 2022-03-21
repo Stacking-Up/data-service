@@ -1310,6 +1310,56 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
+  /api/v1/items:
+    post:
+      security:
+        - cookieAuth: []
+      tags:
+        - Items
+      x-swagger-router-controller: ItemController
+      description: Checks the validity of a logged-in user's token and publishes the user items
+      operationId: postItems
+      requestBody:
+        x-name: body
+        description: Array of items object to be published
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/item'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
   /api/v1/items/types:
     get:
       tags:
@@ -1398,8 +1448,20 @@ components:
       properties:
         type:
           type: string
+          enum:
+            - APPLIANCES
+            - ELECTRONICS
+            - CLOTHES
+            - FURNITURE
+            - DIYs
+            - OTHER
         dimensions:
           type: string
+          enum:
+            - SMALL
+            - MEDIUM
+            - LARGE
+            - VERY_LARGE
     rating:
       type: object
       required:

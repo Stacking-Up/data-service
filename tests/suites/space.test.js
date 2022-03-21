@@ -2,6 +2,7 @@ const assert = require('assert');
 const axios = require('axios');
 const sinon = require('sinon');
 const fs = require('fs');
+const { ItemType, Dimensions } = require('@prisma/client');
 
 const host = "http://localhost:4100";
 
@@ -2315,6 +2316,158 @@ module.exports = (prisma, jwt) => {
         });
     });
 
+    it('Should post items', async () => {
+      // Fixture
+      const expected = 'User items created successfully';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const itemToBePublished = [{
+          type: 'ELECTRONICS',
+          dimensions: 'SMALL'
+      }]
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.resolves();
+  
+      // API Call
+      await axios.post(`${host}/api/v1/items`, itemToBePublished, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.equal(res.status, 201);
+          assert.equal(res.data, expected);
+        }).catch( () => assert.fail());
+    });
+
+    it('Should return 401 when token is missing posting items', async () => {
+      // Fixture
+      const expected = 'Unauthorized';
+  
+      // API Call
+      await axios.post(`${host}/api/v1/items`, {})
+        .then( res => {
+          assert.fail();
+        }).catch( (err) => {
+          assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when invalid itemtype posting items', async () => {
+      // Fixture
+      const expected = 'Invalid item type. It must be one of the following: ' + Object.values(ItemType).join(', ');
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const itemToBePublished = [{
+          type: 'INVALID',
+          dimensions: 'SMALL'
+      }]
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.rejects();
+  
+      // API Call
+      await axios.post(`${host}/api/v1/items`, itemToBePublished, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.fail();
+        }).catch( (err) => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);        
+        });
+    });
+
+    it('Should return 400 when invalid dimensions posting items', async () => {
+      // Fixture
+      const expected = 'Invalid item dimensions. It must be one of the following: ' + Object.values(Dimensions).join(', ');
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const itemToBePublished = [{
+          type: 'ELECTRONICS',
+          dimensions: 'INVALID'
+      }]
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.rejects();
+  
+      // API Call
+      await axios.post(`${host}/api/v1/items`, itemToBePublished, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.fail();
+        }).catch( (err) => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);        
+        });
+    });
+
+    it('Should return 500 when trying to update items of user', async () => {
+      // Fixture
+      const expected = 'Internal Server Error';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const itemToBePublished = [{
+          type: 'ELECTRONICS',
+          dimensions: 'SMALL'
+      }]
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.rejects();
+  
+      // API Call
+      await axios.post(`${host}/api/v1/items`, itemToBePublished, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.fail();
+        }).catch( (err) => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);        
+        });
+    });
+
+    it('Should return 401 when invalid token when posting items', async () => {
+      // Fixture
+      const expected = 'Unauthorized: Invalid token';
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').throws(new jwt.JsonWebTokenError('Invalid token'));
+  
+      // API Call
+      await axios.post(`${host}/api/v1/items`, {}, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.fail();
+        }).catch( (err) => {
+          assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected);        
+        });
+    });
+    
+    it('Should return 500 when unexpected error posting items', async () => {
+      // Fixture
+      const expected = 'Internal Server Error';
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').throws(new Error('Unexpected Error'));
+  
+      // API Call
+      await axios.post(`${host}/api/v1/items`, {}, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.fail();
+        }).catch( (err) => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);        
+        });
+    });
+
     it('Should post a rental of a space (shared, not overlapping)', async () => {
       //Fixture
       const spaceToAddRental={
@@ -3636,7 +3789,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
       });
-});
+  });
 
 
   describe('PUT Endpoint tests:', () => {
