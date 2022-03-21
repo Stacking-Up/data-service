@@ -7,5 +7,3 @@ module.exports = {
   user: require('./user'),
   rental: require('./rental')
 };
-
-

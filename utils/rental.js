@@ -1,4 +1,4 @@
-'use-strict'
+'use-strict';
 
 const { RentalType } = require('@prisma/client');
 const { getMeters } = require('./space');
@@ -36,11 +36,9 @@ function _isSpaceAvailable (rentalInitialDateToBeCreated, rentalFinalDateToBeCre
   if (!space.shared && space.rentals && space.rentals.length > 0) {
     space.rentals.filter(x => x.finalDate > new Date()).forEach(rental => {
       if (res) {
-        if (rentalInitialDateToBeCreated >= rental.initialDate && rentalFinalDateToBeCreated <= rental.finalDate) {
+        if (rentalInitialDateToBeCreated >= rental.initialDate && rentalInitialDateToBeCreated <= rental.finalDate) {
           res = false;
-        } else if (rentalInitialDateToBeCreated < rental.initialDate && rentalFinalDateToBeCreated <= rental.finalDate) {
-          res = false;
-        } else if (rentalInitialDateToBeCreated >= rental.initialDate && rentalFinalDateToBeCreated > rental.finalDate) {
+        } else if (rentalFinalDateToBeCreated >= rental.initialDate && rentalFinalDateToBeCreated <= rental.finalDate) {
           res = false;
         } else if (rentalInitialDateToBeCreated < rental.initialDate && rentalFinalDateToBeCreated > rental.finalDate) {
           res = false;
@@ -51,11 +49,9 @@ function _isSpaceAvailable (rentalInitialDateToBeCreated, rentalFinalDateToBeCre
     let metersRented = 0;
     space.rentals.filter(x => x.finalDate > new Date()).forEach(rental => {
       if (res) {
-        if (rentalInitialDateToBeCreated >= rental.initialDate && rentalFinalDateToBeCreated <= rental.finalDate) {
+        if (rentalInitialDateToBeCreated >= rental.initialDate && rentalInitialDateToBeCreated <= rental.finalDate) {
           metersRented += rental.meters;
-        } else if (rentalInitialDateToBeCreated < rental.initialDate && rentalFinalDateToBeCreated <= rental.finalDate) {
-          metersRented += rental.meters;
-        } else if (rentalInitialDateToBeCreated >= rental.initialDate && rentalFinalDateToBeCreated > rental.finalDate) {
+        } else if (rentalFinalDateToBeCreated >= rental.initialDate && rentalFinalDateToBeCreated <= rental.finalDate) {
           metersRented += rental.meters;
         } else if (rentalInitialDateToBeCreated < rental.initialDate && rentalFinalDateToBeCreated > rental.finalDate) {
           metersRented += rental.meters;
