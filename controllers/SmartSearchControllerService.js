@@ -45,13 +45,13 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
 
   // Recomendations based on tfidf
   let recommendedSpaces = [];
-  (async () => {
+  await (async () => {
     if (authToken) {
       try {
         const decoded = jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
         const rentals = await prisma.rental.findMany({
           where: {
-            userId: decoded.id
+            renterId: decoded.userId
           },
           include: {
             space: true
@@ -84,7 +84,7 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
   })();
 
   // Recomendations based on tags and location
-  (async () => {
+  await (async () => {
     const diccTags = smartSearch.dictItemsTags;
     const itemTags = [...new Set(items.flatMap(item => diccTags[item.type]))];
     const where = recommendedSpaces.length === 0 ? {} : { id: { in: recommendedSpaces.map(space => space.id) } };
@@ -150,7 +150,7 @@ module.exports.postTrainSpaces = async function postTrainSpaces (req, res, next)
   }
 };
 
-module.exports.getRenters = async function getSenters (req, res, next) {
+module.exports.getRenters = async function getRenters (req, res, next) {
   const authToken = req.cookies?.authToken;
   const spaceId = req.swagger.params.spaceId.value;
   let userId;

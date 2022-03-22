@@ -1223,7 +1223,7 @@ paths:
       tags:
         - SmartSearch
       x-swagger-router-controller: SmartSearchController
-      description: Search for spaces through an advanced algorithm
+      description: Train the algorithm to be able to search spaces
       operationId: postTrainSpaces
       responses:
         '200':
