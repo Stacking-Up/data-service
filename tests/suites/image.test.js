@@ -21,7 +21,7 @@ module.exports = (prisma) => {
         it('should return avatar image when an userId given', async () => {
             // Fixture
             const dbOutput = {id: 1, image: fs.readFileSync(`${__dirname}/../assets/Test.png`), mimetype: 'image/png'};
-            const expected = fs.readFileSync(`${__dirname}/../assets/Test.png`).toString('base64');
+            const expected = {image: fs.readFileSync(`${__dirname}/../assets/Test.png`).toString('base64'), mimetype: 'image/png'};
         
             // Mock DB Query
             findUnique.withArgs({
@@ -33,7 +33,7 @@ module.exports = (prisma) => {
             // API Call
             await axios.get(`${host}/api/v1/users/1/avatar`).then(res => {
                 assert.equal(res.status, 200);
-                assert.equal(res.data, expected);
+                assert.deepEqual(res.data, expected);
             });
         });
 
@@ -104,7 +104,7 @@ module.exports = (prisma) => {
         it('should return list of images when an spaceId given', async () => {
             // Fixture
             const dbOutput = [{id: 1, image: fs.readFileSync(`${__dirname}/../assets/Test.png`), mimetype: 'image/png'}];
-            const expected = [fs.readFileSync(`${__dirname}/../assets/Test.png`).toString('base64')];
+            const expected = [{image: fs.readFileSync(`${__dirname}/../assets/Test.png`).toString('base64'), mimetype: 'image/png'}];
         
             // Mock DB Query
             findMany.withArgs({

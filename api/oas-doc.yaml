@@ -501,7 +501,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/image'
+                $ref: '#/components/schemas/imageObject'
         '400':
           description: Bad Request
           content:
@@ -1024,7 +1024,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/image'
+                  $ref: '#/components/schemas/imageObject'
         '400':
           description: Bad Request
           content:
@@ -1581,6 +1581,16 @@ components:
         score:
           type: number
           format: double
+    imageObject:
+      type: object
+      required:
+        - image
+        - mimetype
+      properties:
+        image:
+          type: string
+        mimetype:
+          type: string
   securitySchemes:
     cookieAuth:
       type: apiKey

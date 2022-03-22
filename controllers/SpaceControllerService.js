@@ -372,7 +372,9 @@ module.exports.getSpaceImages = async function getSpaceImages (req, res, next) {
       if (!images || images.length === 0) {
         res.status(404).send('Images not found or non existing space with this Id.');
       } else {
-        res.send(images.map(img => img.image.toString('base64')));
+        res.send(images.map(img => {
+          return { image: img.image.toString('base64'), mimetype: img.mimetype };
+        }));
       }
     })
     .catch(err => {
