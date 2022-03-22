@@ -331,7 +331,7 @@ module.exports.getUserAvatar = async function getUserAvatar (req, res, next) {
       if (!img) {
         res.status(404).send('No image found for this userdId');
       } else {
-        res.send(img.image.toString('base64'));
+        res.send({ image: img.image.toString('base64'), mimetype: img.mimetype });
       }
     })
     .catch(err => {
