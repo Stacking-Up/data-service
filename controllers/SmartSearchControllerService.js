@@ -153,6 +153,7 @@ module.exports.postTrainSpaces = async function postTrainSpaces (req, res, next)
 module.exports.getRenters = async function getSenters (req, res, next) {
   const authToken = req.cookies?.authToken;
   const spaceId = req.swagger.params.spaceId.value;
+  let userId;
 
   // Initial checks
   if (!authToken) {
@@ -172,6 +173,9 @@ module.exports.getRenters = async function getSenters (req, res, next) {
       res.status(403).send('Forbidden');
       return;
     }
+
+    userId = decoded.userId;
+
   } catch (err) {
     if (err instanceof jwt.JsonWebTokenError) {
       res.status(401).send(`Unauthorized: ${err.message}`);
@@ -186,6 +190,11 @@ module.exports.getRenters = async function getSenters (req, res, next) {
 
   if (!space || !space.tags || space.tags.length === 0) {
     res.status(404).send('Space cannot be found or has no tags to recommend users based on');
+    return;
+  }
+
+  if(space.ownerId !== userId) {
+    res.status(403).send('Forbidden. You cannot get renters of a space you do not own');
     return;
   }
 
