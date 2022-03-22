@@ -175,7 +175,6 @@ module.exports.getRenters = async function getSenters (req, res, next) {
     }
 
     userId = decoded.userId;
-
   } catch (err) {
     if (err instanceof jwt.JsonWebTokenError) {
       res.status(401).send(`Unauthorized: ${err.message}`);
@@ -193,7 +192,7 @@ module.exports.getRenters = async function getSenters (req, res, next) {
     return;
   }
 
-  if(space.ownerId !== userId) {
+  if (space.ownerId !== userId) {
     res.status(403).send('Forbidden. You cannot get renters of a space you do not own');
     return;
   }
