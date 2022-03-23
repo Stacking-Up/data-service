@@ -3,35 +3,56 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "test:unit": "mocha ./tests/index.test.js --timeout 100000 -s 20",
+    "start": "npm run prisma-db-push && node index.js",
+    "deploy": "npm run prisma-migrate:prod && node index.js",
+    "test:unit": "npm run generate-schema:prod && mocha ./tests/index.test.js --timeout 100000 -s 20",
     "test:integration": "echo \"Error: no test specified\" && exit 1",
     "coverage": "nyc --reporter=lcov npm run test:unit",
     "cov": "nyc npm run test:unit",
     "lint": "semistandard",
     "lint-fix": "semistandard --fix",
-    "precommit": "npm run lint-fix && npm run cov"
+    "precommit": "npm run lint-fix && npm run cov",
+    "generate-schema:dev": "cat ./prisma/schemas/dev.prisma ./prisma/schemas/models.prisma > ./prisma/schema.prisma && npx prisma generate",
+    "generate-schema:prod": "cat ./prisma/schemas/models.prisma > ./prisma/schema.prisma && npx prisma generate",
+    "prisma-migrate:dev": "npm run generate-schema:prod && npx prisma migrate dev",
+    "prisma-migrate:prod": "npm run generate-schema:prod && npx prisma migrate deploy",
+    "schema-docs": "npm run generate-schema:dev && npx prisma-docs-generator serve",
+    "prisma-db-push": "npm run generate-schema:dev && npx prisma db push"
   },
   "dependencies": {
+    "@prisma/client": "^3.10.0",
+    "axios": "^0.26.1",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
     "express": "^4.16.3",
     "js-yaml": "^3.3.0",
-    "oas-tools": "^2.1.4"
+    "natural": "^5.1.13",
+    "oas-tools": "^2.1.4",
+    "vector-object": "^1.3.0"
   },
   "devDependencies": {
+    "@mermaid-js/mermaid-cli": "^8.14.0",
     "mocha": "^9.2.1",
     "nyc": "^15.1.0",
     "prisma": "^3.10.0",
-    "semistandard": "^16.0.1"
+    "prisma-docs-generator": "^0.5.0",
+    "prisma-erd-generator": "^0.10.0",
+    "semistandard": "^16.0.1",
+    "sinon": "^13.0.1"
   },
   "semistandard": {
     "ignore": [
-      "/tests/**"
+      "/tests/**",
+      "/prisma/**"
     ]
   },
   "nyc": {
     "exclude": [
       "tests",
-      "server.js"
+      "server.js",
+      "prisma",
+      "controllers/SmartSearch*",
+      "utils/recommender.js"
     ]
   }
 }

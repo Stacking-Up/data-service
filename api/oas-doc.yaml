@@ -18,6 +18,19 @@ paths:
       x-swagger-router-controller: UserController
       description: Returns all users
       operationId: getUsers
+      parameters:
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: Success
@@ -27,13 +40,19 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/user'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
         '500':
           description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}':
+  /api/v1/users/{userId}:
     get:
       tags:
         - Users
@@ -46,7 +65,7 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
@@ -72,7 +91,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/items':
+  /api/v1/users/{userId}/items:
     get:
       tags:
         - Users
@@ -85,7 +104,7 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
@@ -113,7 +132,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/items/{itemId}':
+  /api/v1/users/{userId}/items/{itemId}:
     get:
       tags:
         - Users
@@ -126,13 +145,13 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
         - name: itemId
           in: path
           description: Item's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
@@ -158,7 +177,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/ratings':
+  /api/v1/users/{userId}/ratings:
     get:
       tags:
         - Users
@@ -171,7 +190,7 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
         - name: filter
           in: query
           description: 'Filter for given, received or both'
@@ -182,6 +201,18 @@ paths:
               - given
               - received
               - all
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: Success
@@ -209,7 +240,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/ratings/{ratingId}':
+  /api/v1/users/{userId}/ratings/{ratingId}:
     get:
       tags:
         - Users
@@ -222,13 +253,13 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
         - name: ratingId
           in: path
           description: Rating's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
@@ -254,7 +285,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/spaces':
+  /api/v1/users/{userId}/spaces:
     get:
       tags:
         - Users
@@ -267,7 +298,19 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: Success
@@ -295,7 +338,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/spaces/{spaceId}':
+  /api/v1/users/{userId}/spaces/{spaceId}:
     get:
       tags:
         - Users
@@ -308,13 +351,13 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
         - name: spaceId
           in: path
           description: Space's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
@@ -340,7 +383,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/rentals':
+  /api/v1/users/{userId}/rentals:
     get:
       tags:
         - Users
@@ -353,7 +396,19 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: Success
@@ -381,7 +436,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/users/{userId}/rentals/{rentalId}':
+  /api/v1/users/{userId}/rentals/{rentalId}:
     get:
       tags:
         - Users
@@ -394,13 +449,13 @@ paths:
           description: User's id
           required: true
           schema:
-            type: string
+            type: integer
         - name: rentalId
           in: path
           description: Rental's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
@@ -408,6 +463,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/rental'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  '/api/v1/users/{userId}/avatar':
+    get:
+      tags:
+        - Users
+      x-swagger-router-controller: UserController
+      description: Returns the avatar of an user
+      operationId: getUserAvatar
+      parameters:
+        - name: userId
+          in: path
+          description: User's id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/imageObject'
         '400':
           description: Bad Request
           content:
@@ -433,6 +527,161 @@ paths:
       x-swagger-router-controller: SpaceController
       description: Returns all spaces
       operationId: getSpaces
+      parameters: 
+        - name: offset
+          in: query
+          description: 'Number of elements to skip for pagination'
+          required: false
+          schema:
+            type: integer
+            format: int32
+
+        - name: limit
+          in: query
+          description: 'Number of elements for pagination'
+          required: false
+          schema:
+            type: integer
+            format: int32
+
+        - name: tag
+          in: query
+          description: 'Filter for given tags'
+          required: false
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum: 
+                - FLOOR_1
+                - FLOOR_2
+                - FLOOR_3UP
+                - HOUSE_ROOM
+                - FLAT_ROOM
+                - BASEMENT
+                - GARAGE
+                - STORAGE_ROOM
+                - INDUSTRIAL_WAREHOUSE
+                - OFFICE_ROOM
+                - PENTHOUSE
+                - ELEVATOR
+                - WET
+                - DRY
+                - COLD
+                - WARM
+                - HOT
+                - SECURITY_ALARM
+                - VIDEO_MONITORING
+                - FIRE_ALARM
+                - GROUND_FLOOR
+                - SOCKET
+                - INDOOR
+                - OUTDOOR
+                - NARROW_ACCESS
+                - MEDIUM_WIDTH_ACCESS
+                - WIDE_ACCESS
+                - OTHERS
+                
+        - name: shared
+          in: query
+          description: 'Filter for shared category'
+          required: false
+          schema:
+            type: boolean
+
+        - name: minDim
+          in: query
+          description: 'Min value included for dimension filtering (Optional)'
+          required: false
+          schema:
+            type: string
+
+        - name: maxDim
+          in: query
+          description: 'Max value included for dimension filtering (Optional)'
+          required: false
+          schema:
+            type: string
+
+        - name: minPriceHour
+          in: query
+          description: 'Min value included for price/hour filtering (Optional)'
+          required: false
+          schema:
+            type: string
+
+        - name: maxPriceHour
+          in: query
+          description: 'Max value included for price/hour filtering (Optional)'
+          required: false
+          schema:
+            type: string
+
+        - name: minPriceDay
+          in: query
+          description: 'Min value included for price/day filtering (Optional)'
+          required: false
+          schema:
+            type: string
+
+        - name: maxPriceDay
+          in: query
+          description: 'Max value included for price/day filtering (Optional)'
+          required: false
+          schema:
+            type: string
+
+        - name: minPriceMonth
+          in: query
+          description: 'Min value included for price/month filtering (Optional)'
+          required: false
+          schema:
+            type: string
+
+        - name: maxPriceMonth
+          in: query
+          description: 'Max value included for price/month filtering (Optional)'
+          required: false
+          schema:
+            type: string
+        
+        - name: isRentPerHour
+          in: query
+          description: 'Check if a space can be rented per hours'
+          required: false
+          schema:
+            type: boolean
+
+        - name: isRentPerDay
+          in: query
+          description: 'Check if a space can be rented per days'
+          required: false
+          schema:
+            type: boolean
+        
+        - name: isRentPerMonth
+          in: query
+          description: 'Check if a space can be rented per months'
+          required: false
+          schema:
+            type: boolean
+
+        - name: orderBy
+          in: query
+          description: 'Order by price or initial date'
+          required: false
+          schema:
+            type: string
+
+        - name: search
+          in: query
+          description: 'Search the given text in title, description and location'
+          required: false
+          schema:
+            type: string
+
+        
       responses:
         '200':
           description: Success
@@ -442,6 +691,53 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/space'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+    post:
+      security:
+        - cookieAuth: []
+      tags:
+        - Spaces
+      x-swagger-router-controller: SpaceController
+      description: Checks the validity of a logged-in user's token and publishes the space
+      operationId: postSpace      
+      requestBody:
+        x-name: body
+        description: Space object to be published
+        required: true
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/space'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
         '500':
           description: Internal Server Error
           content:
@@ -461,7 +757,7 @@ paths:
           description: Space's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
@@ -487,6 +783,106 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
+    put:
+      security:
+        - cookieAuth: []
+      tags:
+        - Spaces
+      x-swagger-router-controller: SpaceController
+      description: Update space by id
+      operationId: putSpace
+      parameters:
+        - name: spaceId
+          in: path
+          description: Space's id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        x-name: body
+        description: Space object to be published
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/space'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+    delete:
+      security:
+        - cookieAuth: []
+      tags:
+        - Spaces
+      x-swagger-router-controller: SpaceController
+      description: Delete space by id
+      operationId: deleteSpace
+      parameters:
+        - name: spaceId
+          in: path
+          description: Space's id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Space deleted succesfully
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
   '/api/v1/spaces/{spaceId}/rentals':
     get:
       tags:
@@ -500,7 +896,19 @@ paths:
           description: Space's id
           required: true
           schema:
-            type: string
+            type: integer
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: Success
@@ -510,6 +918,113 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/rental'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+    post:
+      security:
+        - cookieAuth: []
+      tags:
+        - Spaces
+      x-swagger-router-controller: SpaceController
+      description: Checks the validity of a logged-in user's token and publishes the space rental
+      operationId: postSpaceRental
+      parameters:
+        - name: spaceId
+          in: path
+          description: Space's id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        x-name: body
+        description: Space rental object to be published
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/rental'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  '/api/v1/spaces/{spaceId}/images':
+    get:
+      tags:
+        - Spaces
+      x-swagger-router-controller: SpaceController
+      description: Returns all the images of a space
+      operationId: getSpaceImages
+      parameters:
+        - name: spaceId
+          in: path
+          description: Space's id
+          required: true
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/imageObject'
         '400':
           description: Bad Request
           content:
@@ -535,6 +1050,19 @@ paths:
       x-swagger-router-controller: RentalController
       description: Returns all rentals
       operationId: getRentals
+      parameters:
+        - name: offset
+          in: query
+          description: 'Offset for pagination'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for pagination'
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
           description: Success
@@ -544,13 +1072,19 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/rental'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
         '500':
           description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
-  '/api/v1/rentals/{rentalId}':
+  /api/v1/rentals/{rentalId}:
     get:
       tags:
         - Rentals
@@ -563,7 +1097,7 @@ paths:
           description: Rental's id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Success
@@ -583,6 +1117,287 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  /api/v1/tags:
+    get:
+      tags:
+        - SpaceTags
+      x-swagger-router-controller: TagController
+      description: Returns all existing tags
+      operationId: getTags
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  /api/v1/smartSearch/spaces:
+    post:
+      tags:
+        - SmartSearch
+      x-swagger-router-controller: SmartSearchController
+      description: Search for spaces through an advanced algorithm
+      operationId: getSpaces
+      parameters: 
+        - name: latitude
+          in: query
+          description: 'User latitude'
+          required: false
+          schema:
+            type: number
+            format: float
+        
+        - name: longitude
+          in: query
+          description: 'User longitude'
+          required: false
+          schema:
+            type: number
+            format: float
+
+      requestBody:
+        x-name: items
+        description: Items to search for
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/item'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/smartSearchResult'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  /api/v1/smartSearch/spaces/train:
+    post:
+      tags:
+        - SmartSearch
+      x-swagger-router-controller: SmartSearchController
+      description: Train the algorithm to be able to search spaces
+      operationId: postTrainSpaces
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  /api/v1/smartSearch/renters:
+    get:
+      tags:
+        - SmartSearch
+      x-swagger-router-controller: SmartSearchController
+      description: Search for renters through an advanced algorithm
+      operationId: getRenters
+      parameters: 
+        - name: spaceId
+          in: query
+          description: 'space to search renters for'
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/smartSearchResult'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  /api/v1/items:
+    post:
+      security:
+        - cookieAuth: []
+      tags:
+        - Items
+      x-swagger-router-controller: ItemController
+      description: Checks the validity of a logged-in user's token and publishes the user items
+      operationId: postItems
+      requestBody:
+        x-name: body
+        description: Array of items object to be published
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/item'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  /api/v1/items/types:
+    get:
+      tags:
+        - Items
+      x-swagger-router-controller: ItemController
+      description: Returns all existing items types
+      operationId: getItemsTypes
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  /api/v1/items/dimensions:
+    get:
+      tags:
+        - Items
+      x-swagger-router-controller: ItemController
+      description: Returns all existing items dimensions
+      operationId: getItemsDimensions
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
         '500':
           description: Internal Server Error
           content:
@@ -613,16 +1428,16 @@ components:
         sex:
           type: string
           enum:
-            - Hombre
-            - Mujer
-            - Otro
+            - MALE
+            - FEMALE
+            - OTHER
         idcard:
           type: string
-        telephoneNumber:
+        phoneNumber:
           type: string
         location:
           type: string
-        image:
+        avatar:
           type: string
           format: binary
     item:
@@ -634,21 +1449,27 @@ components:
         type:
           type: string
           enum:
-            - Muy grande
-            - Grande
-            - Mediano
-            - Pequeño
+            - APPLIANCES
+            - ELECTRONICS
+            - CLOTHES
+            - FURNITURE
+            - DIYs
+            - OTHER
         dimensions:
           type: string
-        userId:
-          type: integer
-          format: int32
+          enum:
+            - SMALL
+            - MEDIUM
+            - LARGE
+            - VERY_LARGE
     rating:
       type: object
       required:
         - title
         - description
         - rating
+        - reviewerId
+        - receiverId
       properties:
         title:
           type: string
@@ -656,10 +1477,10 @@ components:
           type: string
         rating:
           type: integer
-        sender:
+        reviewerId:
           type: integer
           format: int32
-        receiver:
+        receiverId:
           type: integer
           format: int32
     space:
@@ -667,19 +1488,20 @@ components:
       required:
         - name
         - description
-        - initDateTime
+        - initialDate
         - location
         - dimensions
         - shared
+        - ownerId
       properties:
         name:
           type: string
         description:
           type: string
-        initDateTime:
+        initialDate:
           type: string
           format: date-time
-        endDateTime:
+        finalDate:
           type: string
           format: date-time
         location:
@@ -697,34 +1519,44 @@ components:
           format: double
         shared:
           type: boolean
-        landlord:
+        ownerId:
           type: integer
           format: int32
+        tags:
+          type: array
+          items:
+            type: string
+        image:
+          type: array
+          items:
+            type: string
+            format: byte
     rental:
       type: object
       required:
-        - initDateTime
-        - endDateTime
+        - initialDate
+        - finalDate
         - cost
         - type
         - meters
         - spaceId
         - renterId
       properties:
-        initDateTime:
+        initialDate:
           type: string
           format: date-time
-        endDateTime:
+        finalDate:
           type: string
           format: date-time
         cost:
-          type: integer
+          type: number
+          format: double
         type:
           type: string
           enum:
-            - Mes
-            - Dia
-            - Hora
+            - HOUR
+            - DAY
+            - MONTH
         meters:
           type: number
           format: double
@@ -734,3 +1566,33 @@ components:
         renterId:
           type: integer
           format: int32
+    image:
+      type: string
+      format: byte
+    smartSearchResult:
+      type: object
+      required:
+        - id
+        - score
+      properties:
+        id:
+          type: integer
+          format: int32
+        score:
+          type: number
+          format: double
+    imageObject:
+      type: object
+      required:
+        - image
+        - mimetype
+      properties:
+        image:
+          type: string
+        mimetype:
+          type: string
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: authToken
