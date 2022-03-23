@@ -3484,6 +3484,51 @@ module.exports = (prisma, jwt) => {
         });
       });
 
+    it('Should return 400 when the rental meters are higher than space dimensions', async () => {
+        // Fixture
+    
+        const spaceToAddRental={
+          id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("3000-01-01T00:00:00.000Z"), location: "41.2,45.3",
+          dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: false, ownerId: 2, rentals: [{
+            initialDate: new Date("2025-01-01T00:00:00.000Z"), finalDate: new Date("2030-01-01T00:00:00.000Z"), 
+            cost: 456, type: "HOUR", meters: 300, spaceId: 1, renterId: 3}]
+        }
+        const expected = 'Bad Request: Space not available or space capacity exceeded';
+        const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+        const rentalToPublish={
+          initialDate: new Date("2024-01-01T00:00:00.000Z"),
+          finalDate: new Date("2031-01-01T00:00:00.000Z"),
+          cost: 456,
+          type: "HOUR", 
+          meters: 500,
+          spaceId: 1, 
+          renterId: 1
+        };
+        // Mock Auth and DB Query
+        verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+        findUnique.withArgs({
+          where:{
+            id: 1
+          }, include: {
+            rentals: true
+          }
+        }).resolves(spaceToAddRental)
+        createRental.rejects()
+    
+        // API Call
+        await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+            { 
+              withCredentials: true, 
+              headers: {Cookie: 'authToken=testToken;'}
+            })
+          .then( () => {
+            assert.fail();
+          }).catch( err => {
+            assert.equal(err.response.status, 400);
+            assert.equal(err.response.data, expected);
+          });
+      });
+
     it('Should return 400 when rental initial date is not between space dates', async () => {
       // Fixture
   
