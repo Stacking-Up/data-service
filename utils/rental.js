@@ -33,7 +33,9 @@ function _checkRentalConstraints (rental, errors) {
 function _isSpaceAvailable (rentalInitialDateToBeCreated, rentalFinalDateToBeCreated, rentalMetersToBeCreated, space) {
   let res = true;
 
-  if (!space.shared && space.rentals && space.rentals.length > 0) {
+  if (rentalMetersToBeCreated > getMeters(space.dimensions)) {
+    res = false;
+  } else if (!space.shared && space.rentals && space.rentals.length > 0) {
     space.rentals.filter(x => x.finalDate > new Date()).forEach(rental => {
       if (res) {
         if (rentalInitialDateToBeCreated >= rental.initialDate && rentalInitialDateToBeCreated <= rental.finalDate) {
@@ -77,7 +79,7 @@ function _checkRentalBusinessLogic (rentalToBeCreated, space, errors) {
     errors.push('Final date must be between space dates');
   } else if (!_isSpaceAvailable(rentalInitialDateToBeCreated, rentalFinalDateToBeCreated, rentalMetersToBeCreated, space)) {
     errors.push('Space not available or space capacity exceeded');
-  } else if (!space.shared && rentalToBeCreated.meters !== getMeters(space.dimensions)) {
+  } else if (!space.shared && rentalMetersToBeCreated !== getMeters(space.dimensions)) {
     errors.push('Meters must be equal to space meters');
   }
   return errors;
