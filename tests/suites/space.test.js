@@ -2,6 +2,7 @@ const assert = require('assert');
 const axios = require('axios');
 const sinon = require('sinon');
 const fs = require('fs');
+const { ItemType, Dimensions } = require('@prisma/client');
 
 const host = "http://localhost:4100";
 
@@ -1679,9 +1680,11 @@ module.exports = (prisma, jwt) => {
     it('should return spaces that an user owns', async () => {
       // Fixture
       const dbOutput = [{id: 1, name: 'space1', description: 'space1', initialDate: '1970-01-01T00:00:00.000Z', finalDate: '1971-01-01T00:00:00.000Z', location: '44.4,45.3', dimensions: '2x2', priceHour: 33, priceDay: 345, priceMonth: 3444, shared: true, ownerId: 1}, 
-      {id: 2, name: 'space2', description: 'space2', initialDate: '1970-01-01T00:00:00.000Z', finalDate: '1971-01-01T00:00:00.000Z', location: '44.4,45.3', dimensions: '2x2', priceHour: 33, priceDay: 345, priceMonth: 3444, shared: false, ownerId: 1}];
-      const expected = [{id: 1, name: 'space1', description: 'space1', initialDate: '1970-01-01T00:00:00.000Z', finalDate: '1971-01-01T00:00:00.000Z', location: '44.4,45.3', dimensions: '2x2', priceHour: 33, priceDay: 345, priceMonth: 3444, shared: true, ownerId: 1}, 
-      {id: 2, name: 'space2', description: 'space2', initialDate: '1970-01-01T00:00:00.000Z', finalDate: '1971-01-01T00:00:00.000Z', location: '44.4,45.3', dimensions: '2x2', priceHour: 33, priceDay: 345, priceMonth: 3444, shared: false, ownerId: 1}];
+      {id: 2, name: 'space2', description: 'space2', initialDate: '1970-01-01T00:00:00.000Z', finalDate: '1971-01-01T00:00:00.000Z', location: '44.4,45.3', dimensions: '2x2', priceHour: 33, priceDay: 345, priceMonth: 3444, shared: false, ownerId: 1, 
+      images: [ {image: fs.readFileSync(`${__dirname}/../assets/Test.png`, 'base64'), mimetype: 'image/png'} ], tags: [{tag: 'FLOOR_1'}]}];
+      const expected = [{id: 1, name: 'space1', description: 'space1', initialDate: '1970-01-01T00:00:00.000Z', finalDate: '1971-01-01T00:00:00.000Z', location: '44.4,45.3', dimensions: '2x2', priceHour: 33, priceDay: 345, priceMonth: 3444, shared: true, ownerId: 1, images: []}, 
+      {id: 2, name: 'space2', description: 'space2', initialDate: '1970-01-01T00:00:00.000Z', finalDate: '1971-01-01T00:00:00.000Z', location: '44.4,45.3', dimensions: '2x2', priceHour: 33, priceDay: 345, priceMonth: 3444, shared: false, ownerId: 1, 
+      images: [ {image: fs.readFileSync(`${__dirname}/../assets/Test.png`, 'base64'), mimetype: 'image/png'}], tags: ['FLOOR_1']}];
 
       // Mock DB Query
       findMany.withArgs({
@@ -1691,7 +1694,8 @@ module.exports = (prisma, jwt) => {
           ownerId: 1
         },
         include: {
-          tags: true
+          tags: true,
+          images: true
         }
       }).resolves(dbOutput);
 
@@ -1715,7 +1719,8 @@ module.exports = (prisma, jwt) => {
           ownerId: 1
         },
         include: {
-          tags: true
+          tags: true,
+          images: true
         }
       }).resolves(dbOutput)
 
@@ -1767,7 +1772,8 @@ module.exports = (prisma, jwt) => {
           ownerId: 1
         },
         include: {
-          tags: true
+          tags: true,
+          images: true
         }
       }).rejects();
 
@@ -2312,6 +2318,158 @@ module.exports = (prisma, jwt) => {
         }).catch( err => {
           assert.equal(err.response.status, 500);
           assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should post items', async () => {
+      // Fixture
+      const expected = 'User items created successfully';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const itemToBePublished = [{
+          type: 'ELECTRONICS',
+          dimensions: 'SMALL'
+      }]
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.resolves();
+  
+      // API Call
+      await axios.post(`${host}/api/v1/items`, itemToBePublished, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.equal(res.status, 201);
+          assert.equal(res.data, expected);
+        }).catch( () => assert.fail());
+    });
+
+    it('Should return 401 when token is missing posting items', async () => {
+      // Fixture
+      const expected = 'Unauthorized';
+  
+      // API Call
+      await axios.post(`${host}/api/v1/items`, {})
+        .then( res => {
+          assert.fail();
+        }).catch( (err) => {
+          assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when invalid itemtype posting items', async () => {
+      // Fixture
+      const expected = 'Invalid item type. It must be one of the following: ' + Object.values(ItemType).join(', ');
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const itemToBePublished = [{
+          type: 'INVALID',
+          dimensions: 'SMALL'
+      }]
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.rejects();
+  
+      // API Call
+      await axios.post(`${host}/api/v1/items`, itemToBePublished, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.fail();
+        }).catch( (err) => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);        
+        });
+    });
+
+    it('Should return 400 when invalid dimensions posting items', async () => {
+      // Fixture
+      const expected = 'Invalid item dimensions. It must be one of the following: ' + Object.values(Dimensions).join(', ');
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const itemToBePublished = [{
+          type: 'ELECTRONICS',
+          dimensions: 'INVALID'
+      }]
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.rejects();
+  
+      // API Call
+      await axios.post(`${host}/api/v1/items`, itemToBePublished, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.fail();
+        }).catch( (err) => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);        
+        });
+    });
+
+    it('Should return 500 when trying to update items of user', async () => {
+      // Fixture
+      const expected = 'Internal Server Error';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const itemToBePublished = [{
+          type: 'ELECTRONICS',
+          dimensions: 'SMALL'
+      }]
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.rejects();
+  
+      // API Call
+      await axios.post(`${host}/api/v1/items`, itemToBePublished, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.fail();
+        }).catch( (err) => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);        
+        });
+    });
+
+    it('Should return 401 when invalid token when posting items', async () => {
+      // Fixture
+      const expected = 'Unauthorized: Invalid token';
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').throws(new jwt.JsonWebTokenError('Invalid token'));
+  
+      // API Call
+      await axios.post(`${host}/api/v1/items`, {}, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.fail();
+        }).catch( (err) => {
+          assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected);        
+        });
+    });
+    
+    it('Should return 500 when unexpected error posting items', async () => {
+      // Fixture
+      const expected = 'Internal Server Error';
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').throws(new Error('Unexpected Error'));
+  
+      // API Call
+      await axios.post(`${host}/api/v1/items`, {}, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.fail();
+        }).catch( (err) => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);        
         });
     });
 
@@ -3326,6 +3484,51 @@ module.exports = (prisma, jwt) => {
         });
       });
 
+    it('Should return 400 when the rental meters are higher than space dimensions', async () => {
+        // Fixture
+    
+        const spaceToAddRental={
+          id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("3000-01-01T00:00:00.000Z"), location: "41.2,45.3",
+          dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: false, ownerId: 2, rentals: [{
+            initialDate: new Date("2025-01-01T00:00:00.000Z"), finalDate: new Date("2030-01-01T00:00:00.000Z"), 
+            cost: 456, type: "HOUR", meters: 300, spaceId: 1, renterId: 3}]
+        }
+        const expected = 'Bad Request: Space not available or space capacity exceeded';
+        const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+        const rentalToPublish={
+          initialDate: new Date("2024-01-01T00:00:00.000Z"),
+          finalDate: new Date("2031-01-01T00:00:00.000Z"),
+          cost: 456,
+          type: "HOUR", 
+          meters: 500,
+          spaceId: 1, 
+          renterId: 1
+        };
+        // Mock Auth and DB Query
+        verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+        findUnique.withArgs({
+          where:{
+            id: 1
+          }, include: {
+            rentals: true
+          }
+        }).resolves(spaceToAddRental)
+        createRental.rejects()
+    
+        // API Call
+        await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+            { 
+              withCredentials: true, 
+              headers: {Cookie: 'authToken=testToken;'}
+            })
+          .then( () => {
+            assert.fail();
+          }).catch( err => {
+            assert.equal(err.response.status, 400);
+            assert.equal(err.response.data, expected);
+          });
+      });
+
     it('Should return 400 when rental initial date is not between space dates', async () => {
       // Fixture
   
@@ -3636,7 +3839,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
       });
-});
+  });
 
 
   describe('PUT Endpoint tests:', () => {
