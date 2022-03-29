@@ -68,6 +68,8 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
         return inRangeDimension && fieldSearch && includeTags && inRangePriceHour && inRangePriceDay && inRangePriceMonth && isRentPerHour && isRentedPerDay && isRentedPerMonth;
       }).then(spacesFiltered => {
         res.send(spacesFiltered.map(space => utils.commons.notNulls(space)).reduce((acc, space) => {
+          if (space.startHour) space.startHour = space.startHour.getTime();
+          if (space.endHour) space.endHour = space.endHour.getTime();
           space.tags = space.tags?.map(tag => tag.tag);
           space.images = (space.images && space.images.length !== 0) ? [{ image: space.images[0].image.toString('base64'), mimetype: space.images[0].mimetype }] : [];
           return [...acc, space];
@@ -93,6 +95,8 @@ module.exports.getSpace = function getSpace (req, res, next) {
       if (!space) {
         res.status(404).send('Space not found');
       } else {
+        space.startHour = space.startHour?.getTime();
+        space.endHour = space.endHour?.getTime();
         res.send(utils.commons.excludeNulls(space));
       }
     })
