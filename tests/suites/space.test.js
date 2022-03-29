@@ -360,13 +360,13 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const dbOutput = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }]
+        dimensions: "1x3", startHour: new Date(111111), endHour: new Date(1111112), priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }]
       }
       ];
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
+        dimensions: "1x3", startHour: 111111, endHour: 1111112, priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -704,13 +704,13 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const dbOutput = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }]
+        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, city:"test", province:"test", country:"test", shared: true, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }]
       }
       ];
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", location: "Cadiz",
-        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
+        dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, city:"test", province:"test", country:"test", shared: true, ownerId: 1, "tags": ["GARAGE", "DRY" ], images: []
       }
       ];
       //Set Actual Date
@@ -1800,10 +1800,15 @@ module.exports = (prisma, jwt) => {
       initialDate: new Date("2099-03-10T18:18:14.049Z"),
       finalDate: new Date("3923-03-10T18:18:14.049Z"),
       location: "44.43,43.21",
+      city: "test",
+      country: "test",
+      province: "test",
       dimensions: "2x2",
       shared: true,
       ownerId: 1,
       priceHour: 33.2,
+      startHour: 111111,
+      endHour: 2222222222,
       tags: ['ELEVATOR', 'WET'],
       images: [ fs.readFileSync(`${__dirname}/../assets/Test.png`, 'base64'), fs.readFileSync(`${__dirname}/../assets/Test.jpg`, 'base64') ]
     }
@@ -1949,7 +1954,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: Name must be between 2 and 50 characters';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      let spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: new Date(), location: '1,1', dimensions: '1x1', shared:true};
+      let spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: new Date(), location: '1,1', country: "test", province: "test", city:"test", dimensions: '1x1', shared:true};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -1984,7 +1989,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: Initial date must be a Date after today';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: 'not_a_date', location: '1,1', dimensions: '1x1', shared:true};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: 'not_a_date', location: '1,1', country: "test", province: "test", city:"test", dimensions: '1x1', shared:true};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2006,7 +2011,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: Final date must be a Date';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: "3923-03-10T18:18:14.049Z", finalDate: 'not_a_date', location: '1,1', dimensions: '1x1', shared:true};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: "3923-03-10T18:18:14.049Z", finalDate: 'not_a_date', location: '1,1', country: "test", province: "test", city:"test", dimensions: '1x1', shared:true};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2028,7 +2033,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: Location must be a valid latitude,longitude pair';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: "3923-03-10T18:18:14.049Z", location: '1,180.1', dimensions: '1x1', shared:true};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: "3923-03-10T18:18:14.049Z", location: '1,180.1', country: "test", province: "test", city:"test", dimensions: '1x1', shared:true};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2050,7 +2055,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: Dimensions must be a valid width,height pair';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1', shared:true};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', country: "test", province: "test", city:"test", dimensions: '1', shared:true};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2072,7 +2077,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: PriceHour must be a number';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceHour:'not_num', initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:true};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceHour:'not_num', initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', country: "test", province: "test", city:"test", dimensions: '1x1', shared:true};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2094,7 +2099,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: PriceDay must be a number';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceDay:'not_num', initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:true};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceDay:'not_num', initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', country: "test", province: "test", city:"test", dimensions: '1x1', shared:true};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2116,7 +2121,51 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: PriceMonth must be a number';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceMonth:'not_num', initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:true};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', city:"test", province:"test", country:"test", priceMonth:'not_num', initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:true};
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      
+      // API Call
+      await axios.post(`${host}/api/v1/spaces`, spaceToPublish, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when providing an invalid startHour', async () => {
+      // Fixture
+      const expected = 'Bad Request: Start hour must be a valid Time';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', city:"test", province:"test", country:"test", priceHour:12, startHour:"invalid", endHour:11111, initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:true};
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      
+      // API Call
+      await axios.post(`${host}/api/v1/spaces`, spaceToPublish, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when providing an invalid endHour', async () => {
+      // Fixture
+      const expected = 'Bad Request: End hour must be a valid Time';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', city:"test", province:"test", country:"test", priceHour:12, startHour:222222, endHour:"invalid", initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:true};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2138,7 +2187,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: Shared must be true or false';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceMonth: 1, initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:'not_true'};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceMonth: 1, initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', country: "test", province: "test", city:"test", dimensions: '1x1', shared:'not_true'};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2160,7 +2209,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: Tags must be an array';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceMonth: 1, initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:true, tags:'not_array'};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceMonth: 1, initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', country: "test", province: "test", city:"test", dimensions: '1x1', shared:true, tags:'not_array'};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2181,7 +2230,7 @@ module.exports = (prisma, jwt) => {
     it('Should return 400 when invalid tags provided', async () => {
       // Fixture
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceMonth: 1, initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:true, tags:['INVALID_TAG']};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceMonth: 1, initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', country: "test", province: "test", city:"test", dimensions: '1x1', shared:true, tags:['INVALID_TAG']};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2203,7 +2252,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: Images must be jpeg or png';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceMonth: 1, initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:true, images:['invalid_img']};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', city:"test", province:"test", country:"test", priceMonth: 1, initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:true, images:['invalid_img']};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2225,7 +2274,7 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const expected = 'Bad Request: You must defined at least one valid price greater than 0';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', dimensions: '1x1', shared:true};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', initialDate: "3923-03-10T18:18:14.049Z", location: '1,1', country: "test", province: "test", city:"test", dimensions: '1x1', shared:true};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2249,7 +2298,7 @@ module.exports = (prisma, jwt) => {
       bad_date.setDate(bad_date.getDate() - 1);
       const expected = 'Bad Request: Final date must be after initial date';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceDay: 1, initialDate: "3923-03-10T18:18:14.049Z", finalDate: bad_date, location: '1,1', dimensions: '1x1', shared:true};
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceDay: 1, initialDate: "3923-03-10T18:18:14.049Z", finalDate: bad_date, location: '1,1', country: "test", province: "test", city:"test", dimensions: '1x1', shared:true};
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2297,6 +2346,9 @@ module.exports = (prisma, jwt) => {
         description: "test",
         initialDate: "3923-03-10T18:18:14.049Z",
         location: "44.43,43.21",
+        country: "test",
+        province: "test",
+        city:"test",
         dimensions: "2x2",
         shared: true,
         ownerId: 1,
@@ -3841,7 +3893,6 @@ module.exports = (prisma, jwt) => {
       });
   });
 
-
   describe('PUT Endpoint tests:', () => {
     it('Should update a space', async () => {
       // Fixture
@@ -3857,6 +3908,11 @@ module.exports = (prisma, jwt) => {
         shared: true,
         ownerId: 1,
         priceHour: 33.2,
+        startHour: 111111,
+        endHour: 222222,
+        city:"test",
+        province:"test",
+        country:"test",
         tags: ['ELEVATOR', 'WET'],
         images: [ fs.readFileSync(`${__dirname}/../assets/Test.png`, 'base64'), fs.readFileSync(`${__dirname}/../assets/Test.jpg`, 'base64') ]
       }
@@ -4026,7 +4082,10 @@ module.exports = (prisma, jwt) => {
         dimensions: "2x2",
         shared: true,
         ownerId: 1,
-        priceHour: 33.2,
+        priceDay: 33.2,
+        city:"test",
+        province:"test",
+        country:"test",
         tags: ['ELEVATOR', 'WET'],
         images: [ fs.readFileSync(`${__dirname}/../assets/Test.png`, 'base64'), fs.readFileSync(`${__dirname}/../assets/Test.jpg`, 'base64') ]
       }
@@ -4060,7 +4119,10 @@ module.exports = (prisma, jwt) => {
         dimensions: "2x2",
         shared: true,
         ownerId: 1,
-        priceHour: 33.2,
+        priceDay: 33.2,
+        city:"test",
+        province:"test",
+        country:"test",
         tags: ['ELEVATOR', 'WET'],
         images: [ fs.readFileSync(`${__dirname}/../assets/Test.png`, 'base64'), fs.readFileSync(`${__dirname}/../assets/Test.jpg`, 'base64') ]
       }

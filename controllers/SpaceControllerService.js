@@ -68,6 +68,8 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
         return inRangeDimension && fieldSearch && includeTags && inRangePriceHour && inRangePriceDay && inRangePriceMonth && isRentPerHour && isRentedPerDay && isRentedPerMonth;
       }).then(spacesFiltered => {
         res.send(spacesFiltered.map(space => utils.commons.notNulls(space)).reduce((acc, space) => {
+          if (space.startHour) space.startHour = space.startHour.getTime();
+          if (space.endHour) space.endHour = space.endHour.getTime();
           space.tags = space.tags?.map(tag => tag.tag);
           space.images = (space.images && space.images.length !== 0) ? [{ image: space.images[0].image.toString('base64'), mimetype: space.images[0].mimetype }] : [];
           return [...acc, space];
@@ -93,6 +95,8 @@ module.exports.getSpace = function getSpace (req, res, next) {
       if (!space) {
         res.status(404).send('Space not found');
       } else {
+        space.startHour = space.startHour?.getTime();
+        space.endHour = space.endHour?.getTime();
         res.send(utils.commons.excludeNulls(space));
       }
     })
@@ -161,7 +165,13 @@ module.exports.postSpace = async function postSpace (req, res, next) {
           description: spaceToBePublished.description,
           initialDate: new Date(spaceToBePublished.initialDate),
           finalDate: spaceToBePublished.finalDate ? new Date(spaceToBePublished.finalDate) : null,
+          startHour: spaceToBePublished.startHour ? new Date(spaceToBePublished.startHour) : null,
+          endHour: spaceToBePublished.endHour ? new Date(spaceToBePublished.endHour) : null,
+          publishDate: new Date(),
           location: spaceToBePublished.location,
+          city: spaceToBePublished.city,
+          province: spaceToBePublished.province,
+          country: spaceToBePublished.country,
           dimensions: spaceToBePublished.dimensions,
           priceHour: parseFloat(spaceToBePublished.priceHour),
           priceDay: parseFloat(spaceToBePublished.priceDay),
@@ -243,7 +253,13 @@ module.exports.putSpace = async function putSpace (req, res, next) {
           description: spaceToBeUpdated.description,
           initialDate: new Date(spaceToBeUpdated.initialDate),
           finalDate: spaceToBeUpdated.finalDate ? new Date(spaceToBeUpdated.finalDate) : null,
+          startHour: spaceToBeUpdated.startHour ? new Date(spaceToBeUpdated.startHour) : null,
+          endHour: spaceToBeUpdated.endHour ? new Date(spaceToBeUpdated.endHour) : null,
+          publishDate: new Date(),
           location: spaceToBeUpdated.location,
+          city: spaceToBeUpdated.city,
+          province: spaceToBeUpdated.province,
+          country: spaceToBeUpdated.country,
           dimensions: spaceToBeUpdated.dimensions,
           priceHour: parseFloat(spaceToBeUpdated.priceHour),
           priceDay: parseFloat(spaceToBeUpdated.priceDay),

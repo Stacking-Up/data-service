@@ -1445,7 +1445,11 @@ components:
       required:
         - type
         - dimensions
+        - amount
       properties:
+        amount:
+          type: integer
+          format: int32
         type:
           type: string
           enum:
@@ -1490,6 +1494,9 @@ components:
         - description
         - initialDate
         - location
+        - city
+        - province
+        - country
         - dimensions
         - shared
         - ownerId
@@ -1504,7 +1511,22 @@ components:
         finalDate:
           type: string
           format: date-time
+        publishDate:
+          type: string
+          format: date-time
+        startHour:
+          type: integer
+          format: int64
+        endHour:
+          type: integer
+          format: int64
         location:
+          type: string
+        city:
+          type: string
+        province:
+          type: string
+        country:
           type: string
         dimensions:
           type: string
@@ -1560,6 +1582,8 @@ components:
         meters:
           type: number
           format: double
+        renterConfirmation:
+          type: boolean
         spaceId:
           type: integer
           format: int32

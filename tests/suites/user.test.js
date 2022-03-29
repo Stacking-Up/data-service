@@ -153,23 +153,11 @@ module.exports = (prisma) => {
     it('should return items asociated to a user when giving an userId', async () => {
       // Fixture
       const dbOutput = {id:1, name: 'John', surname: 'Doe', items: 
-      [{id:1, type: 'ELECTRONICS', dimensions: 'SMALL'}, {id:2, type: 'ELECTRONICS', dimensions: 'MEDIUM'}]};
-      const expected = [{id:1, type: 'ELECTRONICS', dimensions: 'SMALL'}, {id:2, type: 'ELECTRONICS', dimensions: 'MEDIUM'}];
+      [{id:1, amount:30, item: {type: 'ELECTRONICS', dimensions: 'SMALL'}}, {id:2, amount:30, item: {type: 'ELECTRONICS', dimensions: 'MEDIUM'}}]};
+      const expected = [{amount:30, type: 'ELECTRONICS', dimensions: 'SMALL'}, {amount:30, type: 'ELECTRONICS', dimensions: 'MEDIUM'}];
 
       // Mock DB Query
-      findUnique.withArgs({
-        where: {
-          id: 1
-        },
-        include: {
-          items: {
-            select: {
-              type: true,
-              dimensions: true
-            },
-          },
-        },
-      }).resolves(dbOutput)
+      findUnique.resolves(dbOutput)
 
       // API Call
       await axios.get(`${host}/api/v1/users/1/items`).then(res => {
@@ -184,19 +172,7 @@ module.exports = (prisma) => {
       const expected = 'Items not found';
 
       // Mock DB Query
-      findUnique.withArgs({
-        where: {
-          id: 1
-        },
-        include: {
-          items: {
-            select: {
-              type: true,
-              dimensions: true
-            },
-          },
-        },
-      }).resolves(dbOutput)
+      findUnique.resolves(dbOutput)
 
       // API Call
       await axios.get(`${host}/api/v1/users/1/items`).then(res => {
@@ -214,19 +190,7 @@ module.exports = (prisma) => {
       const expected = 'User not found';
 
       // Mock DB Query
-      findUnique.withArgs({
-        where: {
-          id: 1
-        },
-        include: {
-          items: {
-            select: {
-              type: true,
-              dimensions: true
-            },
-          },
-        },
-      }).resolves(dbOutput);
+      findUnique.resolves(dbOutput);
 
       // API Call
       await axios.get(`${host}/api/v1/users/1/items`).then(res => {
@@ -240,19 +204,7 @@ module.exports = (prisma) => {
 
     it('should return 400 when trying to get items asociated to a non integer userId', async () => {
       // Mock DB Query
-      findUnique.withArgs({
-        where: {
-          id: "invalid"
-        },
-        include: {
-          items: {
-            select: {
-              type: true,
-              dimensions: true
-            },
-          },
-        },
-      }).rejects();
+      findUnique.rejects();
 
       // API Call
       await axios.get(`${host}/api/v1/users/invalid/items`).then(res => {
@@ -267,19 +219,7 @@ module.exports = (prisma) => {
     it('should return 500 when unexpected error throws getting the items of user', async () => {
       // Mock DB Query
       console.error = sinon.stub(); //avoid printing error to console
-      findUnique.withArgs({
-        where: {
-          id: 1
-        },
-        include: {
-          items: {
-            select: {
-              type: true,
-              dimensions: true
-            },
-          },
-        },
-      }).rejects();
+      findUnique.rejects();
 
       // API Call
       await axios.get(`${host}/api/v1/users/1/items`).then(res => {
@@ -294,26 +234,11 @@ module.exports = (prisma) => {
     it('should return item asociated to an user giving an userId and itemId', async () => {
       // Fixture
       const dbOutput = {id:1, name: 'John', surname: 'Doe', items: 
-      [{id:1, type: 'ELECTRONICS', dimensions: 'SMALL'}, {id:2, type: 'ELECTRONICS', dimensions: 'MEDIUM'}]};
-      const expected = {id:1, type: 'ELECTRONICS', dimensions: 'SMALL'};
+      [{id:1, amount:10, item: {type: 'ELECTRONICS', dimensions: 'SMALL'}}, {id:2, amount:4, item: {type: 'ELECTRONICS', dimensions: 'MEDIUM'}}]};
+      const expected = {amount:10, type: 'ELECTRONICS', dimensions: 'SMALL'};
 
       // Mock DB Query
-      findUnique.withArgs({
-        where: {
-          id: 1,
-      },
-        include: {
-          items: {
-            select: {
-              type: true,
-              dimensions: true,
-            },
-            where: {
-              id: 1,
-            },
-          },
-        },
-      }).resolves(dbOutput)
+      findUnique.resolves(dbOutput)
 
       // API Call
       await axios.get(`${host}/api/v1/users/1/items/1`).then(res => {
@@ -328,22 +253,7 @@ module.exports = (prisma) => {
       const expected = 'Item not found';
 
       // Mock DB Query
-      findUnique.withArgs({
-        where: {
-          id: 1,
-      },
-        include: {
-          items: {
-            select: {
-              type: true,
-              dimensions: true,
-            },
-            where: {
-              id: 1,
-            },
-          },
-        },
-      }).resolves(dbOutput)
+      findUnique.resolves(dbOutput)
 
       // API Call
       await axios.get(`${host}/api/v1/users/1/items/1`).then(res => {
@@ -361,22 +271,7 @@ module.exports = (prisma) => {
       const expected = 'User not found';
 
       // Mock DB Query
-      findUnique.withArgs({
-        where: {
-          id: 1,
-      },
-        include: {
-          items: {
-            select: {
-              type: true,
-              dimensions: true,
-            },
-            where: {
-              id: 1,
-            },
-          },
-        },
-      }).resolves(dbOutput)
+      findUnique.resolves(dbOutput)
 
       // API Call
       await axios.get(`${host}/api/v1/users/1/items/1`).then(res => {
@@ -390,22 +285,7 @@ module.exports = (prisma) => {
 
     it('should return 400 when trying to get an item with a non integer userId and/or itemId', async () => {
       // Mock DB Query
-      findUnique.withArgs({
-        where: {
-          id: "invalid",
-      },
-        include: {
-          items: {
-            select: {
-              type: true,
-              dimensions: true,
-            },
-            where: {
-              id: "invalid",
-            },
-          },
-        },
-      }).rejects();
+      findUnique.rejects();
 
       // API Call
       await axios.get(`${host}/api/v1/users/invalid/items/invalid`).then(res => {
@@ -420,22 +300,7 @@ module.exports = (prisma) => {
     it('should return 500 unexpected error when trying to get an item of an user', async () => {
       // Mock DB Query
       console.error = sinon.stub(); //avoid printing error to console
-      findUnique.withArgs({
-        where: {
-          id: 1,
-      },
-        include: {
-          items: {
-            select: {
-              type: true,
-              dimensions: true,
-            },
-            where: {
-              id: 1,
-            },
-          },
-        },
-      }).rejects()
+      findUnique.rejects()
 
       // API Call
       await axios.get(`${host}/api/v1/users/1/items/1`).then(res => {
