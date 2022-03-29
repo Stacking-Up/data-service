@@ -52,8 +52,13 @@ module.exports.getUserItems = function getUserItems (req, res, next) {
     include: {
       items: {
         select: {
-          type: true,
-          dimensions: true
+          amount: true,
+          item: {
+            select: {
+              type: true,
+              dimensions: true
+            }
+          }
         }
       }
     }
@@ -64,7 +69,7 @@ module.exports.getUserItems = function getUserItems (req, res, next) {
       } else if (!user.items || user.items.length === 0) {
         res.status(404).send('Items not found');
       } else {
-        res.send(user.items);
+        res.send(user.items.map(item => {return {amount: item.amount, type: item.item.type, dimensions: item.item.dimensions}}));
       }
     })
     .catch(err => {
@@ -85,11 +90,16 @@ module.exports.getUserItem = function getUserItem (req, res, next) {
     include: {
       items: {
         select: {
-          type: true,
-          dimensions: true
+          amount: true,
+          item: {
+            select: {
+              type: true,
+              dimensions: true
+            }
+          }
         },
         where: {
-          id: parseInt(req.itemId.value)
+          itemId: { equals: parseInt(req.itemId.value) }
         }
       }
     }
@@ -100,7 +110,7 @@ module.exports.getUserItem = function getUserItem (req, res, next) {
       } else if (!user.items || user.items.length === 0) {
         res.status(404).send('Item not found');
       } else {
-        res.send(user.items[0]);
+        res.send({amount: user.items[0].amount, type: user.items[0].item.type, dimensions: user.items[0].item.dimensions});
       }
     })
     .catch(err => {
