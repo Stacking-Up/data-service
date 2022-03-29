@@ -58,12 +58,12 @@ module.exports.postItems = async function postItems (req, res, next) {
                       type_dimensions: {
                         type: itemToBePublished.type,
                         dimensions: itemToBePublished.dimensions
-                      }        
+                      }
                     },
-                    create: {type: itemToBePublished.type, dimensions: itemToBePublished.dimensions}
+                    create: { type: itemToBePublished.type, dimensions: itemToBePublished.dimensions }
                   }
                 }
-              }
+              };
             })
           }
         }
