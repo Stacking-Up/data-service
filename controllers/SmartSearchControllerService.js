@@ -97,7 +97,7 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
     }).then(allSpaces => {
       let scoredSpaces = [];
       allSpaces
-        .filter(space => spaceUtils.getMeters(space.dimensions) >= items.reduce((acc, i) => { acc += smartSearch.dictDimensionsEnum[i.dimensions]; return acc; }, 0))
+        .filter(space => spaceUtils.getMeters(space.dimensions) >= items.reduce((acc, i) => { acc += smartSearch.dictDimensionsEnum[i.dimensions] * parseInt(i.amount); return acc; }, 0))
         .forEach(space => {
           const [latitudDB, longitudDB] = space.location.split(',');
           const tagScore = smartSearch.scoreTags(itemTags, space.tags.map(tag => tag.tag));
@@ -206,7 +206,8 @@ module.exports.getRenters = async function getRenters (req, res, next) {
       return acc;
     }, { APPLIANCES: 0, ELECTRONICS: 0, CLOTHES: 0, FURNITURE: 0, DIYs: 0, OTHER: 0 });
 
-    const userItemsRatio = (await prisma.user.findMany({ include: { items: true } }))
+    const userItemsRatio = (await prisma.user.findMany({ include: { items: { select: { amount: true, item: { select: { type: true, dimensions: true } } } } } }))
+      .map(user => { return { ...user, items: user.items.map(item => { return { amount: item.amount, type: item.item.type, dimensions: item.item.dimensions }; }) }; })
       .filter(user => user.items && user.items.length > 0)
       .filter(user => spaceUtils.getMeters(space.dimensions) >= user.items.reduce((acc, i) => { acc += smartSearch.dictDimensionsEnum[i.dimensions]; return acc; }, 0))
       .reduce((acc, user) => {

@@ -16,6 +16,7 @@ module.exports = (prisma, jwt) => {
   let createRental = sinon.stub(prisma.rental, 'create').rejects("Not implemented");
 
   before(() => {
+    console.warn = sinon.stub();
     sinon.replace(prisma.space, 'create', create);
     sinon.replace(prisma.space, 'update', update);
     sinon.replace(prisma.space, 'findMany', findMany);
@@ -2316,6 +2317,50 @@ module.exports = (prisma, jwt) => {
       });
     });
 
+    it('RN10: Should return 400 when not defining all the required fields to rent per hour', async () => {
+      // Fixture
+      const expected = 'Bad Request: You must defined all the required fields to rent per hour';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceHour: 1, initialDate: "3923-03-10T18:18:14.049Z", finalDate: "3925-03-10T18:18:14.049Z", location: '1,1', country: "test", province: "test", city:"test", dimensions: '1x1', shared:true};
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      
+      // API Call
+      await axios.post(`${host}/api/v1/spaces`, spaceToPublish, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('RN09: Should return 400 when space is not available between hours of the same day', async () => {
+      // Fixture
+      const expected = 'Bad Request: Space must be available between hours of the same day';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const spaceToPublish = {ownerId: 1, name: 'test', description: 'test', priceHour: 1, initialDate: "3923-03-10T18:18:14.049Z", finalDate: "3925-03-10T18:18:14.049Z", startHour: 11111, endHour: 1111, location: '1,1', country: "test", province: "test", city:"test", dimensions: '1x1', shared:true};
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      
+      // API Call
+      await axios.post(`${host}/api/v1/spaces`, spaceToPublish, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
     it('Should return 500 when an unexpected error is thrown', async () => {
       // Fixture
       const expected = 'Internal Server Error';
@@ -2352,7 +2397,7 @@ module.exports = (prisma, jwt) => {
         dimensions: "2x2",
         shared: true,
         ownerId: 1,
-        priceHour: 33.2,
+        priceDay: 33.2,
         tags: ['ELEVATOR', 'WET'],
         images: [ fs.readFileSync(`${__dirname}/../assets/Test.png`, 'base64'), fs.readFileSync(`${__dirname}/../assets/Test.jpg`, 'base64') ]
       }
@@ -2379,7 +2424,8 @@ module.exports = (prisma, jwt) => {
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
       const itemToBePublished = [{
           type: 'ELECTRONICS',
-          dimensions: 'SMALL'
+          dimensions: 'SMALL',
+          amount: 5
       }]
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2466,7 +2512,8 @@ module.exports = (prisma, jwt) => {
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
       const itemToBePublished = [{
           type: 'ELECTRONICS',
-          dimensions: 'SMALL'
+          dimensions: 'SMALL', 
+          amount: 44
       }]
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -2501,6 +2548,75 @@ module.exports = (prisma, jwt) => {
           assert.fail();
         }).catch( (err) => {
           assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected);        
+        });
+    });
+
+    it('Should return 400 when sending a non integer amount', async () => {
+      // Fixture
+      const expected = 'Invalid item amount. It must be a positive integer number greater than 1';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const itemToBePublished = [{
+          type: 'ELECTRONICS',
+          dimensions: 'SMALL',
+          amount: 4.4
+      },
+      {
+        type: 'ELECTRONICS',
+        dimensions: 'SMALL',
+        amount: undefined
+      },
+      {
+        type: 'ELECTRONICS',
+        dimensions: 'SMALL',
+        amount: ''
+      }
+      ]
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.rejects();
+  
+      // API Call
+      await axios.post(`${host}/api/v1/items`, itemToBePublished, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.fail();
+        }).catch( (err) => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);        
+        });
+    });
+
+    it('Should return 400 when duplicated items send', async () => {
+      // Fixture
+      const expected = 'Duplicate item type and dimensions';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const itemToBePublished = [{
+          type: 'ELECTRONICS',
+          dimensions: 'SMALL',
+          amount: 5
+      },
+      {
+        type: 'ELECTRONICS',
+        dimensions: 'SMALL',
+        amount: 4
+      }
+      ]
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.rejects();
+  
+      // API Call
+      await axios.post(`${host}/api/v1/items`, itemToBePublished, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.fail();
+        }).catch( (err) => {
+          assert.equal(err.response.status, 400);
           assert.equal(err.response.data, expected);        
         });
     });
@@ -2539,8 +2655,8 @@ module.exports = (prisma, jwt) => {
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
      
       const rentalToBeCreated={
-        initialDate: new Date("2900-01-01T00:00:00.000Z"),
-        finalDate: new Date("2999-01-01T00:00:00.000Z"),
+        initialDate: new Date("2900-04-01T00:00:00.000Z"),
+        finalDate: new Date("2900-05-01T00:00:00.000Z"),
         cost: 456,
         type: 'MONTH', 
         meters: 5,
@@ -2585,10 +2701,10 @@ module.exports = (prisma, jwt) => {
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
      
       const rentalToBeCreated={
-        initialDate: new Date("2127-01-01T00:00:00.000Z"),
-        finalDate: new Date("2300-01-01T00:00:00.000Z"),
+        initialDate: new Date("2900-04-01T00:00:00.000Z"),
+        finalDate: new Date("2900-05-01T00:00:00.000Z"),
         cost: 456,
-        type: 'MONTH', 
+        type: 'DAY', 
         meters: 5,
         spaceId: 1, 
         renterId: 1
@@ -2621,7 +2737,7 @@ module.exports = (prisma, jwt) => {
       //Fixture
       const spaceToAddRental={
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
-        dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: false, ownerId: 2, rentals:
+        dimensions: "100x3", priceHour: 33, startHour: new Date('1970-01-01T01:00:00.000Z'), endHour: new Date('1970-01-01T23:00:00.000Z'), shared: false, ownerId: 2, rentals:
         [{
           initialDate: new Date("2125-01-01T00:00:00.000Z"), finalDate: new Date("2130-01-01T00:00:00.000Z"), 
           cost: 456, type: "HOUR", meters: 299, spaceId: 1, renterId: 3
@@ -2631,10 +2747,10 @@ module.exports = (prisma, jwt) => {
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
      
       const rentalToBeCreated={
-        initialDate: new Date("2900-01-01T00:00:00.000Z"),
-        finalDate: new Date("2999-01-01T00:00:00.000Z"),
+        initialDate: new Date("2900-04-01T10:00:00.000Z"),
+        finalDate: new Date("2900-05-01T15:00:00.000Z"),
         cost: 456,
-        type: 'MONTH', 
+        type: 'HOUR', 
         meters: 300,
         spaceId: 1, 
         renterId: 1
@@ -3027,8 +3143,8 @@ module.exports = (prisma, jwt) => {
       const expected = 'Internal Server Error';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
       const rentalToBeCreated={
-        initialDate: "2900-01-01T00:00:00.000Z",
-        finalDate: "2999-01-01T00:00:00.000Z",
+        initialDate: new Date("2900-04-01T00:00:00.000Z"),
+        finalDate: new Date("2900-05-01T00:00:00.000Z"),
         cost: 456,
         type: 'MONTH', 
         meters: 5,
@@ -3136,7 +3252,267 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
       });
+    
+    it('Should return 400 when trying to rent a space by hours without having pricehour', async () => {
+      // Fixture
 
+      const spaceToAddRental={
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
+        dimensions: "100x3", priceDay: 56, priceMonth: 456, shared: false, ownerId: 2
+      }
+
+      const expected = 'Bad Request: Space must have a price per hour to rent per hour';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToPublish={
+        initialDate: "2900-01-01T00:00:00.000Z",
+        finalDate: "2999-01-01T00:00:00.000Z",
+        cost: 44.2,
+        type: 'HOUR', 
+        meters: 5,
+        spaceId: 1, 
+        renterId: 1
+      };
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+    
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+          { 
+            withCredentials: true, 
+            headers: {Cookie: 'authToken=testToken;'}
+          })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+      });
+
+    it('Should return 400 when trying to rent a space by days without having priceday', async () => {
+      // Fixture
+
+      const spaceToAddRental={
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
+        dimensions: "100x3", priceMonth: 456, shared: false, ownerId: 2
+      }
+
+      const expected = 'Bad Request: Space must have a price per day to rent per day';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToPublish={
+        initialDate: "2900-01-01T00:00:00.000Z",
+        finalDate: "2999-01-01T00:00:00.000Z",
+        cost: 44.2,
+        type: 'DAY', 
+        meters: 5,
+        spaceId: 1, 
+        renterId: 1
+      };
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+    
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+          { 
+            withCredentials: true, 
+            headers: {Cookie: 'authToken=testToken;'}
+          })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+      });
+
+    it('Should return 400 when trying to rent a space by month without having pricemonth', async () => {
+      // Fixture
+
+      const spaceToAddRental={
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
+        dimensions: "100x3", priceDay: 56, shared: false, ownerId: 2
+      }
+
+      const expected = 'Bad Request: Space must have a price per month to rent per month';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToPublish={
+        initialDate: "2900-01-01T00:00:00.000Z",
+        finalDate: "2999-01-01T00:00:00.000Z",
+        cost: 44.2,
+        type: 'MONTH', 
+        meters: 5,
+        spaceId: 1, 
+        renterId: 1
+      };
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+    
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+          { 
+            withCredentials: true, 
+            headers: {Cookie: 'authToken=testToken;'}
+          })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+      });
+    
+    it('Should return 400 when trying to rent a space before 24 hours', async () => {
+      // Fixture
+      let dateTest = new Date();
+      dateTest.setHours(dateTest.getHours() + 3);
+
+      const spaceToAddRental={
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
+        dimensions: "100x3", priceDay: 56, shared: false, ownerId: 2
+      }
+
+      const expected = 'Bad Request: Initial date must be after 24 hours from now';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToPublish={
+        initialDate: dateTest,
+        finalDate: "2999-01-01T00:00:00.000Z",
+        cost: 44.2,
+        type: 'DAY', 
+        meters: 5,
+        spaceId: 1, 
+        renterId: 1
+      };
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+    
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+          { 
+            withCredentials: true, 
+            headers: {Cookie: 'authToken=testToken;'}
+          })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+      });
+
+    it('Should return 400 when Initial hour is not between space hours', async () => {
+      // Fixture
+
+      const spaceToAddRental={
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
+        dimensions: "100x3", priceHour: 56, startHour: new Date("1970-01-01T20:00:00.000Z"), endHour: new Date("1970-01-01T23:00:00.000Z"), shared: true, ownerId: 2
+      }
+
+      const expected = 'Bad Request: Initial hour must be between space hours';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToPublish={
+        initialDate: "2900-01-01T15:00:00.000Z",
+        finalDate: "2999-01-01T00:00:00.000Z",
+        cost: 44.2,
+        type: 'HOUR',
+        meters: 5,
+        spaceId: 1, 
+        renterId: 1
+      };
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+    
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+          { 
+            withCredentials: true, 
+            headers: {Cookie: 'authToken=testToken;'}
+          })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+      });
+
+    it('Should return 400 when Final hour is not between space hours', async () => {
+      // Fixture
+
+      const spaceToAddRental={
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
+        dimensions: "100x3", priceHour: 56, startHour: new Date("1970-01-01T17:00:00.000Z"), endHour: new Date("1970-01-01T19:00:00.000Z"), shared: true, ownerId: 2
+      }
+
+      const expected = 'Bad Request: Final hour must be between space hours';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToPublish={
+        initialDate: "2900-01-01T18:00:00.000Z",
+        finalDate: "2999-01-01T22:00:00.000Z",
+        cost: 44.2,
+        type: 'HOUR',
+        meters: 5,
+        spaceId: 1, 
+        renterId: 1
+      };
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+    
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
+          { 
+            withCredentials: true, 
+            headers: {Cookie: 'authToken=testToken;'}
+          })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+      });
+    
     it('Should return 400 when meters are not a number', async () => {
       // Fixture
       const expected = 'Bad Request: Meters must be a number';
@@ -3199,19 +3575,32 @@ module.exports = (prisma, jwt) => {
 
     it('Should return 400 when finalDate of a rental is before initialDate', async () => {
       // Fixture
+
+      const spaceToAddRental={
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
+        dimensions: "100x3", priceDay: 56, shared: false, ownerId: 2
+      }
+
       const expected = 'Bad Request: Final date must be after initial date';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
       const rentalToPublish={
-        initialDate: "2900-01-01T00:00:00.000Z",
-        finalDate: "2800-01-01T00:00:00.000Z",
+        initialDate: new Date("2900-04-01T00:00:00.000Z"),
+        finalDate: new Date("2900-02-01T00:00:00.000Z"),
         cost: 456,
-        type: "HOUR", 
+        type: "DAY", 
         meters: 5,
         spaceId: 1, 
         renterId: 1
       };
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where:{
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
     
       // API Call
       await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,   
@@ -3361,9 +3750,9 @@ module.exports = (prisma, jwt) => {
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("3000-01-01T00:00:00.000Z"), location: "41.2,45.3",
         dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: false, ownerId: 2, rentals: [{
           initialDate: new Date("2023-01-01T00:00:00.000Z"), finalDate: new Date("2030-01-01T00:00:00.000Z"), 
-          cost: 456, type: "HOUR", meters: 300, spaceId: 1, renterId: 3},
+          cost: 456, type: "DAY", meters: 300, spaceId: 1, renterId: 3},
           { initialDate: new Date("2031-01-01T00:00:00.000Z"), finalDate: new Date("2040-01-01T00:00:00.000Z"), 
-            cost: 456, type: "HOUR", meters: 300, spaceId: 1, renterId: 3}]
+            cost: 456, type: "DAY", meters: 300, spaceId: 1, renterId: 3}]
       }
       const expected = 'Bad Request: Space not available or space capacity exceeded';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
@@ -3371,7 +3760,7 @@ module.exports = (prisma, jwt) => {
         initialDate: new Date("2024-01-01T00:00:00.000Z"),
         finalDate: new Date("2029-01-01T00:00:00.000Z"),
         cost: 456,
-        type: "HOUR", 
+        type: "DAY", 
         meters: 1,
         spaceId: 1, 
         renterId: 1
@@ -3408,7 +3797,7 @@ module.exports = (prisma, jwt) => {
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("3000-01-01T00:00:00.000Z"), location: "41.2,45.3",
         dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: false, ownerId: 2, rentals: [{
           initialDate: new Date("2025-01-01T00:00:00.000Z"), finalDate: new Date("2030-01-01T00:00:00.000Z"), 
-          cost: 456, type: "HOUR", meters: 300, spaceId: 1, renterId: 3}]
+          cost: 456, type: "DAY", meters: 300, spaceId: 1, renterId: 3}]
       }
       const expected = 'Bad Request: Space not available or space capacity exceeded';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
@@ -3416,7 +3805,7 @@ module.exports = (prisma, jwt) => {
         initialDate: new Date("2024-01-01T00:00:00.000Z"),
         finalDate: new Date("2029-01-01T00:00:00.000Z"),
         cost: 456,
-        type: "HOUR", 
+        type: "DAY", 
         meters: 1,
         spaceId: 1, 
         renterId: 1
@@ -3453,7 +3842,7 @@ module.exports = (prisma, jwt) => {
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("3000-01-01T00:00:00.000Z"), location: "41.2,45.3",
         dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: false, ownerId: 2, rentals: [{
           initialDate: new Date("2025-01-01T00:00:00.000Z"), finalDate: new Date("2030-01-01T00:00:00.000Z"), 
-          cost: 456, type: "HOUR", meters: 300, spaceId: 1, renterId: 3}]
+          cost: 456, type: "DAY", meters: 300, spaceId: 1, renterId: 3}]
       }
       const expected = 'Bad Request: Space not available or space capacity exceeded';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
@@ -3461,7 +3850,7 @@ module.exports = (prisma, jwt) => {
         initialDate: new Date("2026-01-01T00:00:00.000Z"),
         finalDate: new Date("2031-01-01T00:00:00.000Z"),
         cost: 456,
-        type: "HOUR", 
+        type: "DAY", 
         meters: 1,
         spaceId: 1, 
         renterId: 1
@@ -3498,7 +3887,7 @@ module.exports = (prisma, jwt) => {
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("3000-01-01T00:00:00.000Z"), location: "41.2,45.3",
         dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: false, ownerId: 2, rentals: [{
           initialDate: new Date("2025-01-01T00:00:00.000Z"), finalDate: new Date("2030-01-01T00:00:00.000Z"), 
-          cost: 456, type: "HOUR", meters: 300, spaceId: 1, renterId: 3}]
+          cost: 456, type: "DAY", meters: 300, spaceId: 1, renterId: 3}]
       }
       const expected = 'Bad Request: Space not available or space capacity exceeded';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
@@ -3506,7 +3895,7 @@ module.exports = (prisma, jwt) => {
         initialDate: new Date("2024-01-01T00:00:00.000Z"),
         finalDate: new Date("2031-01-01T00:00:00.000Z"),
         cost: 456,
-        type: "HOUR", 
+        type: "DAY", 
         meters: 1,
         spaceId: 1, 
         renterId: 1
@@ -3543,7 +3932,7 @@ module.exports = (prisma, jwt) => {
           id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("3000-01-01T00:00:00.000Z"), location: "41.2,45.3",
           dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: false, ownerId: 2, rentals: [{
             initialDate: new Date("2025-01-01T00:00:00.000Z"), finalDate: new Date("2030-01-01T00:00:00.000Z"), 
-            cost: 456, type: "HOUR", meters: 300, spaceId: 1, renterId: 3}]
+            cost: 456, type: "DAY", meters: 300, spaceId: 1, renterId: 3}]
         }
         const expected = 'Bad Request: Space not available or space capacity exceeded';
         const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
@@ -3551,7 +3940,7 @@ module.exports = (prisma, jwt) => {
           initialDate: new Date("2024-01-01T00:00:00.000Z"),
           finalDate: new Date("2031-01-01T00:00:00.000Z"),
           cost: 456,
-          type: "HOUR", 
+          type: "DAY", 
           meters: 500,
           spaceId: 1, 
           renterId: 1
@@ -3594,7 +3983,7 @@ module.exports = (prisma, jwt) => {
         initialDate: new Date("2025-01-01T00:00:00.000Z"),
         finalDate: new Date("3001-01-01T00:00:00.000Z"),
         cost: 456,
-        type: "HOUR", 
+        type: "DAY", 
         meters: 1,
         spaceId: 1, 
         renterId: 1
@@ -3637,7 +4026,7 @@ module.exports = (prisma, jwt) => {
         initialDate: new Date("2031-01-01T00:00:00.000Z"),
         finalDate: new Date("3001-01-01T00:00:00.000Z"),
         cost: 456,
-        type: "HOUR", 
+        type: "DAY", 
         meters: 1,
         spaceId: 1, 
         renterId: 1
@@ -3680,7 +4069,7 @@ module.exports = (prisma, jwt) => {
         initialDate: new Date("2031-01-01T00:00:00.000Z"),
         finalDate: new Date("2040-01-01T00:00:00.000Z"),
         cost: 456,
-        type: "HOUR", 
+        type: "DAY", 
         meters: 200,
         spaceId: 1, 
         renterId: 1
@@ -3717,9 +4106,9 @@ module.exports = (prisma, jwt) => {
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("3000-01-01T00:00:00.000Z"), location: "41.2,45.3",
         dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 2, rentals: [{
           initialDate: new Date("2023-01-01T00:00:00.000Z"), finalDate: new Date("2030-01-01T00:00:00.000Z"), 
-          cost: 456, type: "HOUR", meters: 100, spaceId: 1, renterId: 3}, 
+          cost: 456, type: "DAY", meters: 100, spaceId: 1, renterId: 3}, 
           {initialDate: new Date("2031-01-01T00:00:00.000Z"), finalDate: new Date("2040-01-01T00:00:00.000Z"), 
-            cost: 456, type: "HOUR", meters: 100, spaceId: 1, renterId: 3}]
+            cost: 456, type: "DAY", meters: 100, spaceId: 1, renterId: 3}]
       }
       const expected = 'Bad Request: Space not available or space capacity exceeded';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
@@ -3727,7 +4116,7 @@ module.exports = (prisma, jwt) => {
         initialDate: new Date("2024-01-01T00:00:00.000Z"),
         finalDate: new Date("2029-01-01T00:00:00.000Z"),
         cost: 456,
-        type: "HOUR", 
+        type: "DAY", 
         meters: 300,
         spaceId: 1, 
         renterId: 1
@@ -3764,7 +4153,7 @@ module.exports = (prisma, jwt) => {
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("3000-01-01T00:00:00.000Z"), location: "41.2,45.3",
         dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 2, rentals: [{
           initialDate: new Date("2024-01-01T00:00:00.000Z"), finalDate: new Date("2030-01-01T00:00:00.000Z"), 
-          cost: 456, type: "HOUR", meters: 100, spaceId: 1, renterId: 3}]
+          cost: 456, type: "DAY", meters: 100, spaceId: 1, renterId: 3}]
       }
       const expected = 'Bad Request: Space not available or space capacity exceeded';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
@@ -3772,7 +4161,7 @@ module.exports = (prisma, jwt) => {
         initialDate: new Date("2023-01-01T00:00:00.000Z"),
         finalDate: new Date("2028-01-01T00:00:00.000Z"),
         cost: 456,
-        type: "HOUR", 
+        type: "DAY", 
         meters: 300,
         spaceId: 1, 
         renterId: 1
@@ -3809,7 +4198,7 @@ module.exports = (prisma, jwt) => {
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("3000-01-01T00:00:00.000Z"), location: "41.2,45.3",
         dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 2, rentals: [{
           initialDate: new Date("2023-01-01T00:00:00.000Z"), finalDate: new Date("2030-01-01T00:00:00.000Z"), 
-          cost: 456, type: "HOUR", meters: 100, spaceId: 1, renterId: 3}]
+          cost: 456, type: "DAY", meters: 100, spaceId: 1, renterId: 3}]
       }
       const expected = 'Bad Request: Space not available or space capacity exceeded';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
@@ -3817,7 +4206,7 @@ module.exports = (prisma, jwt) => {
         initialDate: new Date("2024-01-01T00:00:00.000Z"),
         finalDate: new Date("2031-01-01T00:00:00.000Z"),
         cost: 456,
-        type: "HOUR", 
+        type: "DAY", 
         meters: 300,
         spaceId: 1, 
         renterId: 1
@@ -3854,7 +4243,7 @@ module.exports = (prisma, jwt) => {
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: new Date("1970-01-01T00:00:00.000Z"), finalDate: new Date("3000-01-01T00:00:00.000Z"), location: "41.2,45.3",
         dimensions: "100x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: true, ownerId: 2, rentals: [{
           initialDate: new Date("2024-01-01T00:00:00.000Z"), finalDate: new Date("2030-01-01T00:00:00.000Z"), 
-          cost: 456, type: "HOUR", meters: 100, spaceId: 1, renterId: 3}]
+          cost: 456, type: "DAY", meters: 100, spaceId: 1, renterId: 3}]
       }
       const expected = 'Bad Request: Space not available or space capacity exceeded';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
@@ -3862,7 +4251,7 @@ module.exports = (prisma, jwt) => {
         initialDate: new Date("2023-01-01T00:00:00.000Z"),
         finalDate: new Date("2031-01-01T00:00:00.000Z"),
         cost: 456,
-        type: "HOUR", 
+        type: "DAY", 
         meters: 300,
         spaceId: 1, 
         renterId: 1
