@@ -10,6 +10,10 @@ module.exports.getUser = function getUser (req, res, next) {
   varUserController.getUser(req.swagger.params, res, next);
 };
 
+module.exports.putUser = function putUser (req, res, next) {
+  varUserController.putUser(req, res, next);
+};
+
 module.exports.getUserItems = function getUserItems (req, res, next) {
   varUserController.getUserItems(req.swagger.params, res, next);
 };

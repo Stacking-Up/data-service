@@ -1,7 +1,9 @@
 'use strict';
 
+const jwt = require('jsonwebtoken');
 const utils = require('../utils');
 const prisma = require('../prisma');
+const { Prisma } = require('@prisma/client');
 
 module.exports.getUsers = function getUsers (req, res, next) {
   prisma.user.findMany({
@@ -42,6 +44,72 @@ module.exports.getUser = function getUser (req, res, next) {
         res.status(500).send('Server error: Could not get user');
       }
     });
+};
+
+module.exports.putUser = async function putUser (req, res, next) {
+  const authToken = req.cookies?.authToken;
+  const userId = req.swagger.params.userId.value;
+  const userToBeUpdated = req.swagger.params.body.value;
+
+  if (authToken) {
+    try {
+      const decoded = jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
+      if (!userToBeUpdated.name || !userToBeUpdated.surname) {
+        res.status(400).send('Missing required attributes');
+        return;
+      }
+
+      if (decoded.role !== 'ADMIN' && (decoded.role === 'USER' || parseInt(decoded.userId) !== parseInt(userToBeUpdated.id))) {
+        res.status(403).send('Forbidden');
+        return;
+      }
+
+      if (!userId || !userId.toString().match(/^\d+$/)) {
+        res.status(400).send('Invalid userId. It must be an integer number');
+        return;
+      }
+
+      await prisma.user.update({
+        where: {
+          id: parseInt(userId)
+        },
+        data: {
+          name: userToBeUpdated.name,
+          surname: userToBeUpdated.surname,
+          birthDate: userToBeUpdated.birthDate ? new Date(userToBeUpdated.birthDate) : null,
+          sex: userToBeUpdated.sex ? userToBeUpdated.sex : null,
+          idCard: userToBeUpdated.idCard ? userToBeUpdated.idCard : null,
+          phoneNumber: userToBeUpdated.phoneNumber ? userToBeUpdated.phoneNumber : null,
+          location: userToBeUpdated.location ? userToBeUpdated.location : null,
+          auth: userToBeUpdated.auth ? userToBeUpdated.auth : undefined,
+          ratings: userToBeUpdated.ratings,
+          reviews: userToBeUpdated.reviews,
+          avatar: userToBeUpdated.avatar ? userToBeUpdated.avatar : undefined,
+          items: userToBeUpdated.items,
+          spaces: userToBeUpdated.spaces,
+          rentals: userToBeUpdated.rentals
+        }
+      }).then(() => {
+        res.status(201).send('User updated successfully');
+      }).catch((err) => {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+          res.status(400).send('User not found');
+        } else {
+          console.error(err);
+          res.status(500).send('Internal Server Error');
+        }
+      });
+    } catch (err) {
+      if (err instanceof jwt.JsonWebTokenError) {
+        res.status(401).send(`Unauthorized: ${err.message}`);
+      } else {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+      }
+    }
+  } else {
+    res.status(401).send('Unauthorized');
+  }
 };
 
 module.exports.getUserItems = function getUserItems (req, res, next) {
