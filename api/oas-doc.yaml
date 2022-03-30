@@ -669,7 +669,7 @@ paths:
 
         - name: orderBy
           in: query
-          description: 'Order by price or initial date'
+          description: 'Order by price, initial date or publish date'
           required: false
           schema:
             type: string
@@ -677,6 +677,20 @@ paths:
         - name: search
           in: query
           description: 'Search the given text in title, description and location'
+          required: false
+          schema:
+            type: string
+          
+        - name: orderByRatings
+          in: query
+          description: 'Order by user ratings (asc or desc)'
+          required: false
+          schema:
+            type: string
+
+        - name: orderByLocation
+          in: query
+          description: 'Order spaces closest to the user'
           required: false
           schema:
             type: string
