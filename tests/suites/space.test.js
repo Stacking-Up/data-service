@@ -4552,6 +4552,284 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
       });
     });
+
+    it('Should update a user', async () => {
+      // Fixture
+      const expected = 'User updated successfully';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+        id: 1,
+        name: "updated",
+        surname: "updated",
+        birthDate: "2000-03-30T09:49:30.610Z",
+        sex: "MALE",
+        idCard: "12345678A",
+        phoneNumber: "666777888",
+        location: "Sevilla",
+        auth: {id: 1, email: 'test@tes.com', password: 'Password123', role: 'VERIFIED', userId: 1},
+        ratings: [{id: 1, title: "test", description: "test", rating: 5, receiverId: 1, reviewerId: 2}],
+        reviews: [{id: 1, title: "test", description: "test", rating: 5, receiverId: 2, reviewerId: 1}],
+        avatar: fs.readFileSync(`${__dirname}/../assets/Test.png`, 'base64')
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.resolves();
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.equal(res.status, 201);
+          assert.equal(res.data, expected);
+        }).catch( () => assert.fail());
+    });
+
+    it('User with ADMIN role hould update a user with a different userId', async () => {
+      // Fixture
+      const expected = 'User updated successfully';
+      const decodedJwt = { userId: 1, role: 'ADMIN', email: 'test@test.com' };
+      const userToBeUpdated = {
+        id: 2,
+        name: "updated",
+        surname: "updated",
+        birthDate: "2000-03-30T09:49:30.610Z",
+        sex: "MALE",
+        idCard: "12345678A",
+        phoneNumber: "666777888",
+        location: "Sevilla",
+        auth: {id: 1, email: 'test@tes.com', password: 'Password123', role: 'VERIFIED', userId: 1},
+        ratings: [{id: 1, title: "test", description: "test", rating: 5, receiverId: 1, reviewerId: 2}],
+        reviews: [{id: 1, title: "test", description: "test", rating: 5, receiverId: 2, reviewerId: 1}],
+        avatar: fs.readFileSync(`${__dirname}/../assets/Test.png`, 'base64')
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.resolves();
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/2`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.equal(res.status, 201);
+          assert.equal(res.data, expected);
+        }).catch( () => assert.fail());
+    });
+
+    it('Should return 401 when token is missing', async () => {
+      // Fixture
+      const expected = 'Unauthorized';
+        
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, {})
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 401 when JWTError is thrown on verification', async () => {
+      // Fixture
+      const expected = 'Unauthorized: Invalid token';
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').throws(new jwt.JsonWebTokenError('Invalid token'));
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, {}, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when any constraint from the model is violated', async () => {
+      // Fixture
+      const expected = 'Missing required attributes';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          id: 1,
+          name: null,
+          surname: "surname"
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 403 when someone with USER rol tries to update a user', async () => {
+      // Fixture
+      const expected = 'Forbidden';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const userToBeUpdated = {
+          id: 1,
+          name: "updated",
+          surname: "updated"
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 403);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 403 when someone tries to update an user with another userId', async () => {
+      // Fixture
+      const expected = 'Forbidden';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          id: 2,
+          name: "name",
+          surname: "surname"
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/2`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 403);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when an invalid userId is provided in path', async () => {
+      // Fixture
+      const expected = 'Invalid userId. It must be an integer number';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          id: 1, 
+          name: "updated", 
+          surname: "updated"
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/invalid_userId`, userToBeUpdated, { 
+          withCredentials: true,
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update a non-existing user', async () => {
+      // Fixture
+      const expected = 'User not found';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+        id: 1,
+        name: "updated",
+        surname: "updated"
+      }
+      // Mock Auth and DB Query
+      const error = new (require('@prisma/client/runtime').PrismaClientKnownRequestError)('User not found', 'P2025');
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.rejects(error);
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 500 when prisma update fails', async () => {
+      // Fixture
+      const expected = 'Internal Server Error';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          id: 1,
+          name: "updated",
+          surname: "updated"
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.rejects('Unknown error');
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 500 when an unexpected error is thrown', async () => {
+      // Fixture
+      const expected = 'Internal Server Error';
+
+      // Mock Auth and DB Query
+      console.error = sinon.stub(); // Avoid logging intentionally provoked error
+      verify.withArgs('testToken', 'stackingupsecretlocal').throws(new Error('Unexpected Error'));
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, {}, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);
+      });
+    });
   });
 
   describe('DELETE Endpoint tests:', () => {
