@@ -19,14 +19,12 @@ module.exports.calculateCost = (rental, space) => {
 };
 
 function _checkRentalConstraints (rental, errors) {
-  if (!rental.initialDate || !rental.finalDate || !rental.cost || !rental.type || !rental.meters) {
+  if (!rental.initialDate || !rental.finalDate || !rental.type || !rental.meters) {
     errors.push('Missing required attributes');
   } else if (new Date(rental.initialDate).toString() === 'Invalid Date' || new Date(rental.initialDate) < new Date()) {
     errors.push('Initial date must be a Date after today');
   } else if (new Date(rental.finalDate).toString() === 'Invalid Date' || new Date(rental.finalDate) < new Date()) {
     errors.push('Final date must be a Date after today');
-  } else if (isNaN(rental.cost)) {
-    errors.push('Cost must be a number');
   } else if (isNaN(rental.meters)) {
     errors.push('Meters must be a number');
   } else if (!Object.values(RentalType).includes(rental.type)) {
