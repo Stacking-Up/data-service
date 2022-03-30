@@ -26,7 +26,7 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
   const maxPriceMonth = req.maxPriceMonth.value || Number.MAX_VALUE;
 
   const sort = {};
-  if (req.orderBy.value?.match(/(?:price(?:Hour|Day|Month)|initialDate)-(?:asc|desc)/)) {
+  if (req.orderBy.value?.match(/(?:price(?:Hour|Day|Month)|initialDate|publishDate)-(?:asc|desc)/)) {
     const [key, value] = req.orderBy.value.split('-');
     sort[key] = value;
   }
@@ -49,14 +49,20 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
     },
     include: {
       tags: true,
-      images: true
+      images: true,
+      owner: {
+        select: {
+          id: true,
+          ratings: { select: { receiverId: true, rating: true } }
+        }
+      }
     },
     orderBy: sort
   })
     .then(spaces => {
       utils.space.spaceFilter(spaces, async (space) => {
         const inRangeDimension = utils.space.inRange(minDimension, maxDimension, utils.space.getMeters(space.dimensions));
-        const fieldSearch = await utils.space.fieldSearch(space.name, space.description, space.location, req.search.value);
+        const fieldSearch = await utils.space.fieldSearch(space.name, space.description, space.location, space.city, space.province, space.country, req.search.value);
         const includeTags = utils.space.includesTags(tagsFilter, utils.space.tagsToArray(space.tags));
         const inRangePriceHour = utils.space.inRange(minPriceHour, maxPriceHour, space.priceHour);
         const inRangePriceDay = utils.space.inRange(minPriceDay, maxPriceDay, space.priceDay);
@@ -67,7 +73,20 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
 
         return inRangeDimension && fieldSearch && includeTags && inRangePriceHour && inRangePriceDay && inRangePriceMonth && isRentPerHour && isRentedPerDay && isRentedPerMonth;
       }).then(spacesFiltered => {
-        res.send(spacesFiltered.map(space => utils.commons.notNulls(space)).reduce((acc, space) => {
+        const spacesNotSorted = spacesFiltered.map(space => utils.commons.notNulls(space));
+        if (req.orderByRatings.value) {
+          const sortingPerRatings = req.orderByRatings.value.toLowerCase() === 'asc'
+            ? (a, b) => utils.space.mediaRatings(a.owner.ratings) - utils.space.mediaRatings(b.owner.ratings)
+            : (a, b) => utils.space.mediaRatings(b.owner.ratings) - utils.space.mediaRatings(a.owner.ratings);
+          spacesNotSorted.sort(sortingPerRatings);
+        }
+        if (req.orderByLocation.value) {
+          const [userLatitude, userLongitude] = req.orderByLocation.value.split(',');
+          const sortingPerLocations = (a, b) => utils.space.getDistanceFromLatLonInKm(parseFloat(userLatitude), parseFloat(userLongitude), parseFloat(a.location.split(',')[0]), parseFloat(a.location.split(',')[1])) -
+            utils.space.getDistanceFromLatLonInKm(parseFloat(userLatitude), parseFloat(userLongitude), parseFloat(b.location.split(',')[0]), parseFloat(b.location.split(',')[1]));
+          spacesNotSorted.sort(sortingPerLocations);
+        }
+        res.send(spacesNotSorted.reduce((acc, space) => {
           if (space.startHour) space.startHour = space.startHour.getTime();
           if (space.endHour) space.endHour = space.endHour.getTime();
           space.tags = space.tags?.map(tag => tag.tag);
