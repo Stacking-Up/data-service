@@ -66,6 +66,32 @@ module.exports.checkSpaceValidity = (space) => {
 };
 
 function _checkSpaceConstraints (space, errors) {
+  if (!space.priceHour) {
+    console.warn('Space priceHour not defined, start and end hour will be ignored');
+    space.startHour = null;
+    space.endHour = null;
+  }
+
+  if (space.startHour) {
+    space.startHour = new Date(space.startHour);
+    if (space.startHour.toString() === 'Invalid Date') {
+      errors.push('Start hour must be a valid Time');
+      return errors;
+    } else {
+      space.startHour.setFullYear(1970, 0, 1);
+    }
+  }
+
+  if (space.endHour) {
+    space.endHour = new Date(space.endHour);
+    if (space.endHour.toString() === 'Invalid Date') {
+      errors.push('End hour must be a valid Time');
+      return errors;
+    } else {
+      space.endHour.setFullYear(1970, 0, 1);
+    }
+  }
+
   if (!space.name || !space.description || !space.initialDate || !space.location || !space.dimensions || !space.city || !space.province || !space.country || space.shared === undefined) {
     errors.push('Missing required attributes');
   } else if (space.name.length < 3 || space.name.length > 50) {
@@ -74,10 +100,6 @@ function _checkSpaceConstraints (space, errors) {
     errors.push('Initial date must be a Date after today');
   } else if (space.finalDate && new Date(space.finalDate).toString() === 'Invalid Date') {
     errors.push('Final date must be a Date');
-  } else if (space.startHour && new Date(space.startHour).toString() === 'Invalid Date') {
-    errors.push('Start hour must be a valid Time');
-  } else if (space.endHour && new Date(space.endHour).toString() === 'Invalid Date') {
-    errors.push('End hour must be a valid Time');
   } else if (!space.location.match(/^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/)) {
     errors.push('Location must be a valid latitude,longitude pair');
   } else if (!space.dimensions.match(/^\d+(\.\d+)?x\d+(\.\d+)?$/)) {
@@ -110,6 +132,17 @@ function _checkSpaceBusinessLogic (space, errors) {
   if (space.finalDate && new Date(space.finalDate) < new Date(space.initialDate)) {
     errors.push('Final date must be after initial date');
   }
+
+  // RN10
+  if (space.priceHour && (!space.startHour || !space.endHour)) {
+    errors.push('You must defined all the required fields to rent per hour');
+  }
+
+  // RN09
+  if (space.startHour && space.endHour && space.endHour < space.startHour) {
+    errors.push('Space must be available between hours of the same day');
+  }
+
   return errors;
 }
 
