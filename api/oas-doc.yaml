@@ -1485,7 +1485,7 @@ components:
             - MALE
             - FEMALE
             - OTHER
-        idcard:
+        idCard:
           type: string
         phoneNumber:
           type: string
