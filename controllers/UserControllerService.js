@@ -131,7 +131,7 @@ module.exports.postUserRating = async function postUserRating (req, res, next) {
     try {
       const decoded = jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
 
-      if (!ratingToBePublished.reviewerId || !ratingToBePublished.receiverId) {
+      if (!ratingToBePublished.reviewerId || !ratingToBePublished.receiverId || !req.swagger.params.userId.value) {
         res.status(400).send('Missing required attributes');
         return;
       }
