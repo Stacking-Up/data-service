@@ -18,6 +18,14 @@ module.exports.getUserItem = function getUserItem (req, res, next) {
   varUserController.getUserItem(req.swagger.params, res, next);
 };
 
+module.exports.postUserRating = function postUserRating (req, res, next) {
+  varUserController.postUserRating(req, res, next);
+};
+
+module.exports.deleteUserRating = function deleteUserRating (req, res, next) {
+  varUserController.deleteUserRating(req, res, next);
+};
+
 module.exports.getUserRatings = function getUserRatings (req, res, next) {
   varUserController.getUserRatings(req.swagger.params, res, next);
 };
