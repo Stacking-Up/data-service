@@ -956,7 +956,7 @@ paths:
       tags:
         - Spaces
       x-swagger-router-controller: SpaceController
-      description: Checks the validity of a logged-in user's token and verify the space rental (to publish check /api/v1/spaces/{spaceId}/rentals)
+      description: Checks the validity of a logged-in user's token and verify the space rental (to publish check /api/v1/spaces/rentals/confirmation)
       operationId: postSpaceRental
       parameters:
         - name: spaceId

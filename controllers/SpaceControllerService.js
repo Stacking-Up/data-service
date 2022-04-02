@@ -495,7 +495,7 @@ module.exports.postSpaceRental = async function postSpaceRental (req, res, next)
       rentalToBeCreated.cost = costes;
 
       let rentalToken = jwt.sign(rentalToBeCreated, process.env.JWT_SECRET || 'stackingupsecretlocal', {
-        expiresIn: '0.083h', 
+        expiresIn: '1h', 
       });
       
       return res.status(200).send(rentalToken.toString());
