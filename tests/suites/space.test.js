@@ -17,7 +17,7 @@ module.exports = (prisma, jwt) => {
   let createRating = sinon.stub(prisma.rating, 'findUnique').rejects("Not implemented");
   let findUniqueUser = sinon.stub(prisma.user, 'findUnique').rejects("Not implemented");
   let findUniqueRating = sinon.stub(prisma.rating, 'findUnique').rejects("Not implemented");
-  
+
   before(() => {
     console.warn = sinon.stub();
     sinon.replace(prisma.space, 'create', create);
@@ -1773,8 +1773,8 @@ module.exports = (prisma, jwt) => {
       ];
 
       const expected = [{
-        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "1970-01-01T00:00:00.000Z", location: "Cadiz",
-        city: "Cadiz", province: "Provincia de Cadiz", country: "España",
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "1970-01-01T00:00:00.000Z",
+        location: "Cadiz", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
         dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: false, ownerId: 1, tags: ["GARAGE", "DRY"], owner: { id: 1, ratings: [] }, images: []
       }
       ];
@@ -1833,8 +1833,8 @@ module.exports = (prisma, jwt) => {
       ];
 
       const expected = [{
-        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "1970-01-01T00:00:00.000Z", location: "Cadiz",
-        city: "Cadiz", province: "Provincia de Cadiz", country: "España",
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "1970-01-01T00:00:00.000Z",
+        location: "Cadiz", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
         dimensions: "1x3", priceMonth: 456, shared: false, ownerId: 1, tags: ["GARAGE", "DRY"], owner: { id: 1, ratings: [] }, images: []
       }
       ];
@@ -2190,6 +2190,61 @@ module.exports = (prisma, jwt) => {
         assert.equal(res.status, 200);
         assert.equal(res.data.length, 0);
         assert.deepEqual(res.data, []);
+      }).catch(() => {
+        assert.fail("Server error: Could not get spaces");
+      });
+    });
+
+    it('Should return all spaces beacause tag is undefined', async () => {
+      // Fixture
+      const dbOutput = [{
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z",
+        publishDate: "1970-01-01T00:00:00.000Z", startHour: null, endHour: null, location: "Cadiz", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
+        dimensions: "1x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: false, ownerId: 1
+      }
+      ];
+
+      const expected = [{
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "1970-01-01T00:00:00.000Z", location: "Cadiz",
+        city: "Cadiz", province: "Provincia de Cadiz", country: "España",
+        dimensions: "1x3", priceDay: 56, priceMonth: 456, shared: false, ownerId: 1, images: []
+      }
+      ];
+      //Set Actual Date
+      let actualDate = new Date();
+      actualDate.setMilliseconds(0);
+
+      // Mock DB Query
+      findMany.withArgs({
+        take: undefined, skip: undefined,
+        where: {
+          AND: [
+            { shared: { equals: undefined } },
+            {
+              OR: [
+                { finalDate: { gte: actualDate } },
+                { finalDate: { equals: null } }
+              ]
+            }
+          ]
+        }, include: {
+          tags: true,
+          images: true,
+          owner: {
+            select: {
+              id: true,
+              ratings: { select: { receiverId: true, rating: true } }
+            }
+          }
+        },
+        orderBy: {}
+      }).resolves(dbOutput);
+
+      // API Call
+      await axios.get(`${host}/api/v1/spaces`).then(res => {
+        assert.equal(res.status, 200);
+        assert.equal(res.data.length, 1);
+        assert.deepEqual(res.data, expected);
       }).catch(() => {
         assert.fail("Server error: Could not get spaces");
       });
@@ -2869,14 +2924,14 @@ module.exports = (prisma, jwt) => {
     it('Should return spaces which contains search text in mapQuery', async () => {
       // Fixture
       const dbOutput = [{
-        id: 1, name: "sotano", description: "Esto es una guarida", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z",
+        id: 1, name: "sotano", description: "Eso es una guarida", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z",
         publishDate: "1970-01-01T00:00:00.000Z", startHour: null, endHour: null, location: "36.8551,-5.32362", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
         dimensions: "1x3", priceHour: 8, priceDay: 58, priceMonth: 440, shared: false, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }]
       }
       ];
 
       const expected = [{
-        id: 1, name: "sotano", description: "Esto es una guarida", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z",
+        id: 1, name: "sotano", description: "Eso es una guarida", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z",
         publishDate: "1970-01-01T00:00:00.000Z", location: "36.8551,-5.32362", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
         dimensions: "1x3", priceHour: 8, priceDay: 58, priceMonth: 440, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY"], images: []
       }
@@ -4894,36 +4949,6 @@ module.exports = (prisma, jwt) => {
             assert.equal(err.response.data, expected);
           });
       });
-    });
-
-    it('Should return 400 when cost is not a number', async () => {
-      // Fixture
-      const expected = 'Bad Request: Cost must be a number';
-      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
-      const rentalToPublish = {
-        initialDate: "2900-01-01T00:00:00.000Z",
-        finalDate: "2999-01-01T00:00:00.000Z",
-        cost: "invalid",
-        type: 'MONTH',
-        meters: 5,
-        spaceId: 1,
-        renterId: 1
-      };
-      // Mock Auth and DB Query
-      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
-
-      // API Call
-      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,
-        {
-          withCredentials: true,
-          headers: { Cookie: 'authToken=testToken;' }
-        })
-        .then(() => {
-          assert.fail();
-        }).catch(err => {
-          assert.equal(err.response.status, 400);
-          assert.equal(err.response.data, expected);
-        });
     });
 
     it('Should return 400 when trying to rent a space by hours without having pricehour', async () => {
