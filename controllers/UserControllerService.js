@@ -54,22 +54,23 @@ module.exports.putUser = async function putUser (req, res, next) {
   if (authToken) {
     try {
       const decoded = jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
-      if (!userToBeUpdated.name || !userToBeUpdated.surname) {
-        res.status(400).send('Missing required attributes');
-        return;
-      }
-
-      if (decoded.role !== 'ADMIN' && (decoded.role === 'USER' || parseInt(decoded.userId) !== parseInt(userToBeUpdated.id))) {
-        res.status(403).send('Forbidden');
-        return;
-      }
-
       if (!userId || !userId.toString().match(/^\d+$/)) {
         res.status(400).send('Invalid userId. It must be an integer number');
         return;
       }
 
-      await prisma.user.update({
+      if (decoded.role !== 'ADMIN' && parseInt(decoded.userId) !== parseInt(userId)) {
+        res.status(403).send('Forbidden');
+        return;
+      }
+
+      const errors = utils.user.checkUserConstraints(userToBeUpdated, userId, decoded.role);
+      if (errors.length > 0) {
+        res.status(400).send(`Bad Request: ${errors[0]}`);
+        return;
+      }
+
+      const queryUpdateUser = {
         where: {
           id: parseInt(userId)
         },
@@ -81,19 +82,25 @@ module.exports.putUser = async function putUser (req, res, next) {
           idCard: userToBeUpdated.idCard ? userToBeUpdated.idCard : null,
           phoneNumber: userToBeUpdated.phoneNumber ? userToBeUpdated.phoneNumber : null,
           location: userToBeUpdated.location ? userToBeUpdated.location : null,
-          auth: userToBeUpdated.auth ? userToBeUpdated.auth : undefined,
-          ratings: userToBeUpdated.ratings,
-          reviews: userToBeUpdated.reviews,
-          avatar: userToBeUpdated.avatar ? userToBeUpdated.avatar : undefined,
-          items: userToBeUpdated.items,
-          spaces: userToBeUpdated.spaces,
-          rentals: userToBeUpdated.rentals
+          avatar: {
+            delete: !!await prisma.image.findUnique({ where: { userId: parseInt(userId) } }).then(image => image)
+          }
         }
-      }).then(() => {
+      };
+
+      if (userToBeUpdated.avatar) {
+        queryUpdateUser.data.avatar.create = { image: Buffer.from(userToBeUpdated.avatar, 'base64'), mimetype: userToBeUpdated.avatar.indexOf('/9j/') === 0 ? 'image/jpeg' : 'image/png' };
+      }
+
+      await prisma.user.update(queryUpdateUser).then(() => {
         res.status(201).send('User updated successfully');
       }).catch((err) => {
         if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
           res.status(400).send('User not found');
+        } else if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2000') {
+          res.status(400).send('Attributes length exceeded. Name max length is 20. Surname max length is 80. Location max length is 80');
+        } else if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+          res.status(400).send('idCard must be unique');
         } else {
           console.error(err);
           res.status(500).send('Internal Server Error');

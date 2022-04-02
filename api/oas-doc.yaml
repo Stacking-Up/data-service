@@ -1465,13 +1465,9 @@ components:
     user:
       type: object
       required:
-        - id
         - name
         - surname
       properties:
-        id:
-          type: integer
-          format: int32
         name:
           type: string
         surname:
