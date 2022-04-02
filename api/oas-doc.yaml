@@ -956,7 +956,7 @@ paths:
       tags:
         - Spaces
       x-swagger-router-controller: SpaceController
-      description: Checks the validity of a logged-in user's token and publishes the space rental
+      description: Checks the validity of a logged-in user's token and verify the space rental (to publish check /api/v1/spaces/{spaceId}/rentals)
       operationId: postSpaceRental
       parameters:
         - name: spaceId
@@ -974,12 +974,71 @@ paths:
             schema:
               $ref: '#/components/schemas/rental'
       responses:
-        '201':
+        '200':
           description: Success
           content:
             application/json:
               schema:
                 type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  '/api/v1/spaces/rentals/confirmation':
+    post:
+      security:
+        - cookieAuth: []
+      tags:
+        - Spaces
+      x-swagger-router-controller: SpaceController
+      description: Validate a rental payment and save into db through the token sent.
+      operationId: postSpaceRentalVerify
+      requestBody:
+        x-name: body
+        description: Rental token containing the rental to be published
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rentalToken
+              properties:
+                rentalToken:
+                  type: string
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - rentalId
+                properties:
+                  rentalId: 
+                    type: integer
+                    format: int32
         '400':
           description: Bad Request
           content:
@@ -1572,7 +1631,6 @@ components:
       required:
         - initialDate
         - finalDate
-        - cost
         - type
         - meters
         - spaceId
@@ -1584,9 +1642,6 @@ components:
         finalDate:
           type: string
           format: date-time
-        cost:
-          type: number
-          format: double
         type:
           type: string
           enum:

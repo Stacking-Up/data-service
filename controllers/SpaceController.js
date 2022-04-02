@@ -33,3 +33,7 @@ module.exports.getSpaceImages = function getSpaceImages (req, res, next) {
 module.exports.postSpaceRental = function postSpaceRental (req, res, next) {
   varSpaceController.postSpaceRental(req, res, next);
 };
+
+module.exports.postSpaceRentalVerify = function postSpaceRentalVerify (req, res, next) {
+  varSpaceController.postSpaceRentalVerify(req, res, next);
+};

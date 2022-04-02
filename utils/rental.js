@@ -122,15 +122,17 @@ function _calculateCost (rentalToBeCreated, space) {
       costs = (differenceInHours(rentalFinalDateToBeCreated, rentalInitialDateToBeCreated, { roundingMethod: 'ceil' }) || 1) * space.priceHour; break;
     case 'DAY':
       /* istanbul ignore next */
-      costs = (differenceInCalendarDays(rentalFinalDateToBeCreated, rentalInitialDateToBeCreated) || 1) * space.priceDay; break;
+      costs = (differenceInCalendarDays(rentalFinalDateToBeCreated, rentalInitialDateToBeCreated) + 1 || 1) * space.priceDay; break;
     case 'MONTH':
       /* istanbul ignore next */
-      costs = (differenceInCalendarMonths(rentalFinalDateToBeCreated, rentalInitialDateToBeCreated) || 1) * space.priceMonth; break;
+      costs = (differenceInCalendarMonths(rentalFinalDateToBeCreated, rentalInitialDateToBeCreated) + 1 || 1) * space.priceMonth; break;
   }
 
   if (space.shared) {
     return costs * (rentalToBeCreated.meters / getMeters(space.dimensions));
   }
+
+  costs = (1.06 * costs) * 1.21; // comisiones e iva aplicados
 
   return costs;
 }

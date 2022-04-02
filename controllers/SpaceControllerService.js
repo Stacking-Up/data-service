@@ -465,6 +465,7 @@ module.exports.postSpaceRental = async function postSpaceRental (req, res, next)
           rentals: true
         }
       });
+
       if (!spaceToAddRental) {
         res.status(400).send('No space found with this Id');
         return;
@@ -490,11 +491,42 @@ module.exports.postSpaceRental = async function postSpaceRental (req, res, next)
         return;
       }
 
+      const costes = utils.rental.calculateCost(rentalToBeCreated, spaceToAddRental);
+      rentalToBeCreated.cost = costes;
+
+      let rentalToken = jwt.sign(rentalToBeCreated, process.env.JWT_SECRET || 'stackingupsecretlocal', {
+        expiresIn: '0.083h', 
+      });
+      
+      return res.status(200).send(rentalToken.toString());
+
+    } catch (err) {
+      if (err instanceof jwt.JsonWebTokenError) {
+        res.status(401).send(`Unauthorized: ${err.message}`);
+      } else {
+        res.status(500).send('Internal Server Error');
+      }
+    }
+  } else {
+    res.status(401).send('Unauthorized');
+  }
+};
+
+module.exports.postSpaceRentalVerify = async function postSpaceRentalVerify (req, res, next) {
+  const authToken = req.cookies?.authToken;
+  const rentalToken = req.swagger.params.body.value.rentalToken;
+
+  // RN001
+  if (authToken && rentalToken) {
+    try {
+      jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
+      const rentalToBeCreated = jwt.verify(rentalToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
+
       await prisma.rental.create({
         data: {
           initialDate: new Date(rentalToBeCreated.initialDate),
           finalDate: new Date(rentalToBeCreated.finalDate),
-          cost: utils.rental.calculateCost(rentalToBeCreated, spaceToAddRental),
+          cost: rentalToBeCreated.cost,
           type: rentalToBeCreated.type,
           meters: parseFloat(rentalToBeCreated.meters),
           space: {
@@ -508,21 +540,20 @@ module.exports.postSpaceRental = async function postSpaceRental (req, res, next)
             }
           }
         }
-
-      }).then(() => {
-        res.status(201).send('Rental created successfully');
+      }).then((rentalCreated) => {
+        res.status(201).send({rentalId : rentalCreated.id});
       }).catch((err) => {
         console.error(err);
         res.status(500).send('Internal Server Error');
       });
     } catch (err) {
       if (err instanceof jwt.JsonWebTokenError) {
-        res.status(401).send(`Unauthorized: ${err.message}`);
+        res.status(401).send(`Token error: ${err.message}`);
       } else {
         res.status(500).send('Internal Server Error');
       }
     }
   } else {
-    res.status(401).send('Unauthorized');
+    res.status(401).send('Unauthorized or missing rental token');
   }
-};
+}
