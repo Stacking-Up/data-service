@@ -519,21 +519,21 @@ module.exports.postSpaceRentalVerify = async function postSpaceRentalVerify (req
 
   // RN001
   if (authToken && rentalToken) {
-    if(fs.existsSync(`${__dirname}/../storedData/rentalTokens.txt`)) {
-      let rentalTokensTxt = fs.readFileSync(`${__dirname}/../storedData/rentalTokens.txt`).toString();
-      
-      let rentalTokens = rentalTokensTxt.split('\n');
-      for(let i = 0; i < rentalTokens.length; i++) {
-        if (rentalTokens[i] === rentalToken) {
-          res.status(400).send('Rental token already used');
-          return;
-        }
-      }
-    }
-
     try {
       jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
       const rentalToBeCreated = jwt.verify(rentalToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
+
+      if(fs.existsSync(`${__dirname}/../storedData/rentalTokens.txt`)) {
+        let rentalTokensTxt = fs.readFileSync(`${__dirname}/../storedData/rentalTokens.txt`).toString();
+        
+        let rentalTokens = rentalTokensTxt.split('\n');
+        for(let i = 0; i < rentalTokens.length; i++) {
+          if (rentalTokens[i] === rentalToken) {
+            res.status(400).send('Rental token already used');
+            return;
+          }
+        }
+      }
 
       fs.writeFileSync(`${__dirname}/../storedData/rentalTokens.txt`, rentalToken.toString() + "\n", { flag: 'a' });
 
