@@ -10,12 +10,24 @@ module.exports.getUser = function getUser (req, res, next) {
   varUserController.getUser(req.swagger.params, res, next);
 };
 
+module.exports.putUser = function putUser (req, res, next) {
+  varUserController.putUser(req, res, next);
+};
+
 module.exports.getUserItems = function getUserItems (req, res, next) {
   varUserController.getUserItems(req.swagger.params, res, next);
 };
 
 module.exports.getUserItem = function getUserItem (req, res, next) {
   varUserController.getUserItem(req.swagger.params, res, next);
+};
+
+module.exports.postUserRating = function postUserRating (req, res, next) {
+  varUserController.postUserRating(req, res, next);
+};
+
+module.exports.deleteUserRating = function deleteUserRating (req, res, next) {
+  varUserController.deleteUserRating(req, res, next);
 };
 
 module.exports.getUserRatings = function getUserRatings (req, res, next) {

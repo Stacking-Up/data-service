@@ -14,6 +14,11 @@ module.exports = (prisma, jwt) => {
   let findUnique = sinon.stub(prisma.space, 'findUnique').rejects("Not implemented");
   let updateUser = sinon.stub(prisma.user, 'update').rejects("Not implemented");
   let createRental = sinon.stub(prisma.rental, 'create').rejects("Not implemented");
+  let createRating = sinon.stub(prisma.rating, 'findUnique').rejects("Not implemented");
+  let findUniqueUser = sinon.stub(prisma.user, 'findUnique').rejects("Not implemented");
+  let findUniqueRating = sinon.stub(prisma.rating, 'findUnique').rejects("Not implemented");
+  let findManyImage = sinon.stub(prisma.image, 'findMany').rejects("Not implemented");
+  let findUniqueImage = sinon.stub(prisma.image, 'findUnique').rejects("Not implemented");
 
   before(() => {
     console.warn = sinon.stub();
@@ -23,12 +28,771 @@ module.exports = (prisma, jwt) => {
     sinon.replace(prisma.space, 'findUnique', findUnique);
     sinon.replace(prisma.user, 'update', updateUser);
     sinon.replace(prisma.rental, 'create', createRental);
+    sinon.replace(prisma.rating, 'create', createRating);
+    sinon.replace(prisma.user, 'findUnique', findUniqueUser);
+    sinon.replace(prisma.rating, 'findUnique', findUniqueRating);
+    sinon.replace(prisma.image, 'findMany', findManyImage);
+    sinon.replace(prisma.image, 'findUnique', findUniqueImage);
   });
 
   /***************************************************************************
     * SPACE UNIT TESTS
     ***************************************************************************/
   describe('GET Endpoint tests:', () => {
+
+    it('should return 404 when a non-existing userId is given', async () => {
+      // Fixture
+      const dbOutput = undefined;
+      const expected = 'User not found';
+
+      // Mock DB Query
+      findUniqueUser.withArgs({
+        where: {
+          id: 1
+        }
+      }).resolves(undefined);
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 404);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return 400 when userID in path not a integer', async () => {
+      // Fixture
+      const expected = 'Invalid userId parameter. It must be an integer number';
+      // API Call
+      await axios.get(`${host}/api/v1/users/eo`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return an user in DB when an userId is given', async () => {
+      // Fixture
+      const dbOutput = { id: 1, name: 'John', surname: 'Doe' };
+      const expected = { id: 1, name: 'John', surname: 'Doe' };
+
+      // Mock DB Query
+      findUniqueUser.withArgs({
+        where: {
+          id: 1
+        }
+      }).resolves(dbOutput)
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1`).then(res => {
+        assert.equal(res.status, 200);
+        assert.deepEqual(res.data, expected);
+      });
+    });
+
+    it('should return 500 when unexpected error throws getting the user', async () => {
+      // Mock DB Query
+      console.error = sinon.stub(); //avoid printing error to console
+      findUniqueUser.withArgs({
+        where: {
+          id: 1
+        }
+      }).rejects();
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, 'Server error: Could not get user');
+        });
+    });
+
+    it('should return items asociated to a user when giving an userId', async () => {
+      // Fixture
+      const dbOutput = {
+        id: 1, name: 'John', surname: 'Doe', items:
+          [{ id: 1, amount: 30, item: { type: 'ELECTRONICS', dimensions: 'SMALL' } }, { id: 2, amount: 30, item: { type: 'ELECTRONICS', dimensions: 'MEDIUM' } }]
+      };
+      const expected = [{ amount: 30, type: 'ELECTRONICS', dimensions: 'SMALL' }, { amount: 30, type: 'ELECTRONICS', dimensions: 'MEDIUM' }];
+
+      // Mock DB Query
+      findUniqueUser.resolves(dbOutput)
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/items`).then(res => {
+        assert.equal(res.status, 200);
+        assert.deepEqual(res.data, expected);
+      });
+    });
+
+    it('should return 404 when trying to get non-existing items asociated to a user giving an userId', async () => {
+      // Fixture
+      const dbOutput = { id: 1, name: 'John', surname: 'Doe' };
+      const expected = 'Items not found';
+
+      // Mock DB Query
+      findUniqueUser.resolves(dbOutput)
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/items`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 404);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return 404 when trying to get items asociated to a non-existing user', async () => {
+      // Fixture
+      const dbOutput = undefined;
+      const expected = 'User not found';
+
+      // Mock DB Query
+      findUniqueUser.resolves(dbOutput);
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/items`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 404);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return 400 when trying to get items asociated to a non integer userId', async () => {
+      // Mock DB Query
+      findUniqueUser.rejects();
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/invalid/items`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, 'Invalid userId parameter. It must be an integer number');
+        });
+    });
+
+    it('should return 500 when unexpected error throws getting the items of user', async () => {
+      // Mock DB Query
+      console.error = sinon.stub(); //avoid printing error to console
+      findUniqueUser.rejects();
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/items`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, 'Server error: Could not get items');
+        });
+    });
+
+    it('should return item asociated to an user giving an userId and itemId', async () => {
+      // Fixture
+      const dbOutput = {
+        id: 1, name: 'John', surname: 'Doe', items:
+          [{ id: 1, amount: 10, item: { type: 'ELECTRONICS', dimensions: 'SMALL' } }, { id: 2, amount: 4, item: { type: 'ELECTRONICS', dimensions: 'MEDIUM' } }]
+      };
+      const expected = { amount: 10, type: 'ELECTRONICS', dimensions: 'SMALL' };
+
+      // Mock DB Query
+      findUniqueUser.resolves(dbOutput)
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/items/1`).then(res => {
+        assert.equal(res.status, 200);
+        assert.deepEqual(res.data, expected);
+      });
+    });
+
+    it('should return 404 when trying to get a non-existing item asociated to an user giving an userId and itemId', async () => {
+      // Fixture
+      const dbOutput = { id: 1, name: 'John', surname: 'Doe' };
+      const expected = 'Item not found';
+
+      // Mock DB Query
+      findUniqueUser.resolves(dbOutput)
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/items/1`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 404);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return 404 when trying to get an existing item asociated to a non-existing user giving an userId and itemId', async () => {
+      // Fixture
+      const dbOutput = undefined;
+      const expected = 'User not found';
+
+      // Mock DB Query
+      findUniqueUser.resolves(dbOutput)
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/items/1`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 404);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return 400 when trying to get an item with a non integer userId and/or itemId', async () => {
+      // Mock DB Query
+      findUniqueUser.rejects();
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/invalid/items/invalid`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, 'Invalid parameter. It must be an integer number');
+        });
+    });
+
+    it('should return 500 unexpected error when trying to get an item of an user', async () => {
+      // Mock DB Query
+      console.error = sinon.stub(); //avoid printing error to console
+      findUniqueUser.rejects()
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/items/1`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, 'Server error: Could not get the item of the user.');
+        });
+    });
+
+    it('should return rating asociated to an user giving an userId and ratingId', async () => {
+      // Fixture
+      const dbOutput = {
+        id: 1, name: 'John', surname: 'Doe', ratings:
+          [{ id: 1, title: 'rating', description: 'rating', rating: 5, reviewerId: 1, receiverId: 2 }]
+      };
+      const expected = { id: 1, title: 'rating', description: 'rating', rating: 5, reviewerId: 1, receiverId: 2 };
+
+      // Mock DB Query
+      findUniqueUser.withArgs({
+        where: {
+          id: 1,
+        },
+        include: {
+          ratings: {
+            select: {
+              title: true,
+              description: true,
+              rating: true,
+              reviewerId: true,
+              receiverId: true
+            },
+            where: {
+              id: 1,
+            }
+          }
+        }
+      }).resolves(dbOutput)
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/ratings/1`).then(res => {
+        assert.equal(res.status, 200);
+        assert.deepEqual(res.data, expected);
+      });
+    });
+
+    it('should return 404 when trying to get a non-existing rating asociated to an user', async () => {
+      // Fixture
+      const dbOutput = { id: 1, name: 'John', surname: 'Doe' };
+      const expected = 'Rating not found';
+
+      // Mock DB Query
+      findUniqueUser.withArgs({
+        where: {
+          id: 1,
+        },
+        include: {
+          ratings: {
+            select: {
+              title: true,
+              description: true,
+              rating: true,
+              reviewerId: true,
+              receiverId: true
+            },
+            where: {
+              id: 1,
+            }
+          }
+        }
+      }).resolves(dbOutput)
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/ratings/1`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 404);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return 404 when trying to get a rating asociated to a non-existing user', async () => {
+      // Fixture
+      const dbOutput = undefined;
+      const expected = 'User not found';
+
+      // Mock DB Query
+      findUniqueUser.withArgs({
+        where: {
+          id: 1,
+        },
+        include: {
+          ratings: {
+            select: {
+              title: true,
+              description: true,
+              rating: true,
+              reviewerId: true,
+              receiverId: true
+            },
+            where: {
+              id: 1,
+            }
+          }
+        }
+      }).resolves(dbOutput)
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/ratings/1`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 404);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return 400 when trying to get a rating with non integers userId and/or ratingId', async () => {
+      // Fixture
+      const expected = 'Invalid parameter. It must be an integer number';
+
+      // Mock DB Query
+      findUniqueUser.withArgs({
+        where: {
+          id: "invalid",
+        },
+        include: {
+          ratings: {
+            select: {
+              title: true,
+              description: true,
+              rating: true,
+              reviewerId: true,
+              receiverId: true
+            },
+            where: {
+              id: "invalid",
+            }
+          }
+        }
+      }).rejects();
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/invalid/ratings/invalid`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return 500 unexpected error when trying to get the rating of an user', async () => {
+      // Fixture
+      const expected = 'Server error: Could not get the rating of the user.';
+
+      // Mock DB Query
+      findUniqueUser.withArgs({
+        where: {
+          id: 1,
+        },
+        include: {
+          ratings: {
+            select: {
+              title: true,
+              description: true,
+              rating: true,
+              reviewerId: true,
+              receiverId: true
+            },
+            where: {
+              id: 1,
+            }
+          }
+        }
+      }).rejects();
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/ratings/1`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return an unic space that an user owns', async () => {
+      // Fixture
+      const dbOutput = {
+        id: 1, name: 'John', surname: 'Doe', spaces:
+          [{ id: 1, name: 'space1', description: 'space1', initialDate: '1970-01-01T00:00:00.000Z', location: 'Sevilla', dimensions: 'Big', shared: true, ownerId: 1 }]
+      };
+      const expected = { id: 1, name: 'space1', description: 'space1', initialDate: '1970-01-01T00:00:00.000Z', location: 'Sevilla', dimensions: 'Big', shared: true, ownerId: 1 };
+
+      // Mock DB Query
+      findUniqueUser.withArgs({
+        where: {
+          id: 1,
+        },
+        include: {
+          spaces: {
+            where: {
+              id: 1,
+            }
+          }
+        }
+      }).resolves(dbOutput)
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/spaces/1`).then(res => {
+        assert.equal(res.status, 200);
+        assert.deepEqual(res.data, expected);
+      });
+    });
+
+    it('should return 404 when trying to get a non-existing space that an user owns', async () => {
+      // Fixture
+      const dbOutput = { id: 1, name: 'John', surname: 'Doe' };
+      const expected = 'Space not found';
+
+      // Mock DB Query
+      findUniqueUser.withArgs({
+        where: {
+          id: 1,
+        },
+        include: {
+          spaces: {
+            where: {
+              id: 1,
+            }
+          }
+        }
+      }).resolves(dbOutput)
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/spaces/1`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 404);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return 404 when trying to get a existing space owned by a non-existing user', async () => {
+      // Fixture
+      const dbOutput = undefined;
+      const expected = 'User not found';
+
+      // Mock DB Query
+      findUniqueUser.withArgs({
+        where: {
+          id: 1,
+        },
+        include: {
+          spaces: {
+            where: {
+              id: 1,
+            }
+          }
+        }
+      }).resolves(dbOutput)
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/spaces/1`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 404);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return 400 when trying to get a space with non integers userId and/or spaceId', async () => {
+      // Fixture
+      const expected = "Invalid parameter. It must be an integer number";
+
+      // Mock DB Query
+      findUniqueUser.withArgs({
+        where: {
+          id: "invalid",
+        },
+        include: {
+          spaces: {
+            where: {
+              id: "invalid",
+            }
+          }
+        }
+      }).rejects();
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/invalid/spaces/invalid`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return 500 unexpected error when trying to get a space of an user', async () => {
+      // Fixture
+      const expected = "Server error: Could not get space";
+
+      // Mock DB Query
+      findUniqueUser.withArgs({
+        where: {
+          id: 1,
+        },
+        include: {
+          spaces: {
+            where: {
+              id: 1,
+            }
+          }
+        }
+      }).rejects();
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/spaces/1`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return an concrete rental when a userId and rental Id is given', async () => {
+      // Fixture
+      const dbOutput = {
+        id: 1, name: 'John', surname: 'Doe',
+        rentals: [{
+          id: 1, initialDate: '2020-04-10T00:00:00.000Z', finalDate: '2021-03-17T00:00:00.000Z',
+          cost: 50, type: 'HOUR', meters: 100, spaceId: 1, renterId: 1
+        }]
+      };
+
+      const expected = {
+        id: 1, initialDate: '2020-04-10T00:00:00.000Z', finalDate: '2021-03-17T00:00:00.000Z',
+        cost: 50, type: 'HOUR', meters: 100, spaceId: 1, renterId: 1
+      };
+
+      // Mock DB Query
+      findUniqueUser.withArgs({
+        where: {
+          id: 1
+        },
+        include: {
+          rentals: {
+            select: {
+              initialDate: true,
+              finalDate: true,
+              cost: true,
+              type: true,
+              meters: true,
+              spaceId: true,
+              renterId: true
+            },
+            where: {
+              id: 1
+            }
+          }
+        }
+      }).resolves(dbOutput)
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/rentals/1`).then(res => {
+        assert.equal(res.status, 200);
+        assert.deepEqual(res.data, expected);
+      });
+    });
+
+    it('should return 404 when is given a user with no rentals', async () => {
+      // Fixture
+      const dbOutput = { id: 1, name: 'John', surname: 'Doe' };
+      const expected = 'Rental not found';
+
+      // Mock DB Query
+      findUniqueUser.withArgs({
+        where: {
+          id: 1
+        },
+        include: {
+          rentals: {
+            select: {
+              initialDate: true,
+              finalDate: true,
+              cost: true,
+              type: true,
+              meters: true,
+              spaceId: true,
+              renterId: true
+            },
+            where: {
+              id: 1
+            }
+          }
+        }
+      }).resolves(dbOutput);
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/rentals/1`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 404);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return 404 when is given a non-existing user with rentals', async () => {
+      // Fixture
+      const dbOutput = undefined;
+      const expected = 'User not found';
+
+      // Mock DB Query
+      findUniqueUser.withArgs({
+        where: {
+          id: 1
+        },
+        include: {
+          rentals: {
+            select: {
+              initialDate: true,
+              finalDate: true,
+              cost: true,
+              type: true,
+              meters: true,
+              spaceId: true,
+              renterId: true
+            },
+            where: {
+              id: 1
+            }
+          }
+        }
+      }).resolves(dbOutput)
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/rentals/1`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 404);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return 400 when trying to get a rental with non integers userId and/or rentalId', async () => {
+      const expected = 'Invalid parameter. It must be an integer number';
+
+      // Mock DB Query
+      findUniqueUser.withArgs({
+        where: {
+          id: "invalid"
+        },
+        include: {
+          rentals: {
+            select: {
+              initialDate: true,
+              finalDate: true,
+              cost: true,
+              type: true,
+              meters: true,
+              spaceId: true,
+              renterId: true
+            },
+            where: {
+              id: "invalid"
+            }
+          }
+        }
+      }).rejects();
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/invalid/rentals/invalid`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return 500 unexpected error when trying to get a rental of an user', async () => {
+      const expected = 'Server error: Could not get rental.';
+
+      // Mock DB Query
+      findUniqueUser.withArgs({
+        where: {
+          id: 1
+        },
+        include: {
+          rentals: {
+            select: {
+              initialDate: true,
+              finalDate: true,
+              cost: true,
+              type: true,
+              meters: true,
+              spaceId: true,
+              renterId: true
+            },
+            where: {
+              id: 1
+            }
+          }
+        }
+      }).rejects();
+
+      // API Call
+      await axios.get(`${host}/api/v1/users/1/rentals/1`).then(res => {
+        assert.fail();
+      })
+        .catch(err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
     it('should return a space in DB when a spaceId is given', async () => {
       // Fixture
       const dbOutput = {
@@ -143,24 +907,24 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const dbOutput = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z",
-        publishDate: "1970-01-01T00:00:00.000Z", startHour: null, endHour: null, location: "Cadiz", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
+        publishDate: "1970-01-01T00:00:00.000Z", startHour: new Date(1111111), endHour: new Date(1111112), location: "Cadiz", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
         dimensions: "1x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: false, ownerId: 1, tags: [{ tag: "GARAGE" }, { tag: "DRY" }], owner: { id: 1, ratings: [] }
       },
       {
         id: 2, name: "casa", description: "Esto es una casa", initialDate: "1970-01-01T00:00:00.000Z", finalDate: null,
-        publishDate: "1970-01-01T00:00:00.000Z", startHour: null, endHour: null, location: "Sevilla", city: "Sevilla", province: "Provincia de Sevilla", country: "España",
+        publishDate: "1970-01-01T00:00:00.000Z", startHour: new Date(11111111), endHour: new Date(11111113), location: "Sevilla", city: "Sevilla", province: "Provincia de Sevilla", country: "España",
         dimensions: "2x4", priceHour: 8, priceDay: null, priceMonth: 760, shared: false, ownerId: 1, tags: [{ tag: "DRY" }], owner: { id: 1, ratings: [] }
       }
       ];
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "1970-01-01T00:00:00.000Z", location: "Cadiz",
-        city: "Cadiz", province: "Provincia de Cadiz", country: "España",
+        city: "Cadiz", province: "Provincia de Cadiz", country: "España", startHour: 1111111, endHour: 1111112,
         dimensions: "1x3", priceDay: 56, priceMonth: 456, shared: false, ownerId: 1, tags: ["GARAGE", "DRY"], owner: { id: 1, ratings: [] }, images: []
       },
       {
         id: 2, name: "casa", description: "Esto es una casa", initialDate: "1970-01-01T00:00:00.000Z", publishDate: "1970-01-01T00:00:00.000Z", location: "Sevilla",
-        city: "Sevilla", province: "Provincia de Sevilla", country: "España",
+        city: "Sevilla", province: "Provincia de Sevilla", country: "España", startHour: 11111111, endHour: 11111113,
         dimensions: "2x4", priceHour: 8, priceMonth: 760, shared: false, ownerId: 1, tags: ["DRY"], owner: { id: 1, ratings: [] }, images: []
       }
       ];
@@ -1039,8 +1803,8 @@ module.exports = (prisma, jwt) => {
       ];
 
       const expected = [{
-        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "1970-01-01T00:00:00.000Z", location: "Cadiz",
-        city: "Cadiz", province: "Provincia de Cadiz", country: "España",
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "1970-01-01T00:00:00.000Z",
+        location: "Cadiz", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
         dimensions: "1x3", priceHour: 5, priceDay: 56, priceMonth: 456, shared: false, ownerId: 1, tags: ["GARAGE", "DRY"], owner: { id: 1, ratings: [] }, images: []
       }
       ];
@@ -1099,8 +1863,8 @@ module.exports = (prisma, jwt) => {
       ];
 
       const expected = [{
-        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "1970-01-01T00:00:00.000Z", location: "Cadiz",
-        city: "Cadiz", province: "Provincia de Cadiz", country: "España",
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "1970-01-01T00:00:00.000Z",
+        location: "Cadiz", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
         dimensions: "1x3", priceMonth: 456, shared: false, ownerId: 1, tags: ["GARAGE", "DRY"], owner: { id: 1, ratings: [] }, images: []
       }
       ];
@@ -1456,6 +2220,61 @@ module.exports = (prisma, jwt) => {
         assert.equal(res.status, 200);
         assert.equal(res.data.length, 0);
         assert.deepEqual(res.data, []);
+      }).catch(() => {
+        assert.fail("Server error: Could not get spaces");
+      });
+    });
+
+    it('Should return all spaces beacause tag is undefined', async () => {
+      // Fixture
+      const dbOutput = [{
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z",
+        publishDate: "1970-01-01T00:00:00.000Z", startHour: null, endHour: null, location: "Cadiz", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
+        dimensions: "1x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: false, ownerId: 1
+      }
+      ];
+
+      const expected = [{
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "1970-01-01T00:00:00.000Z", location: "Cadiz",
+        city: "Cadiz", province: "Provincia de Cadiz", country: "España",
+        dimensions: "1x3", priceDay: 56, priceMonth: 456, shared: false, ownerId: 1, images: []
+      }
+      ];
+      //Set Actual Date
+      let actualDate = new Date();
+      actualDate.setMilliseconds(0);
+
+      // Mock DB Query
+      findMany.withArgs({
+        take: undefined, skip: undefined,
+        where: {
+          AND: [
+            { shared: { equals: undefined } },
+            {
+              OR: [
+                { finalDate: { gte: actualDate } },
+                { finalDate: { equals: null } }
+              ]
+            }
+          ]
+        }, include: {
+          tags: true,
+          images: true,
+          owner: {
+            select: {
+              id: true,
+              ratings: { select: { receiverId: true, rating: true } }
+            }
+          }
+        },
+        orderBy: {}
+      }).resolves(dbOutput);
+
+      // API Call
+      await axios.get(`${host}/api/v1/spaces`).then(res => {
+        assert.equal(res.status, 200);
+        assert.equal(res.data.length, 1);
+        assert.deepEqual(res.data, expected);
       }).catch(() => {
         assert.fail("Server error: Could not get spaces");
       });
@@ -2135,14 +2954,14 @@ module.exports = (prisma, jwt) => {
     it('Should return spaces which contains search text in mapQuery', async () => {
       // Fixture
       const dbOutput = [{
-        id: 1, name: "sotano", description: "Esto es una guarida", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z",
+        id: 1, name: "sotano", description: "Eso es una guarida", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z",
         publishDate: "1970-01-01T00:00:00.000Z", startHour: null, endHour: null, location: "36.8551,-5.32362", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
         dimensions: "1x3", priceHour: 8, priceDay: 58, priceMonth: 440, shared: false, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }]
       }
       ];
 
       const expected = [{
-        id: 1, name: "sotano", description: "Esto es una guarida", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z",
+        id: 1, name: "sotano", description: "Eso es una guarida", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z",
         publishDate: "1970-01-01T00:00:00.000Z", location: "36.8551,-5.32362", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
         dimensions: "1x3", priceHour: 8, priceDay: 58, priceMonth: 440, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY"], images: []
       }
@@ -2236,7 +3055,7 @@ module.exports = (prisma, jwt) => {
         assert.fail("Server error: Could not get spaces");
       });
     });
-    
+
     it('Should return spaces sorted by publishDate asc', async () => {
       // Fixture
       const dbOutput = [{
@@ -2379,7 +3198,7 @@ module.exports = (prisma, jwt) => {
       {
         id: 2, name: "habitacion", description: "Esto es una habitacion", initialDate: "2022-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "2022-01-01T00:00:00.000Z",
         startHour: null, endHour: null, location: "Cadiz", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }], "owner": { id: 1, ratings: [{receiverId:1,rating:5},{receiverId:1,rating:5}] }
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }], "owner": { id: 1, ratings: [{ receiverId: 1, rating: 5 }, { receiverId: 1, rating: 5 }] }
       }
       ];
 
@@ -2391,7 +3210,7 @@ module.exports = (prisma, jwt) => {
       {
         id: 2, name: "habitacion", description: "Esto es una habitacion", initialDate: "2022-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "2022-01-01T00:00:00.000Z",
         location: "Cadiz", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY"], "owner": { id: 1, ratings: [{receiverId:1,rating:5},{receiverId:1,rating:5}] }, images: []
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY"], "owner": { id: 1, ratings: [{ receiverId: 1, rating: 5 }, { receiverId: 1, rating: 5 }] }, images: []
       }
       ];
       //Set Actual Date
@@ -2422,7 +3241,7 @@ module.exports = (prisma, jwt) => {
             }
           }
         },
-        orderBy: { }
+        orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -2440,24 +3259,24 @@ module.exports = (prisma, jwt) => {
       const dbOutput = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "2022-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "2022-01-01T00:00:00.000Z",
         startHour: null, endHour: null, location: "Cadiz", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 450, shared: false, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }], "owner": { id: 1, ratings: [{receiverId:1,rating:5},{receiverId:1,rating:5}] }
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 450, shared: false, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }], "owner": { id: 1, ratings: [{ receiverId: 1, rating: 5 }, { receiverId: 1, rating: 5 }] }
       },
       {
         id: 2, name: "habitacion", description: "Esto es una habitacion", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "1970-01-01T00:00:00.000Z",
         startHour: null, endHour: null, location: "Cadiz", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }], "owner": { id: 1, ratings: [{receiverId:1,rating:2},{receiverId:1,rating:5}] }
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }], "owner": { id: 1, ratings: [{ receiverId: 1, rating: 2 }, { receiverId: 1, rating: 5 }] }
       }
       ];
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "2022-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "2022-01-01T00:00:00.000Z",
         location: "Cadiz", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 450, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY"], "owner": { id: 1, ratings: [{receiverId:1,rating:5},{receiverId:1,rating:5}] }, images: []
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 450, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY"], "owner": { id: 1, ratings: [{ receiverId: 1, rating: 5 }, { receiverId: 1, rating: 5 }] }, images: []
       },
       {
         id: 2, name: "habitacion", description: "Esto es una habitacion", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "1970-01-01T00:00:00.000Z",
         location: "Cadiz", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY"], "owner": { id: 1, ratings: [{receiverId:1,rating:2},{receiverId:1,rating:5}] }, images: []
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY"], "owner": { id: 1, ratings: [{ receiverId: 1, rating: 2 }, { receiverId: 1, rating: 5 }] }, images: []
       }
       ];
       //Set Actual Date
@@ -2488,7 +3307,7 @@ module.exports = (prisma, jwt) => {
             }
           }
         },
-        orderBy: { }
+        orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -2506,24 +3325,24 @@ module.exports = (prisma, jwt) => {
       const dbOutput = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "2022-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "2022-01-01T00:00:00.000Z",
         startHour: null, endHour: null, location: "36.8551,-5.32362", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 450, shared: false, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }], "owner": { id: 1, ratings: [{receiverId:1,rating:5},{receiverId:1,rating:5}] }
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 450, shared: false, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }], "owner": { id: 1, ratings: [{ receiverId: 1, rating: 5 }, { receiverId: 1, rating: 5 }] }
       },
       {
         id: 2, name: "habitacion", description: "Esto es una habitacion", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "1970-01-01T00:00:00.000Z",
         startHour: null, endHour: null, location: "36.8809,-5.40577", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }], "owner": { id: 1, ratings: [{receiverId:1,rating:2},{receiverId:1,rating:5}] }
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": [{ tag: "GARAGE" }, { tag: "DRY" }], "owner": { id: 1, ratings: [{ receiverId: 1, rating: 2 }, { receiverId: 1, rating: 5 }] }
       }
       ];
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "2022-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "2022-01-01T00:00:00.000Z",
         location: "36.8551,-5.32362", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 450, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY"], "owner": { id: 1, ratings: [{receiverId:1,rating:5},{receiverId:1,rating:5}] }, images: []
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 450, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY"], "owner": { id: 1, ratings: [{ receiverId: 1, rating: 5 }, { receiverId: 1, rating: 5 }] }, images: []
       },
       {
         id: 2, name: "habitacion", description: "Esto es una habitacion", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "1970-01-01T00:00:00.000Z",
         location: "36.8809,-5.40577", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
-        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY"], "owner": { id: 1, ratings: [{receiverId:1,rating:2},{receiverId:1,rating:5}] }, images: []
+        dimensions: "1x3", priceHour: 5, priceDay: 55, priceMonth: 430, shared: false, ownerId: 1, "tags": ["GARAGE", "DRY"], "owner": { id: 1, ratings: [{ receiverId: 1, rating: 2 }, { receiverId: 1, rating: 5 }] }, images: []
       }
       ];
       //Set Actual Date
@@ -2554,7 +3373,7 @@ module.exports = (prisma, jwt) => {
             }
           }
         },
-        orderBy: { }
+        orderBy: {}
       }).resolves(dbOutput);
 
       // API Call
@@ -2724,7 +3543,6 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
-
   });
 
   describe('POST Endpoint tests:', () => {
@@ -3588,7 +4406,6 @@ module.exports = (prisma, jwt) => {
             cost: 456, type: "HOUR", meters: 299, spaceId: 1, renterId: 3
           }]
       }
-      const expected = 'Rental created successfully';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
 
       const rentalToBeCreated = {
@@ -3611,8 +4428,6 @@ module.exports = (prisma, jwt) => {
         }
       }).resolves(spaceToAddRental)
       
-      //createRental.resolves();
-
       //API Call
       await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToBeCreated, {
         withCredentials: true,
@@ -3633,7 +4448,6 @@ module.exports = (prisma, jwt) => {
             cost: 456, type: "HOUR", meters: 200, spaceId: 1, renterId: 3
           }]
       }
-      const expected = 'Rental created successfully';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
 
       const rentalToBeCreated = {
@@ -3656,8 +4470,6 @@ module.exports = (prisma, jwt) => {
         }
       }).resolves(spaceToAddRental)
       
-      //createRental.resolves();
-
       //API Call
       await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToBeCreated, {
         withCredentials: true,
@@ -3678,7 +4490,6 @@ module.exports = (prisma, jwt) => {
             cost: 456, type: "HOUR", meters: 299, spaceId: 1, renterId: 3
           }]
       }
-      const expected = 'Rental created successfully';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
 
       const rentalToBeCreated = {
@@ -3701,8 +4512,6 @@ module.exports = (prisma, jwt) => {
         }
       }).resolves(spaceToAddRental)
       
-      //createRental.resolves();
-
       //API Call
       await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToBeCreated, {
         withCredentials: true,
@@ -3743,27 +4552,6 @@ module.exports = (prisma, jwt) => {
           assert.fail();
         }).catch(err => {
           assert.equal(err.response.status, 401);
-          assert.equal(err.response.data, expected);
-        });
-    });
-
-    it('Should return 400 when renterId is not a number', async () => {
-      // Fixture
-      const expected = 'Invalid renterId. It must be an integer number';
-      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
-
-      // Mock Auth and DB Query
-      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
-
-      // API Call
-      await axios.post(`${host}/api/v1/spaces/1/rentals`, { renterId: "invalid_id" }, {
-        withCredentials: true,
-        headers: { Cookie: 'authToken=testToken;' }
-      })
-        .then(() => {
-          assert.fail();
-        }).catch(err => {
-          assert.equal(err.response.status, 400);
           assert.equal(err.response.data, expected);
         });
     });
@@ -5365,6 +6153,524 @@ module.exports = (prisma, jwt) => {
         });      
     });
 
+    it('Should post a rating', async () => {
+      // Fixture
+      const expected = 'Rating created successfully';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
+      const ratingToBePublished = {
+        title: "Increible trato",
+        description: "El arrendador fue muy atento y todo fue correcto.",
+        rating: 4,
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      createRating.resolves();
+
+      findUniqueUser.withArgs({
+        where: {
+          id: 2
+        }
+      }).resolves(userToBeRated);
+
+      // API Call
+      await axios.post(`${host}/api/v1/users/2/rate`, ratingToBePublished, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(res => {
+          assert.equal(res.status, 201);
+          assert.equal(res.data, expected);
+        }).catch(() => assert.fail());
+    });
+
+    it('Should return 401 when token is missing', async () => {
+      // Fixture
+      const expected = 'Unauthorized';
+
+      // API Call
+      await axios.post(`${host}/api/v1/users/2/rate`, {})
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 401 when JWTError is thrown on verification', async () => {
+      // Fixture
+      const expected = 'Unauthorized: Invalid token';
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').throws(new jwt.JsonWebTokenError('Invalid token'));
+
+      // API Call
+      await axios.post(`${host}/api/v1/users/2/rate`, {}, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when receiverID or Token reviewerID are missing', async () => {
+      // Fixture
+      const expected = 'Missing required attributes';
+      const decodedJwt = { userId: undefined, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
+      const ratingToBePublished = {
+        title: "Increible trato",
+        description: "El arrendador fue muy atento y todo fue correcto.",
+        rating: 4,
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueUser.withArgs({
+        where: {
+          id: 2
+        }
+      }).resolves(userToBeRated);
+
+      // API Call
+      await axios.post(`${host}/api/v1/users/2.5/rate`, ratingToBePublished, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when receiverID in PATH is not an integer', async () => {
+      // Fixture
+      const expected = 'IDs must be integers';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
+      const ratingToBePublished = {
+        title: "Increible trato",
+        description: "El arrendador fue muy atento y todo fue correcto.",
+        rating: 4,
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueUser.withArgs({
+        where: {
+          id: 2
+        }
+      }).resolves(userToBeRated);
+
+      // API Call
+      await axios.post(`${host}/api/v1/users/2.5/rate`, ratingToBePublished, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when an user want to rate himself', async () => {
+      // Fixture
+      const expected = 'Can not rate yourself';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeRated = { id: 1, name: 'John', surname: 'Doe' };
+      const ratingToBePublished = {
+        title: "Increible trato",
+        description: "El arrendador fue muy atento y todo fue correcto.",
+        rating: 5,
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueUser.withArgs({
+        where: {
+          id: 2
+        }
+      }).resolves(userToBeRated);
+      // API Call
+      await axios.post(`${host}/api/v1/users/1/rate`, ratingToBePublished, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 404 when the given userId in path does not exist in DB', async () => {
+      // Fixture
+      const expected = 'The user to rate does not exist';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const ratingToBePublished = {
+        title: "Increible trato",
+        description: "El arrendador fue muy atento y todo fue correcto.",
+        rating: 5,
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueUser.withArgs({
+        where: {
+          id: 2
+        }
+      }).resolves(undefined);
+      // API Call
+      await axios.post(`${host}/api/v1/users/2/rate`, ratingToBePublished, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 404);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when title or description are missing', async () => {
+      // Fixture
+      const expected = 'Bad Request: Missing required attributes';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
+      const ratingToBePublished = {
+        title: undefined,
+        description: undefined,
+        rating: 4,
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueUser.withArgs({
+        where: {
+          id: 2
+        }
+      }).resolves(userToBeRated);
+
+      // API Call
+      await axios.post(`${host}/api/v1/users/2/rate`, ratingToBePublished, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when title is lower than 3 characters', async () => {
+      // Fixture
+      const expected = 'Bad Request: Title must be between 2 and 50 characters';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
+      const ratingToBePublished = {
+        title: 'te',
+        description: 'description',
+        rating: 4,
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueUser.withArgs({
+        where: {
+          id: 2
+        }
+      }).resolves(userToBeRated);
+
+      // API Call
+      await axios.post(`${host}/api/v1/users/2/rate`, ratingToBePublished, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when title is greater than 50 characters', async () => {
+      // Fixture
+      const expected = 'Bad Request: Title must be between 2 and 50 characters';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
+      const ratingToBePublished = {
+        title: 'this title is too long,too long ,too long ,too long ,too long ,too long ,too long  ',
+        description: 'description',
+        rating: 4,
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueUser.withArgs({
+        where: {
+          id: 2
+        }
+      }).resolves(userToBeRated);
+
+      // API Call
+      await axios.post(`${host}/api/v1/users/2/rate`, ratingToBePublished, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when description is lower than 3 characters', async () => {
+      // Fixture
+      const expected = 'Bad Request: Description must be between 2 and 100 characters';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
+      const ratingToBePublished = {
+        title: 'titlte',
+        description: 'de',
+        rating: 4,
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueUser.withArgs({
+        where: {
+          id: 2
+        }
+      }).resolves(userToBeRated);
+
+      // API Call
+      await axios.post(`${host}/api/v1/users/2/rate`, ratingToBePublished, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when description is greater than 100 characters', async () => {
+      // Fixture
+      const expected = 'Bad Request: Description must be between 2 and 100 characters';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
+      const ratingToBePublished = {
+        title: 'this title',
+        description: 'description is too long,too long ,too long ,too long ,too long ,too long ,too long, ,too long,,too long,,too long,,too long,,too long,,too long,,too long  ',
+        rating: 4,
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueUser.withArgs({
+        where: {
+          id: 2
+        }
+      }).resolves(userToBeRated);
+
+      // API Call
+      await axios.post(`${host}/api/v1/users/2/rate`, ratingToBePublished, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when rating is lower than 0', async () => {
+      // Fixture
+      const expected = 'Bad Request: Rating must be between 1 and 5 or must be a integer number';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
+      const ratingToBePublished = {
+        title: 'title',
+        description: 'description',
+        rating: -1,
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueUser.withArgs({
+        where: {
+          id: 2
+        }
+      }).resolves(userToBeRated);
+
+      // API Call
+      await axios.post(`${host}/api/v1/users/2/rate`, ratingToBePublished, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when rating is greater than 5', async () => {
+      // Fixture
+      const expected = 'Bad Request: Rating must be between 1 and 5 or must be a integer number';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
+      const ratingToBePublished = {
+        title: 'title',
+        description: 'description',
+        rating: 6,
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueUser.withArgs({
+        where: {
+          id: 2
+        }
+      }).resolves(userToBeRated);
+
+      // API Call
+      await axios.post(`${host}/api/v1/users/2/rate`, ratingToBePublished, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when rating is NaN', async () => {
+      // Fixture
+      const expected = 'Bad Request: Rating must be between 1 and 5 or must be a integer number';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
+      const ratingToBePublished = {
+        title: 'title',
+        description: 'description',
+        rating: 'rating',
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueUser.withArgs({
+        where: {
+          id: 2
+        }
+      }).resolves(userToBeRated);
+
+      // API Call
+      await axios.post(`${host}/api/v1/users/2/rate`, ratingToBePublished, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when rating is not an integer', async () => {
+      // Fixture
+      const expected = 'Bad Request: Rating must be between 1 and 5 or must be a integer number';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
+      const ratingToBePublished = {
+        title: 'title',
+        description: 'description',
+        rating: 3.6,
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueUser.withArgs({
+        where: {
+          id: 2
+        }
+      }).resolves(userToBeRated);
+
+      // API Call
+      await axios.post(`${host}/api/v1/users/2/rate`, ratingToBePublished, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 500 when an unexpected error is thrown', async () => {
+      // Fixture
+      const expected = 'Internal Server Error';
+
+      // Mock Auth and DB Query
+      console.error = sinon.stub(); // Avoid logging intentionally provoked error
+      verify.withArgs('testToken', 'stackingupsecretlocal').throws(new Error('Unexpected Error'));
+
+      // API Call
+      await axios.post(`${host}/api/v1/users/2/rate`, {}, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 500 when prisma create fails', async () => {
+      // Fixture
+      const expected = 'Internal Server Error';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
+      const ratingToBePublished = {
+        title: 'title',
+        description: 'description',
+        rating: 3,
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueUser.withArgs({
+        where: {
+          id: 2
+        }
+      }).resolves(userToBeRated);
+      createRating.rejects();
+
+      // API Call
+      await axios.post(`${host}/api/v1/users/2/rate`, ratingToBePublished, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
   });
 
   describe('PUT Endpoint tests:', () => {
@@ -5637,9 +6943,851 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
+    it('Should update an user', async () => {
+      // Fixture
+      const expected = 'User updated successfully';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+        name: "updated",
+        surname: "updated",
+        birthDate: "2000-03-30T09:49:30.610Z",
+        sex: "MALE",
+        idCard: "12345678Z",
+        phoneNumber: "+34666777888",
+        location: "Sevilla",
+        avatar: fs.readFileSync(`${__dirname}/../assets/Test.png`, 'base64')
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueImage.resolves();
+      updateUser.resolves();
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.equal(res.status, 201);
+          assert.equal(res.data, expected);
+        }).catch( err => {
+          assert.fail()
+        });
+    });
+
+    it('User with ADMIN role should update a user with a different userId', async () => {
+      // Fixture
+      const expected = 'User updated successfully';
+      const decodedJwt = { userId: 1, role: 'ADMIN', email: 'test@test.com' };
+      const userToBeUpdated = {
+        name: "updated",
+        surname: "updated",
+        birthDate: "2000-03-30T09:49:30.610Z",
+        sex: "MALE",
+        idCard: "12345678Z",
+        phoneNumber: "+34666777888",
+        location: "Sevilla",
+        auth: {id: 1, email: 'test@tes.com', password: 'Password123', role: 'VERIFIED', userId: 1},
+        ratings: [{id: 1, title: "test", description: "test", rating: 5, receiverId: 1, reviewerId: 2}],
+        reviews: [{id: 1, title: "test", description: "test", rating: 5, receiverId: 2, reviewerId: 1}],
+        avatar: fs.readFileSync(`${__dirname}/../assets/Test.png`, 'base64')
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueImage.resolves();
+      updateUser.resolves();
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/2`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.equal(res.status, 201);
+          assert.equal(res.data, expected);
+        }).catch( () => assert.fail());
+    });
+
+    it('Should return 401 when token is missing', async () => {
+      // Fixture
+      const expected = 'Unauthorized';
+        
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, {})
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 401 when JWTError is thrown on verification', async () => {
+      // Fixture
+      const expected = 'Unauthorized: Invalid token';
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').throws(new jwt.JsonWebTokenError('Invalid token'));
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, {}, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 403 when someone tries to update an user with another userId', async () => {
+      // Fixture
+      const expected = 'Forbidden';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          id: 2,
+          name: "name",
+          surname: "surname"
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/2`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 403);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when an invalid userId is provided in path', async () => {
+      // Fixture
+      const expected = 'Invalid userId. It must be an integer number';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated', 
+          surname: 'updated',
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/invalid_userId`, userToBeUpdated, { 
+          withCredentials: true,
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user without name', async () => {
+      // Fixture
+      const expected = 'Bad Request: Missing required attributes: name, surname or phone number';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: null,
+          surname: 'updated',
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user without surname', async () => {
+      // Fixture
+      const expected = 'Bad Request: Missing required attributes: name, surname or phone number';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: null,
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update a VERIFIED user without phone number', async () => {
+      // Fixture
+      const expected = 'Bad Request: Missing required attributes: name, surname or phone number';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          phoneNumber: null
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update a SUBSCRIBED user without phone number', async () => {
+      // Fixture
+      const expected = 'Bad Request: Missing required attributes: name, surname or phone number';
+      const decodedJwt = { userId: 1, role: 'SUBSCRIBED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          phoneNumber: null
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should update an user giving no phone number and a jpeg avatar', async () => {
+      // Fixture
+      const expected = 'User updated successfully';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const userToBeUpdated = {
+        name: "updated",
+        surname: "updated",
+        birthDate: "2000-03-30T09:49:30.610Z",
+        sex: "MALE",
+        idCard: "12345678Z",
+        location: "Sevilla",
+        avatar: fs.readFileSync(`${__dirname}/../assets/Test.jpeg`, 'base64')
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueImage.resolves();
+      updateUser.resolves();
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.equal(res.status, 201);
+          assert.equal(res.data, expected);
+        }).catch( err => {
+          assert.fail()
+        });
+    });
+
+    it('Should return 400 when trying to update an user with a name length lower than 3 characters', async () => {
+      // Fixture
+      const expected = 'Bad Request: Name must contain at least 3 characters';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'up',
+          surname: 'updated',
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user with a surname length lower than 3 characters', async () => {
+      // Fixture
+      const expected = 'Bad Request: Surname must contain at least 3 characters';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'up',
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user with an invalid date format', async () => {
+      // Fixture
+      const expected = 'Bad Request: Invalid date format';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          birthDate: 'updated',
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user with a birthday date after today', async () => {
+      // Fixture
+      const expected = 'Bad Request: Birthday date cannot be after today';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          birthDate: '2030-04-01T16:26:14.912Z',
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user with an invalid sex', async () => {
+      // Fixture
+      const expected = 'Bad Request: Invalid sex, must be MALE, FEMALE or OTHER';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          birthDate: '2000-04-01T16:26:14.912Z',
+          sex: 'updated',
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user with an invalid ID card format', async () => {
+      // Fixture
+      const expected = 'Bad Request: Invalid ID card format';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          birthDate: '2000-04-01T16:26:14.912Z',
+          sex: 'MALE',
+          idCard: 'updated',
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user with a correct ID format but an incorrect ID card character', async () => {
+      // Fixture
+      const expected = 'Bad Request: Invalid ID card format';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          birthDate: '2000-04-01T16:26:14.912Z',
+          sex: 'MALE',
+          idCard: '12345678A',
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user with an invalid phone number', async () => {
+      // Fixture
+      const expected = 'Bad Request: Invalid phone number, must be +34XXXXXXXXX';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          phoneNumber: 'updated'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user with an invalid avatar', async () => {
+      // Fixture
+      const expected = 'Bad Request: Avatar must be jpeg or png';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          phoneNumber: '+34666777888',
+          avatar: fs.readFileSync(`${__dirname}/../assets/Test.gif`, 'base64')
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update a non-existing user', async () => {
+      // Fixture
+      const expected = 'User not found';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+        name: 'updated',
+        surname: 'updated',
+        phoneNumber: '+34666777888'
+      }
+      // Mock Auth and DB Query
+      const error = new (require('@prisma/client/runtime').PrismaClientKnownRequestError)('User not found', 'P2025');
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.rejects(error);
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when trying to update an user with name length bigger than 20 characters', async () => {
+      // Fixture
+      const expected = 'Attributes length exceeded. Name max length is 20. Surname max length is 80. Location max length is 80';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+        name: 'updatedupdatedupdatedupdatedupdatedupdatedupdatedupdatedupdatedupdated',
+        surname: 'updated',
+        phoneNumber: '+34666777888'
+      }
+      // Mock Auth and DB Query
+      const error = new (require('@prisma/client/runtime').PrismaClientKnownRequestError)('Attributes length exceeded. Name max length is 20. Surname max length is 80. Location max length is 80', 'P2000');
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.rejects(error);
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when trying to update an user with a repeated idCard', async () => {
+      // Fixture
+      const expected = 'idCard must be unique';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+        name: 'updated',
+        surname: 'updated',
+        phoneNumber: '+34666777888',
+        idCard: '12345678Z'
+      }
+      // Mock Auth and DB Query
+      const error = new (require('@prisma/client/runtime').PrismaClientKnownRequestError)('idCard must be unique', 'P2002');
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.rejects(error);
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 500 when prisma update fails', async () => {
+      // Fixture
+      const expected = 'Internal Server Error';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          phoneNumber: '+34666777888'
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.rejects('Unknown error');
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 500 when an unexpected error is thrown', async () => {
+      // Fixture
+      const expected = 'Internal Server Error';
+
+      // Mock Auth and DB Query
+      console.error = sinon.stub(); // Avoid logging intentionally provoked error
+      verify.withArgs('testToken', 'stackingupsecretlocal').throws(new Error('Unexpected Error'));
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, {}, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);
+      });
+    });
   });
 
   describe('DELETE Endpoint tests:', () => {
+
+    it('Should delete a rating', async () => {
+      // Fixture
+      const ratingToBeDeleted = { receiverId: 2, reviewerId: 1 };
+      const expected = 'Rating deleted successfully';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+
+      // Mock Auth and DB Queries
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueRating.withArgs({
+        where: {
+          id: 1
+        }
+      }).resolves(ratingToBeDeleted);
+      updateUser.resolves();
+
+      // API Call
+      await axios.delete(`${host}/api/v1/ratings/1`, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(res => {
+          assert.equal(res.status, 200);
+          assert.equal(res.data, expected);
+        }).catch(() => assert.fail());
+    });
+
+    it('Should return 401 when token is missing', async () => {
+      // Fixture
+      const expected = 'Unauthorized';
+
+      // API Call
+      await axios.delete(`${host}/api/v1/ratings/1`)
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 401 when JWTError is thrown on verification', async () => {
+      // Fixture
+      const expected = 'Unauthorized: Invalid token';
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').throws(new jwt.JsonWebTokenError('Invalid token'));
+
+      // API Call
+      await axios.delete(`${host}/api/v1/ratings/1`, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 403 when reviewerID is not equal to userID logged in', async () => {
+      // Fixture
+      const ratingToBeDeleted = { receiverId: 2, reviewerId: 1 };
+      const expected = 'Forbidden';
+      const decodedJwt = { userId: 2, role: 'USER', email: 'test@test.com' };
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueRating.withArgs({
+        where: {
+          id: 1
+        }
+      }).resolves(ratingToBeDeleted);
+      // API Call
+      await axios.delete(`${host}/api/v1/ratings/1`, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 403);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when no rating has found with the given ID', async () => {
+      // Fixture
+      const expected = 'No rating records found';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueRating.withArgs({
+        where: {
+          id: 1
+        }
+      }).resolves();
+      // API Call
+      await axios.delete(`${host}/api/v1/ratings/1`, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when provided invalid ratingId in path', async () => {
+      // Fixture
+      const expected = 'Invalid ratingId. It must be an integer number';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+
+      // Mock Auth and DB Queries
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+
+      // API Call
+      await axios.delete(`${host}/api/v1/ratings/sdsdss`, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 500 when prisma delete fails', async () => {
+      // Fixture
+      const ratingToBeDeleted = { receiverId: 2, reviewerId: 1 };
+      const expected = 'Internal Server Error';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+
+      // Mock Auth and DB Queries
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueRating.withArgs({
+        where: {
+          id: 1
+        }
+      }).resolves(ratingToBeDeleted);
+      updateUser.rejects('Unknown error');
+
+      // API Call
+      await axios.delete(`${host}/api/v1/ratings/1`, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 500 when unexpected error is thrown', async () => {
+      // Fixture
+      const expected = 'Internal Server Error';
+
+      // Mock Auth and DB Query
+      console.error = sinon.stub(); // Avoid logging intentionally provoked error
+      verify.withArgs('testToken', 'stackingupsecretlocal').throws(new Error('Unexpected Error'));
+
+      // API Call
+      await axios.delete(`${host}/api/v1/ratings/1`, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
     it('Should delete a space', async () => {
       // Fixture
       const spaceToBeDeleted = { ownerId: 1 };
@@ -5885,5 +8033,182 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+  });
+
+  describe('GET Image endpoint tests:', () => {
+    it('should return avatar image when an userId given', async () => {
+        // Fixture
+        const dbOutput = {id: 1, image: fs.readFileSync(`${__dirname}/../assets/Test.png`), mimetype: 'image/png'};
+        const expected = {image: fs.readFileSync(`${__dirname}/../assets/Test.png`).toString('base64'), mimetype: 'image/png'};
+    
+        // Mock DB Query
+        findUniqueImage.withArgs({
+            where:{
+                userId: 1
+            }
+        }).resolves(dbOutput);
+    
+        // API Call
+        await axios.get(`${host}/api/v1/users/1/avatar`).then(res => {
+            assert.equal(res.status, 200);
+            assert.deepEqual(res.data, expected);
+        });
+    });
+
+    it('should return 404 when not found image for an userId', async () => {
+        // Fixture
+        const dbOutput = null;
+        const expected = 'No image found for this userdId';
+    
+        // Mock DB Query
+        findUniqueImage.withArgs({
+            where:{
+            userId: 1
+            }
+        }).resolves(dbOutput);
+    
+        // API Call
+        await axios.get(`${host}/api/v1/users/1/avatar`).then(res => {
+            assert.fail();
+        })
+        .catch(err => {
+            assert.equal(err.response.status, 404);
+            assert.equal(err.response.data, expected);
+        });
+    });
+  
+    it('should return 400 when trying to get an image with non integer userId', async () => {
+    // Fixture
+    const expected = 'Invalid userId parameter. It must be an integer number';
+
+    // Mock DB Query
+    findUniqueImage.withArgs({
+        where:{
+        userId: "invalid"
+        }
+    }).rejects();
+
+    // API Call
+    await axios.get(`${host}/api/v1/users/invalid/avatar`).then(res => {
+        assert.fail();
+    })
+    .catch(err => {
+        assert.equal(err.response.status, 400);
+        assert.equal(err.response.data, expected);
+    });
+    });
+  
+    it('should return 500 unexpected error when trying to get an image of an user', async () => {
+    // Fixture
+    const expected = 'Server error: Could not get user avatar.';
+
+    // Mock DB Query
+    findUniqueImage.withArgs({
+        where:{
+        userId: 1
+        }
+    }).rejects();
+
+    // API Call
+    await axios.get(`${host}/api/v1/users/1/avatar`).then(res => {
+        assert.fail();
+    })
+    .catch(err => {
+        assert.equal(err.response.status, 500);
+        assert.equal(err.response.data, expected);
+    });
+    });
+
+    it('should return list of images when an spaceId given', async () => {
+        // Fixture
+        const dbOutput = [{id: 1, image: fs.readFileSync(`${__dirname}/../assets/Test.png`), mimetype: 'image/png'}];
+        const expected = [{image: fs.readFileSync(`${__dirname}/../assets/Test.png`).toString('base64'), mimetype: 'image/png'}];
+    
+        // Mock DB Query
+        findManyImage.withArgs({
+            skip: undefined,
+            take: undefined,
+            where: {
+              spaceId: 1
+            }
+        }).resolves(dbOutput);
+    
+        // API Call
+        await axios.get(`${host}/api/v1/spaces/1/images`).then(res => {
+            assert.equal(res.status, 200);
+            assert.deepEqual(res.data, expected);
+        });
+    });
+
+    it('should return 404 when no image found for a spaceId', async () => {
+        // Fixture
+        const dbOutput = undefined;
+        const expected = 'Images not found or non existing space with this Id.';
+    
+        // Mock DB Query
+        findManyImage.withArgs({
+            skip: undefined,
+            take: undefined,
+            where: {
+              spaceId: 1
+            }
+        }).resolves(dbOutput);
+    
+        // API Call
+        await axios.get(`${host}/api/v1/spaces/1/images`).then(res => {
+            assert.fail();
+        })
+        .catch(err => {
+            assert.equal(err.response.status, 404);
+            assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return 400 when a non integer spaceId given', async () => {
+        // Fixture
+        const expected = 'Invalid parameter. It must be an integer number';
+    
+        // Mock DB Query
+        findManyImage.withArgs({
+            skip: undefined,
+            take: undefined,
+            where: {
+              spaceId: "invalid"
+            }
+        }).rejects();
+    
+        // API Call
+        await axios.get(`${host}/api/v1/spaces/invalid/images`).then(res => {
+            assert.fail();
+        })
+        .catch(err => {
+            assert.equal(err.response.status, 400);
+            assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return 500 unexpected error trying to get an image given a spaceId', async () => {
+        // Fixture
+        const expected = 'Server error: Could not get spaces.';
+    
+        // Mock DB Query
+        findManyImage.withArgs({
+            skip: undefined,
+            take: undefined,
+            where: {
+              spaceId: 1
+            }
+        }).rejects();
+    
+        // API Call
+        await axios.get(`${host}/api/v1/spaces/1/images`).then(res => {
+            assert.fail();
+        })
+        .catch(err => {
+            assert.equal(err.response.status, 500);
+            assert.equal(err.response.data, expected);
+        });
+    });
+
   });
 }

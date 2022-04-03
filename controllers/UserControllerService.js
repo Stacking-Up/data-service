@@ -1,7 +1,9 @@
 'use strict';
 
+const jwt = require('jsonwebtoken');
 const utils = require('../utils');
 const prisma = require('../prisma');
+const { Prisma } = require('@prisma/client');
 
 module.exports.getUsers = function getUsers (req, res, next) {
   prisma.user.findMany({
@@ -42,6 +44,79 @@ module.exports.getUser = function getUser (req, res, next) {
         res.status(500).send('Server error: Could not get user');
       }
     });
+};
+
+module.exports.putUser = async function putUser (req, res, next) {
+  const authToken = req.cookies?.authToken;
+  const userId = req.swagger.params.userId.value;
+  const userToBeUpdated = req.swagger.params.body.value;
+
+  if (authToken) {
+    try {
+      const decoded = jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
+      if (!userId || !userId.toString().match(/^\d+$/)) {
+        res.status(400).send('Invalid userId. It must be an integer number');
+        return;
+      }
+
+      if (decoded.role !== 'ADMIN' && parseInt(decoded.userId) !== parseInt(userId)) {
+        res.status(403).send('Forbidden');
+        return;
+      }
+
+      const errors = utils.user.checkUserConstraints(userToBeUpdated, userId, decoded.role);
+      if (errors.length > 0) {
+        res.status(400).send(`Bad Request: ${errors[0]}`);
+        return;
+      }
+
+      const queryUpdateUser = {
+        where: {
+          id: parseInt(userId)
+        },
+        data: {
+          name: userToBeUpdated.name,
+          surname: userToBeUpdated.surname,
+          birthDate: userToBeUpdated.birthDate ? new Date(userToBeUpdated.birthDate) : null,
+          sex: userToBeUpdated.sex ? userToBeUpdated.sex : null,
+          idCard: userToBeUpdated.idCard ? userToBeUpdated.idCard : null,
+          phoneNumber: userToBeUpdated.phoneNumber ? userToBeUpdated.phoneNumber : null,
+          location: userToBeUpdated.location ? userToBeUpdated.location : null,
+          avatar: {
+            delete: !!await prisma.image.findUnique({ where: { userId: parseInt(userId) } }).then(image => image)
+          }
+        }
+      };
+
+      if (userToBeUpdated.avatar) {
+        queryUpdateUser.data.avatar.create = { image: Buffer.from(userToBeUpdated.avatar, 'base64'), mimetype: userToBeUpdated.avatar.indexOf('/9j/') === 0 ? 'image/jpeg' : 'image/png' };
+      }
+
+      await prisma.user.update(queryUpdateUser).then(() => {
+        res.status(201).send('User updated successfully');
+      }).catch((err) => {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+          res.status(400).send('User not found');
+        } else if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2000') {
+          res.status(400).send('Attributes length exceeded. Name max length is 20. Surname max length is 80. Location max length is 80');
+        } else if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+          res.status(400).send('idCard must be unique');
+        } else {
+          console.error(err);
+          res.status(500).send('Internal Server Error');
+        }
+      });
+    } catch (err) {
+      if (err instanceof jwt.JsonWebTokenError) {
+        res.status(401).send(`Unauthorized: ${err.message}`);
+      } else {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+      }
+    }
+  } else {
+    res.status(401).send('Unauthorized');
+  }
 };
 
 module.exports.getUserItems = function getUserItems (req, res, next) {
@@ -123,6 +198,133 @@ module.exports.getUserItem = function getUserItem (req, res, next) {
     });
 };
 
+module.exports.postUserRating = async function postUserRating (req, res, next) {
+  const authToken = req.cookies?.authToken;
+  const ratingToBePublished = req.swagger.params.body.value;
+  if (authToken) {
+    try {
+      const decoded = jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
+
+      if (!decoded.userId || !req.swagger.params.userId.value) {
+        res.status(400).send('Missing required attributes');
+        return;
+      }
+
+      if (!req.swagger.params.userId.value.toString().match(/^\d+$/)) {
+        res.status(400).send('IDs must be integers');
+        return;
+      }
+
+      if (parseInt(decoded.userId) === parseInt(req.swagger.params.userId.value)) {
+        res.status(400).send('Can not rate yourself');
+        return;
+      }
+
+      const userRated = await prisma.user.findUnique({
+        where: {
+          id: parseInt(req.swagger.params.userId.value)
+        }
+      });
+
+      if (!userRated) {
+        res.status(404).send('The user to rate does not exist');
+        return;
+      }
+      const errors = utils.user.checkRatingValidity(ratingToBePublished);
+      if (errors.length > 0) {
+        res.status(400).send(`Bad Request: ${errors[0]}`);
+        return;
+      }
+
+      await prisma.rating.create({
+        data: {
+          title: ratingToBePublished.title,
+          description: ratingToBePublished.description,
+          rating: ratingToBePublished.rating,
+          receiver: {
+            connect: {
+              id: parseInt(req.swagger.params.userId.value)
+            }
+          },
+          reviewer: {
+            connect: {
+              id: parseInt(decoded.userId)
+            }
+          }
+        }
+      }).then(() => {
+        res.status(201).send('Rating created successfully');
+      }).catch((err) => {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+      });
+    } catch (err) {
+      if (err instanceof jwt.JsonWebTokenError) {
+        res.status(401).send(`Unauthorized: ${err.message}`);
+      } else {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+      }
+    }
+  } else {
+    res.status(401).send('Unauthorized');
+  }
+};
+
+module.exports.deleteUserRating = async function deleteUserRating (req, res, next) {
+  const authToken = req.cookies?.authToken;
+  const ratingId = req.swagger.params.ratingId.value;
+  if (authToken) {
+    try {
+      const decoded = jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
+      if (!ratingId || !ratingId.toString().match(/^\d+$/)) {
+        res.status(400).send('Invalid ratingId. It must be an integer number');
+        return;
+      }
+      const rating = await prisma.rating.findUnique({
+        where: {
+          id: parseInt(ratingId)
+        }
+      });
+      if (rating) {
+        if (parseInt(decoded.userId) !== parseInt(rating.reviewerId)) {
+          res.status(403).send('Forbidden');
+          return;
+        }
+      } else {
+        res.status(400).send('No rating records found');
+        return;
+      }
+      await prisma.user.update({
+        where: {
+          id: parseInt(rating.receiverId)
+        },
+        data: {
+          ratings: {
+            delete: {
+              id: parseInt(ratingId)
+            }
+          }
+        }
+      }).then(() => {
+        res.status(200).send('Rating deleted successfully');
+      }).catch((err) => {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+      });
+    } catch (err) {
+      if (err instanceof jwt.JsonWebTokenError) {
+        res.status(401).send(`Unauthorized: ${err.message}`);
+      } else {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+      }
+    }
+  } else {
+    res.status(401).send('Unauthorized');
+  }
+};
+
 module.exports.getUserRatings = function getUserRatings (req, res, next) {
   prisma.rating.findMany({
     skip: req.offset.value,
@@ -134,13 +336,13 @@ module.exports.getUserRatings = function getUserRatings (req, res, next) {
       ]
     },
     select:
-      {
-        title: true,
-        description: true,
-        rating: true,
-        reviewerId: true,
-        receiverId: true
-      }
+    {
+      title: true,
+      description: true,
+      rating: true,
+      reviewerId: true,
+      receiverId: true
+    }
   })
     .then(rating => {
       if (!rating || rating.length === 0) {
