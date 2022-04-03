@@ -231,6 +231,67 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
+  /api/v1/users/{userId}/rate:
+    post:
+      security:
+        - cookieAuth: []
+      tags:
+        - Users
+      x-swagger-router-controller: UserController
+      description: Rate a user
+      operationId: postUserRating
+      parameters:
+        - name: userId
+          in: path
+          description: User's id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        x-name: body
+        description: Rating object
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/userRating'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'  
   /api/v1/users/{userId}/ratings:
     get:
       tags:
@@ -564,6 +625,53 @@ paths:
                 $ref: '#/components/schemas/errorModel'
         '404':
           description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  /api/v1/ratings/{ratingId}:
+    delete:
+      security:
+        - cookieAuth: []
+      tags:
+        - Ratings
+      x-swagger-router-controller: UserController
+      description: Delete rating by id
+      operationId: deleteUserRating
+      parameters:
+        - name: ratingId
+          in: path
+          description: Rating's id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User deleted succesfully
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
           content:
             application/json:
               schema:
@@ -1551,6 +1659,19 @@ components:
         receiverId:
           type: integer
           format: int32
+    userRating:
+      type: object
+      required:
+        - title
+        - description
+        - rating
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        rating:
+          type: integer
     space:
       type: object
       required:
