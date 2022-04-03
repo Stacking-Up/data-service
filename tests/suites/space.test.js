@@ -61,6 +61,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
     it('should return 400 when userID in path not a integer', async () => {
       // Fixture
       const expected = 'Invalid userId parameter. It must be an integer number';
@@ -73,6 +74,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
     it('should return an user in DB when an userId is given', async () => {
       // Fixture
       const dbOutput = { id: 1, name: 'John', surname: 'Doe' };
@@ -91,6 +93,7 @@ module.exports = (prisma, jwt) => {
         assert.deepEqual(res.data, expected);
       });
     });
+
     it('should return 500 when unexpected error throws getting the user', async () => {
       // Mock DB Query
       console.error = sinon.stub(); //avoid printing error to console
@@ -109,6 +112,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, 'Server error: Could not get user');
         });
     });
+
     it('should return items asociated to a user when giving an userId', async () => {
       // Fixture
       const dbOutput = {
@@ -126,6 +130,7 @@ module.exports = (prisma, jwt) => {
         assert.deepEqual(res.data, expected);
       });
     });
+
     it('should return 404 when trying to get non-existing items asociated to a user giving an userId', async () => {
       // Fixture
       const dbOutput = { id: 1, name: 'John', surname: 'Doe' };
@@ -143,6 +148,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
     it('should return 404 when trying to get items asociated to a non-existing user', async () => {
       // Fixture
       const dbOutput = undefined;
@@ -160,6 +166,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
     it('should return 400 when trying to get items asociated to a non integer userId', async () => {
       // Mock DB Query
       findUniqueUser.rejects();
@@ -173,6 +180,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, 'Invalid userId parameter. It must be an integer number');
         });
     });
+
     it('should return 500 when unexpected error throws getting the items of user', async () => {
       // Mock DB Query
       console.error = sinon.stub(); //avoid printing error to console
@@ -187,6 +195,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, 'Server error: Could not get items');
         });
     });
+
     it('should return item asociated to an user giving an userId and itemId', async () => {
       // Fixture
       const dbOutput = {
@@ -204,6 +213,7 @@ module.exports = (prisma, jwt) => {
         assert.deepEqual(res.data, expected);
       });
     });
+
     it('should return 404 when trying to get a non-existing item asociated to an user giving an userId and itemId', async () => {
       // Fixture
       const dbOutput = { id: 1, name: 'John', surname: 'Doe' };
@@ -221,6 +231,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
     it('should return 404 when trying to get an existing item asociated to a non-existing user giving an userId and itemId', async () => {
       // Fixture
       const dbOutput = undefined;
@@ -238,6 +249,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
     it('should return 400 when trying to get an item with a non integer userId and/or itemId', async () => {
       // Mock DB Query
       findUniqueUser.rejects();
@@ -251,6 +263,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, 'Invalid parameter. It must be an integer number');
         });
     });
+
     it('should return 500 unexpected error when trying to get an item of an user', async () => {
       // Mock DB Query
       console.error = sinon.stub(); //avoid printing error to console
@@ -265,6 +278,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, 'Server error: Could not get the item of the user.');
         });
     });
+
     it('should return rating asociated to an user giving an userId and ratingId', async () => {
       // Fixture
       const dbOutput = {
@@ -300,6 +314,7 @@ module.exports = (prisma, jwt) => {
         assert.deepEqual(res.data, expected);
       });
     });
+
     it('should return 404 when trying to get a non-existing rating asociated to an user', async () => {
       // Fixture
       const dbOutput = { id: 1, name: 'John', surname: 'Doe' };
@@ -335,6 +350,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
     it('should return 404 when trying to get a rating asociated to a non-existing user', async () => {
       // Fixture
       const dbOutput = undefined;
@@ -370,6 +386,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
     it('should return 400 when trying to get a rating with non integers userId and/or ratingId', async () => {
       // Fixture
       const expected = 'Invalid parameter. It must be an integer number';
@@ -404,6 +421,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
     it('should return 500 unexpected error when trying to get the rating of an user', async () => {
       // Fixture
       const expected = 'Server error: Could not get the rating of the user.';
@@ -438,6 +456,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
     it('should return an unic space that an user owns', async () => {
       // Fixture
       const dbOutput = {
@@ -466,6 +485,7 @@ module.exports = (prisma, jwt) => {
         assert.deepEqual(res.data, expected);
       });
     });
+
     it('should return 404 when trying to get a non-existing space that an user owns', async () => {
       // Fixture
       const dbOutput = { id: 1, name: 'John', surname: 'Doe' };
@@ -494,6 +514,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
     it('should return 404 when trying to get a existing space owned by a non-existing user', async () => {
       // Fixture
       const dbOutput = undefined;
@@ -522,6 +543,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
     it('should return 400 when trying to get a space with non integers userId and/or spaceId', async () => {
       // Fixture
       const expected = "Invalid parameter. It must be an integer number";
@@ -549,6 +571,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
     it('should return 500 unexpected error when trying to get a space of an user', async () => {
       // Fixture
       const expected = "Server error: Could not get space";
@@ -576,6 +599,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
     it('should return an concrete rental when a userId and rental Id is given', async () => {
       // Fixture
       const dbOutput = {
@@ -620,6 +644,7 @@ module.exports = (prisma, jwt) => {
         assert.deepEqual(res.data, expected);
       });
     });
+
     it('should return 404 when is given a user with no rentals', async () => {
       // Fixture
       const dbOutput = { id: 1, name: 'John', surname: 'Doe' };
@@ -657,6 +682,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
     it('should return 404 when is given a non-existing user with rentals', async () => {
       // Fixture
       const dbOutput = undefined;
@@ -694,6 +720,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
     it('should return 400 when trying to get a rental with non integers userId and/or rentalId', async () => {
       const expected = 'Invalid parameter. It must be an integer number';
 
@@ -729,6 +756,7 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
     it('should return 500 unexpected error when trying to get a rental of an user', async () => {
       const expected = 'Server error: Could not get rental.';
 
@@ -3515,7 +3543,6 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
-
   });
 
   describe('POST Endpoint tests:', () => {
@@ -4369,7 +4396,7 @@ module.exports = (prisma, jwt) => {
         });
     });
 
-    it('Should post a rental of a space (shared, not overlapping)', async () => {
+    it('Should validate a rental of a space (shared, not overlapping)', async () => {
       //Fixture
       const spaceToAddRental = {
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
@@ -4379,7 +4406,6 @@ module.exports = (prisma, jwt) => {
             cost: 456, type: "HOUR", meters: 299, spaceId: 1, renterId: 3
           }]
       }
-      const expected = 'Rental created successfully';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
 
       const rentalToBeCreated = {
@@ -4401,21 +4427,18 @@ module.exports = (prisma, jwt) => {
           rentals: true
         }
       }).resolves(spaceToAddRental)
-      createRental.resolves();
-
-
+      
       //API Call
       await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToBeCreated, {
         withCredentials: true,
         headers: { Cookie: 'authToken=testToken;' }
       })
         .then(res => {
-          assert.equal(res.status, 201);
-          assert.equal(res.data, expected);
+          assert.equal(res.status, 200);
         })
     });
 
-    it('Should post a rental of a space (shared, overlapping)', async () => {
+    it('Should validate a rental of a space (shared, overlapping)', async () => {
       //Fixture
       const spaceToAddRental = {
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
@@ -4425,7 +4448,6 @@ module.exports = (prisma, jwt) => {
             cost: 456, type: "HOUR", meters: 200, spaceId: 1, renterId: 3
           }]
       }
-      const expected = 'Rental created successfully';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
 
       const rentalToBeCreated = {
@@ -4447,21 +4469,18 @@ module.exports = (prisma, jwt) => {
           rentals: true
         }
       }).resolves(spaceToAddRental)
-      createRental.resolves();
-
-
+      
       //API Call
       await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToBeCreated, {
         withCredentials: true,
         headers: { Cookie: 'authToken=testToken;' }
       })
         .then(res => {
-          assert.equal(res.status, 201);
-          assert.equal(res.data, expected);
+          assert.equal(res.status, 200);
         })
     });
 
-    it('Should post a rental of a space (not shared, not overlapping)', async () => {
+    it('Should validate a rental of a space (not shared, not overlapping)', async () => {
       //Fixture
       const spaceToAddRental = {
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
@@ -4471,7 +4490,6 @@ module.exports = (prisma, jwt) => {
             cost: 456, type: "HOUR", meters: 299, spaceId: 1, renterId: 3
           }]
       }
-      const expected = 'Rental created successfully';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
 
       const rentalToBeCreated = {
@@ -4493,17 +4511,14 @@ module.exports = (prisma, jwt) => {
           rentals: true
         }
       }).resolves(spaceToAddRental)
-      createRental.resolves();
-
-
+      
       //API Call
       await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToBeCreated, {
         withCredentials: true,
         headers: { Cookie: 'authToken=testToken;' }
       })
         .then(res => {
-          assert.equal(res.status, 201);
-          assert.equal(res.data, expected);
+          assert.equal(res.status, 200);
         })
     });
 
@@ -4537,27 +4552,6 @@ module.exports = (prisma, jwt) => {
           assert.fail();
         }).catch(err => {
           assert.equal(err.response.status, 401);
-          assert.equal(err.response.data, expected);
-        });
-    });
-
-    it('Should return 400 when renterId is not a number', async () => {
-      // Fixture
-      const expected = 'Invalid renterId. It must be an integer number';
-      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
-
-      // Mock Auth and DB Query
-      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
-
-      // API Call
-      await axios.post(`${host}/api/v1/spaces/1/rentals`, { renterId: "invalid_id" }, {
-        withCredentials: true,
-        headers: { Cookie: 'authToken=testToken;' }
-      })
-        .then(() => {
-          assert.fail();
-        }).catch(err => {
-          assert.equal(err.response.status, 400);
           assert.equal(err.response.data, expected);
         });
     });
@@ -4867,38 +4861,6 @@ module.exports = (prisma, jwt) => {
         });
     });
 
-    it('Should return 500 when prisma create rental fails', async () => {
-      // Fixture
-
-      const expected = 'Internal Server Error';
-      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
-      const rentalToBeCreated = {
-        initialDate: new Date("2900-04-01T00:00:00.000Z"),
-        finalDate: new Date("2900-05-01T00:00:00.000Z"),
-        cost: 456,
-        type: 'MONTH',
-        meters: 5,
-        spaceId: 1,
-        renterId: 1
-      };
-
-      // Mock Auth and DB Query
-      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
-      createRental.rejects();
-
-      // API Call
-      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToBeCreated, {
-        withCredentials: true,
-        headers: { Cookie: 'authToken=testToken;' }
-      })
-        .then(() => {
-          assert.fail();
-        }).catch(err => {
-          assert.equal(err.response.status, 500);
-          assert.equal(err.response.data, expected);
-        });
-    });
-
     it('Should return 500 when an unexpected error is thrown while creating a rental', async () => {
       // Fixture
       const expected = 'Internal Server Error';
@@ -4961,7 +4923,7 @@ module.exports = (prisma, jwt) => {
         dimensions: "100x3", priceDay: 56, priceMonth: 456, shared: false, ownerId: 2
       }
 
-      const expected = 'Bad Request: Space must have a price per hour to rent per hour';
+      const expected = 'Bad Request: Space must have a price per hour, start and end hour to rent per hour';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
       const rentalToPublish = {
         initialDate: "2900-01-01T00:00:00.000Z",
@@ -5992,6 +5954,203 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.status, 400);
           assert.equal(err.response.data, expected);
         });
+    });
+
+    it('Should post a rental of a space (shared, not overlapping)', async () => {      
+      //Fixture
+      const expected = { rentalId: 1 };
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const decodedRentalToken = {
+        initialDate: new Date("2900-04-01T00:00:00.000Z"),
+        finalDate: new Date("2900-05-01T00:00:00.000Z"),
+        cost: 456,
+        type: 'MONTH',
+        meters: 5,
+        spaceId: 1,
+        renterId: 1
+      }
+
+      const rentalAdded = {
+        id: 1,
+        initialDate: new Date("2900-04-01T00:00:00.000Z"),
+        finalDate: new Date("2900-05-01T00:00:00.000Z"),
+        cost: 456,
+        type: 'MONTH',
+        meters: 5,
+        spaceId: 1,
+        renterId: 1
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      verify.withArgs('rentalTestToken', 'stackingupsecretlocal').returns(decodedRentalToken);
+      
+      createRental.resolves(rentalAdded);
+
+      //API Call
+      await axios.post(`${host}/api/v1/spaces/rentals/confirmation`, {rentalToken: 'rentalTestToken'}, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(res => {
+          assert.equal(res.status, 201);
+          assert.deepEqual(res.data, expected);
+        })      
+    });
+
+    it('Should return 400 when token already used', async () => {
+      //Fixture
+      const expected = 'Rental token already used';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const decodedRentalToken = {
+        initialDate: new Date("2900-04-01T00:00:00.000Z"),
+        finalDate: new Date("2900-05-01T00:00:00.000Z"),
+        cost: 456,
+        type: 'MONTH',
+        meters: 5,
+        spaceId: 1,
+        renterId: 1
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      verify.withArgs('rentalTestToken', 'stackingupsecretlocal').returns(decodedRentalToken);
+      
+      //API Call
+      await axios.post(`${host}/api/v1/spaces/rentals/confirmation`, {rentalToken: 'rentalTestToken'}, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        }).catch(err =>{
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });      
+    });
+
+    it('Should return a 500 error when trying to post a rental', async () => {      
+      //Fixture
+      const expected = 'Internal Server Error';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const decodedRentalToken = {
+        initialDate: new Date("2900-04-01T00:00:00.000Z"),
+        finalDate: new Date("2900-05-01T00:00:00.000Z"),
+        cost: 456,
+        type: 'MONTH',
+        meters: 5,
+        spaceId: 1,
+        renterId: 1
+      }
+
+      const rentalAdded = {
+        id: 1,
+        initialDate: new Date("2900-04-01T00:00:00.000Z"),
+        finalDate: new Date("2900-05-01T00:00:00.000Z"),
+        cost: 456,
+        type: 'MONTH',
+        meters: 5,
+        spaceId: 1,
+        renterId: 1
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      verify.withArgs('rentalTestToken2', 'stackingupsecretlocal').returns(decodedRentalToken);
+      
+      createRental.rejects();
+
+      //API Call
+      await axios.post(`${host}/api/v1/spaces/rentals/confirmation`, {rentalToken: 'rentalTestToken2'}, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        })
+        .catch(err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected)
+        });      
+    });
+
+    it('Should return a 401 error when trying to verify a token', async () => {      
+      //Fixture
+      const expected = 'Token error: jwt malformed';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const decodedRentalToken = {
+        initialDate: new Date("2900-04-01T00:00:00.000Z"),
+        finalDate: new Date("2900-05-01T00:00:00.000Z"),
+        cost: 456,
+        type: 'MONTH',
+        meters: 5,
+        spaceId: 1,
+        renterId: 1
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').throws(new jwt.JsonWebTokenError('jwt malformed'));
+      verify.withArgs('rentalTestToken3', 'stackingupsecretlocal').returns(decodedRentalToken);
+      
+      //API Call
+      await axios.post(`${host}/api/v1/spaces/rentals/confirmation`, {rentalToken: 'rentalTestToken3'}, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        })
+        .catch(err => {
+          assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected)
+        });      
+    });
+
+    it('Should return a 500 error when trying to verify a token', async () => {      
+      //Fixture
+      const expected = 'Internal Server Error';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const decodedRentalToken = {
+        initialDate: new Date("2900-04-01T00:00:00.000Z"),
+        finalDate: new Date("2900-05-01T00:00:00.000Z"),
+        cost: 456,
+        type: 'MONTH',
+        meters: 5,
+        spaceId: 1,
+        renterId: 1
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').throws(new Error('Internal Server Error'));
+      verify.withArgs('rentalTestToken4', 'stackingupsecretlocal').returns(decodedRentalToken);
+      
+      //API Call
+      await axios.post(`${host}/api/v1/spaces/rentals/confirmation`, {rentalToken: 'rentalTestToken4'}, {
+        withCredentials: true,
+        headers: { Cookie: 'authToken=testToken;' }
+      })
+        .then(() => {
+          assert.fail();
+        })
+        .catch(err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected)
+        });      
+    });
+
+    it('Should return a 401 error when invalid tokens provided ', async () => {      
+      //Fixture
+      const expected = 'Unauthorized or missing rental token';
+      
+      //API Call
+      await axios.post(`${host}/api/v1/spaces/rentals/confirmation`, {})
+        .then(() => {
+          assert.fail();
+        })
+        .catch(err => {
+          assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected)
+        });      
     });
 
     it('Should post a rating', async () => {
