@@ -17,6 +17,8 @@ module.exports = (prisma, jwt) => {
   let createRating = sinon.stub(prisma.rating, 'findUnique').rejects("Not implemented");
   let findUniqueUser = sinon.stub(prisma.user, 'findUnique').rejects("Not implemented");
   let findUniqueRating = sinon.stub(prisma.rating, 'findUnique').rejects("Not implemented");
+  let findManyImage = sinon.stub(prisma.image, 'findMany').rejects("Not implemented");
+  let findUniqueImage = sinon.stub(prisma.image, 'findUnique').rejects("Not implemented");
 
   before(() => {
     console.warn = sinon.stub();
@@ -29,8 +31,8 @@ module.exports = (prisma, jwt) => {
     sinon.replace(prisma.rating, 'create', createRating);
     sinon.replace(prisma.user, 'findUnique', findUniqueUser);
     sinon.replace(prisma.rating, 'findUnique', findUniqueRating);
-
-
+    sinon.replace(prisma.image, 'findMany', findManyImage);
+    sinon.replace(prisma.image, 'findUnique', findUniqueImage);
   });
 
   /***************************************************************************
@@ -6782,6 +6784,666 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+
+    it('Should update an user', async () => {
+      // Fixture
+      const expected = 'User updated successfully';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+        name: "updated",
+        surname: "updated",
+        birthDate: "2000-03-30T09:49:30.610Z",
+        sex: "MALE",
+        idCard: "12345678Z",
+        phoneNumber: "+34666777888",
+        location: "Sevilla",
+        avatar: fs.readFileSync(`${__dirname}/../assets/Test.png`, 'base64')
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueImage.resolves();
+      updateUser.resolves();
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.equal(res.status, 201);
+          assert.equal(res.data, expected);
+        }).catch( err => {
+          assert.fail()
+        });
+    });
+
+    it('User with ADMIN role should update a user with a different userId', async () => {
+      // Fixture
+      const expected = 'User updated successfully';
+      const decodedJwt = { userId: 1, role: 'ADMIN', email: 'test@test.com' };
+      const userToBeUpdated = {
+        name: "updated",
+        surname: "updated",
+        birthDate: "2000-03-30T09:49:30.610Z",
+        sex: "MALE",
+        idCard: "12345678Z",
+        phoneNumber: "+34666777888",
+        location: "Sevilla",
+        auth: {id: 1, email: 'test@tes.com', password: 'Password123', role: 'VERIFIED', userId: 1},
+        ratings: [{id: 1, title: "test", description: "test", rating: 5, receiverId: 1, reviewerId: 2}],
+        reviews: [{id: 1, title: "test", description: "test", rating: 5, receiverId: 2, reviewerId: 1}],
+        avatar: fs.readFileSync(`${__dirname}/../assets/Test.png`, 'base64')
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueImage.resolves();
+      updateUser.resolves();
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/2`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.equal(res.status, 201);
+          assert.equal(res.data, expected);
+        }).catch( () => assert.fail());
+    });
+
+    it('Should return 401 when token is missing', async () => {
+      // Fixture
+      const expected = 'Unauthorized';
+        
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, {})
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 401 when JWTError is thrown on verification', async () => {
+      // Fixture
+      const expected = 'Unauthorized: Invalid token';
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').throws(new jwt.JsonWebTokenError('Invalid token'));
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, {}, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 401);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 403 when someone tries to update an user with another userId', async () => {
+      // Fixture
+      const expected = 'Forbidden';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          id: 2,
+          name: "name",
+          surname: "surname"
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/2`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 403);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when an invalid userId is provided in path', async () => {
+      // Fixture
+      const expected = 'Invalid userId. It must be an integer number';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated', 
+          surname: 'updated',
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/invalid_userId`, userToBeUpdated, { 
+          withCredentials: true,
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user without name', async () => {
+      // Fixture
+      const expected = 'Bad Request: Missing required attributes: name, surname or phone number';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: null,
+          surname: 'updated',
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user without surname', async () => {
+      // Fixture
+      const expected = 'Bad Request: Missing required attributes: name, surname or phone number';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: null,
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update a VERIFIED user without phone number', async () => {
+      // Fixture
+      const expected = 'Bad Request: Missing required attributes: name, surname or phone number';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          phoneNumber: null
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update a SUBSCRIBED user without phone number', async () => {
+      // Fixture
+      const expected = 'Bad Request: Missing required attributes: name, surname or phone number';
+      const decodedJwt = { userId: 1, role: 'SUBSCRIBED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          phoneNumber: null
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should update an user giving no phone number and a jpeg avatar', async () => {
+      // Fixture
+      const expected = 'User updated successfully';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const userToBeUpdated = {
+        name: "updated",
+        surname: "updated",
+        birthDate: "2000-03-30T09:49:30.610Z",
+        sex: "MALE",
+        idCard: "12345678Z",
+        location: "Sevilla",
+        avatar: fs.readFileSync(`${__dirname}/../assets/Test.jpeg`, 'base64')
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueImage.resolves();
+      updateUser.resolves();
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.equal(res.status, 201);
+          assert.equal(res.data, expected);
+        }).catch( err => {
+          assert.fail()
+        });
+    });
+
+    it('Should return 400 when trying to update an user with a name length lower than 3 characters', async () => {
+      // Fixture
+      const expected = 'Bad Request: Name must contain at least 3 characters';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'up',
+          surname: 'updated',
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user with a surname length lower than 3 characters', async () => {
+      // Fixture
+      const expected = 'Bad Request: Surname must contain at least 3 characters';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'up',
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user with an invalid date format', async () => {
+      // Fixture
+      const expected = 'Bad Request: Invalid date format';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          birthDate: 'updated',
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user with a birthday date after today', async () => {
+      // Fixture
+      const expected = 'Bad Request: Birthday date cannot be after today';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          birthDate: '2030-04-01T16:26:14.912Z',
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user with an invalid sex', async () => {
+      // Fixture
+      const expected = 'Bad Request: Invalid sex, must be MALE, FEMALE or OTHER';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          birthDate: '2000-04-01T16:26:14.912Z',
+          sex: 'updated',
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user with an invalid ID card format', async () => {
+      // Fixture
+      const expected = 'Bad Request: Invalid ID card format';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          birthDate: '2000-04-01T16:26:14.912Z',
+          sex: 'MALE',
+          idCard: 'updated',
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user with a correct ID format but an incorrect ID card character', async () => {
+      // Fixture
+      const expected = 'Bad Request: Invalid ID card format';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          birthDate: '2000-04-01T16:26:14.912Z',
+          sex: 'MALE',
+          idCard: '12345678A',
+          phoneNumber: '+34666777888'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user with an invalid phone number', async () => {
+      // Fixture
+      const expected = 'Bad Request: Invalid phone number, must be +34XXXXXXXXX';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          phoneNumber: 'updated'
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update an user with an invalid avatar', async () => {
+      // Fixture
+      const expected = 'Bad Request: Avatar must be jpeg or png';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          phoneNumber: '+34666777888',
+          avatar: fs.readFileSync(`${__dirname}/../assets/Test.gif`, 'base64')
+      }
+
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+    
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+      });
+    });
+
+    it('Should return 400 when trying to update a non-existing user', async () => {
+      // Fixture
+      const expected = 'User not found';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+        name: 'updated',
+        surname: 'updated',
+        phoneNumber: '+34666777888'
+      }
+      // Mock Auth and DB Query
+      const error = new (require('@prisma/client/runtime').PrismaClientKnownRequestError)('User not found', 'P2025');
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.rejects(error);
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when trying to update an user with name length bigger than 20 characters', async () => {
+      // Fixture
+      const expected = 'Attributes length exceeded. Name max length is 20. Surname max length is 80. Location max length is 80';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+        name: 'updatedupdatedupdatedupdatedupdatedupdatedupdatedupdatedupdatedupdated',
+        surname: 'updated',
+        phoneNumber: '+34666777888'
+      }
+      // Mock Auth and DB Query
+      const error = new (require('@prisma/client/runtime').PrismaClientKnownRequestError)('Attributes length exceeded. Name max length is 20. Surname max length is 80. Location max length is 80', 'P2000');
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.rejects(error);
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when trying to update an user with a repeated idCard', async () => {
+      // Fixture
+      const expected = 'idCard must be unique';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+        name: 'updated',
+        surname: 'updated',
+        phoneNumber: '+34666777888',
+        idCard: '12345678Z'
+      }
+      // Mock Auth and DB Query
+      const error = new (require('@prisma/client/runtime').PrismaClientKnownRequestError)('idCard must be unique', 'P2002');
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.rejects(error);
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 500 when prisma update fails', async () => {
+      // Fixture
+      const expected = 'Internal Server Error';
+      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const userToBeUpdated = {
+          name: 'updated',
+          surname: 'updated',
+          phoneNumber: '+34666777888'
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      updateUser.rejects('Unknown error');
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 500 when an unexpected error is thrown', async () => {
+      // Fixture
+      const expected = 'Internal Server Error';
+
+      // Mock Auth and DB Query
+      console.error = sinon.stub(); // Avoid logging intentionally provoked error
+      verify.withArgs('testToken', 'stackingupsecretlocal').throws(new Error('Unexpected Error'));
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, {}, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( () => {
+          assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);
+      });
+    });
   });
 
   describe('DELETE Endpoint tests:', () => {
@@ -7212,5 +7874,182 @@ module.exports = (prisma, jwt) => {
           assert.equal(err.response.data, expected);
         });
     });
+  });
+
+  describe('GET Image endpoint tests:', () => {
+    it('should return avatar image when an userId given', async () => {
+        // Fixture
+        const dbOutput = {id: 1, image: fs.readFileSync(`${__dirname}/../assets/Test.png`), mimetype: 'image/png'};
+        const expected = {image: fs.readFileSync(`${__dirname}/../assets/Test.png`).toString('base64'), mimetype: 'image/png'};
+    
+        // Mock DB Query
+        findUniqueImage.withArgs({
+            where:{
+                userId: 1
+            }
+        }).resolves(dbOutput);
+    
+        // API Call
+        await axios.get(`${host}/api/v1/users/1/avatar`).then(res => {
+            assert.equal(res.status, 200);
+            assert.deepEqual(res.data, expected);
+        });
+    });
+
+    it('should return 404 when not found image for an userId', async () => {
+        // Fixture
+        const dbOutput = null;
+        const expected = 'No image found for this userdId';
+    
+        // Mock DB Query
+        findUniqueImage.withArgs({
+            where:{
+            userId: 1
+            }
+        }).resolves(dbOutput);
+    
+        // API Call
+        await axios.get(`${host}/api/v1/users/1/avatar`).then(res => {
+            assert.fail();
+        })
+        .catch(err => {
+            assert.equal(err.response.status, 404);
+            assert.equal(err.response.data, expected);
+        });
+    });
+  
+    it('should return 400 when trying to get an image with non integer userId', async () => {
+    // Fixture
+    const expected = 'Invalid userId parameter. It must be an integer number';
+
+    // Mock DB Query
+    findUniqueImage.withArgs({
+        where:{
+        userId: "invalid"
+        }
+    }).rejects();
+
+    // API Call
+    await axios.get(`${host}/api/v1/users/invalid/avatar`).then(res => {
+        assert.fail();
+    })
+    .catch(err => {
+        assert.equal(err.response.status, 400);
+        assert.equal(err.response.data, expected);
+    });
+    });
+  
+    it('should return 500 unexpected error when trying to get an image of an user', async () => {
+    // Fixture
+    const expected = 'Server error: Could not get user avatar.';
+
+    // Mock DB Query
+    findUniqueImage.withArgs({
+        where:{
+        userId: 1
+        }
+    }).rejects();
+
+    // API Call
+    await axios.get(`${host}/api/v1/users/1/avatar`).then(res => {
+        assert.fail();
+    })
+    .catch(err => {
+        assert.equal(err.response.status, 500);
+        assert.equal(err.response.data, expected);
+    });
+    });
+
+    it('should return list of images when an spaceId given', async () => {
+        // Fixture
+        const dbOutput = [{id: 1, image: fs.readFileSync(`${__dirname}/../assets/Test.png`), mimetype: 'image/png'}];
+        const expected = [{image: fs.readFileSync(`${__dirname}/../assets/Test.png`).toString('base64'), mimetype: 'image/png'}];
+    
+        // Mock DB Query
+        findManyImage.withArgs({
+            skip: undefined,
+            take: undefined,
+            where: {
+              spaceId: 1
+            }
+        }).resolves(dbOutput);
+    
+        // API Call
+        await axios.get(`${host}/api/v1/spaces/1/images`).then(res => {
+            assert.equal(res.status, 200);
+            assert.deepEqual(res.data, expected);
+        });
+    });
+
+    it('should return 404 when no image found for a spaceId', async () => {
+        // Fixture
+        const dbOutput = undefined;
+        const expected = 'Images not found or non existing space with this Id.';
+    
+        // Mock DB Query
+        findManyImage.withArgs({
+            skip: undefined,
+            take: undefined,
+            where: {
+              spaceId: 1
+            }
+        }).resolves(dbOutput);
+    
+        // API Call
+        await axios.get(`${host}/api/v1/spaces/1/images`).then(res => {
+            assert.fail();
+        })
+        .catch(err => {
+            assert.equal(err.response.status, 404);
+            assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return 400 when a non integer spaceId given', async () => {
+        // Fixture
+        const expected = 'Invalid parameter. It must be an integer number';
+    
+        // Mock DB Query
+        findManyImage.withArgs({
+            skip: undefined,
+            take: undefined,
+            where: {
+              spaceId: "invalid"
+            }
+        }).rejects();
+    
+        // API Call
+        await axios.get(`${host}/api/v1/spaces/invalid/images`).then(res => {
+            assert.fail();
+        })
+        .catch(err => {
+            assert.equal(err.response.status, 400);
+            assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('should return 500 unexpected error trying to get an image given a spaceId', async () => {
+        // Fixture
+        const expected = 'Server error: Could not get spaces.';
+    
+        // Mock DB Query
+        findManyImage.withArgs({
+            skip: undefined,
+            take: undefined,
+            where: {
+              spaceId: 1
+            }
+        }).rejects();
+    
+        // API Call
+        await axios.get(`${host}/api/v1/spaces/1/images`).then(res => {
+            assert.fail();
+        })
+        .catch(err => {
+            assert.equal(err.response.status, 500);
+            assert.equal(err.response.data, expected);
+        });
+    });
+
   });
 }
