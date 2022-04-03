@@ -3,6 +3,7 @@
 const jwt = require('jsonwebtoken');
 const utils = require('../utils');
 const prisma = require('../prisma');
+const fs = require('fs');
 const { Prisma } = require('@prisma/client');
 
 module.exports.getSpaces = async function getSpaces (req, res, next) {
@@ -495,7 +496,7 @@ module.exports.postSpaceRental = async function postSpaceRental (req, res, next)
       rentalToBeCreated.cost = costes;
 
       let rentalToken = jwt.sign(rentalToBeCreated, process.env.JWT_SECRET || 'stackingupsecretlocal', {
-        expiresIn: '1h', 
+        expiresIn: '24h', 
       });
       
       return res.status(200).send(rentalToken.toString());
@@ -518,9 +519,23 @@ module.exports.postSpaceRentalVerify = async function postSpaceRentalVerify (req
 
   // RN001
   if (authToken && rentalToken) {
+    if(fs.existsSync(`${__dirname}/../storedData/rentalTokens.txt`)) {
+      let rentalTokensTxt = fs.readFileSync(`${__dirname}/../storedData/rentalTokens.txt`).toString();
+      
+      let rentalTokens = rentalTokensTxt.split('\n');
+      for(let i = 0; i < rentalTokens.length; i++) {
+        if (rentalTokens[i] === rentalToken) {
+          res.status(400).send('Rental token already used');
+          return;
+        }
+      }
+    }
+
     try {
       jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
       const rentalToBeCreated = jwt.verify(rentalToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
+
+      fs.writeFileSync(`${__dirname}/../storedData/rentalTokens.txt`, rentalToken.toString() + "\n", { flag: 'a' });
 
       await prisma.rental.create({
         data: {

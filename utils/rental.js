@@ -129,7 +129,7 @@ function _calculateCost (rentalToBeCreated, space) {
   }
 
   if (space.shared) {
-    return costs * (rentalToBeCreated.meters / getMeters(space.dimensions));
+    costs = costs * (rentalToBeCreated.meters / getMeters(space.dimensions));
   }
 
   costs = (1.06 * costs) * 1.21; // comisiones e iva aplicados
