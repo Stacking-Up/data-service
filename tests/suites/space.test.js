@@ -6178,7 +6178,7 @@ module.exports = (prisma, jwt) => {
         });
     });
 
-    it('Should return 400 when title or description or rating are missing', async () => {
+    it('Should return 400 when title or description are missing', async () => {
       // Fixture
       const expected = 'Bad Request: Missing required attributes';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
@@ -6186,7 +6186,7 @@ module.exports = (prisma, jwt) => {
       const ratingToBePublished = {
         title: undefined,
         description: undefined,
-        rating: undefined,
+        rating: 4,
       }
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -6335,7 +6335,7 @@ module.exports = (prisma, jwt) => {
 
     it('Should return 400 when rating is lower than 0', async () => {
       // Fixture
-      const expected = 'Bad Request: Rating must be between 0 and 5 or must be a integer number';
+      const expected = 'Bad Request: Rating must be between 1 and 5 or must be a integer number';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
       const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
       const ratingToBePublished = {
@@ -6366,7 +6366,7 @@ module.exports = (prisma, jwt) => {
 
     it('Should return 400 when rating is greater than 5', async () => {
       // Fixture
-      const expected = 'Bad Request: Rating must be between 0 and 5 or must be a integer number';
+      const expected = 'Bad Request: Rating must be between 1 and 5 or must be a integer number';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
       const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
       const ratingToBePublished = {
@@ -6397,7 +6397,7 @@ module.exports = (prisma, jwt) => {
 
     it('Should return 400 when rating is NaN', async () => {
       // Fixture
-      const expected = 'Bad Request: Rating must be between 0 and 5 or must be a integer number';
+      const expected = 'Bad Request: Rating must be between 1 and 5 or must be a integer number';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
       const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
       const ratingToBePublished = {
@@ -6428,7 +6428,7 @@ module.exports = (prisma, jwt) => {
 
     it('Should return 400 when rating is not an integer', async () => {
       // Fixture
-      const expected = 'Bad Request: Rating must be between 0 and 5 or must be a integer number';
+      const expected = 'Bad Request: Rating must be between 1 and 5 or must be a integer number';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
       const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
       const ratingToBePublished = {
