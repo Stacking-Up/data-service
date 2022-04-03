@@ -200,7 +200,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/rating'
+              $ref: '#/components/schemas/userRating'
       responses:
         '201':
           description: Success
@@ -1609,6 +1609,19 @@ components:
         receiverId:
           type: integer
           format: int32
+    userRating:
+      type: object
+      required:
+        - title
+        - description
+        - rating
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        rating:
+          type: integer
     space:
       type: object
       required:

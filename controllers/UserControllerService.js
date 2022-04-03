@@ -4,7 +4,7 @@ const utils = require('../utils');
 const prisma = require('../prisma');
 const jwt = require('jsonwebtoken');
 
-module.exports.getUsers = function getUsers (req, res, next) {
+module.exports.getUsers = function getUsers(req, res, next) {
   prisma.user.findMany({
     skip: req.offset.value,
     take: req.limit.value
@@ -22,7 +22,7 @@ module.exports.getUsers = function getUsers (req, res, next) {
     });
 };
 
-module.exports.getUser = function getUser (req, res, next) {
+module.exports.getUser = function getUser(req, res, next) {
   prisma.user.findUnique({
     where: {
       id: parseInt(req.userId.value)
@@ -45,7 +45,7 @@ module.exports.getUser = function getUser (req, res, next) {
     });
 };
 
-module.exports.getUserItems = function getUserItems (req, res, next) {
+module.exports.getUserItems = function getUserItems(req, res, next) {
   prisma.user.findUnique({
     where: {
       id: parseInt(req.userId.value)
@@ -83,7 +83,7 @@ module.exports.getUserItems = function getUserItems (req, res, next) {
     });
 };
 
-module.exports.getUserItem = function getUserItem (req, res, next) {
+module.exports.getUserItem = function getUserItem(req, res, next) {
   prisma.user.findUnique({
     where: {
       id: parseInt(req.userId.value)
@@ -124,37 +124,28 @@ module.exports.getUserItem = function getUserItem (req, res, next) {
     });
 };
 
-module.exports.postUserRating = async function postUserRating (req, res, next) {
+module.exports.postUserRating = async function postUserRating(req, res, next) {
   const authToken = req.cookies?.authToken;
   const ratingToBePublished = req.swagger.params.body.value;
   if (authToken) {
     try {
       const decoded = jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
 
-      if (!ratingToBePublished.reviewerId || !ratingToBePublished.receiverId || !req.swagger.params.userId.value) {
+      if (!decoded.userId ||!req.swagger.params.userId.value) {
         res.status(400).send('Missing required attributes');
         return;
       }
 
-      if (!ratingToBePublished.reviewerId.toString().match(/^\d+$/) || !req.swagger.params.userId.value.toString().match(/^\d+$/) || !ratingToBePublished.receiverId.toString().match(/^\d+$/)) {
+      if (!req.swagger.params.userId.value.toString().match(/^\d+$/)) {
         res.status(400).send('IDs must be integers');
         return;
       }
 
-      if (parseInt(decoded.userId) !== parseInt(ratingToBePublished.reviewerId)) {
-        res.status(403).send('Forbidden');
-        return;
-      }
-
-      if ((parseInt(ratingToBePublished.reviewerId) === (parseInt(ratingToBePublished.receiverId)) && ((parseInt(ratingToBePublished.reviewerId) === parseInt(req.swagger.params.userId.value))))) {
+      if (parseInt(decoded.userId) === parseInt(req.swagger.params.userId.value)) {
         res.status(400).send('Can not rate yourself');
         return;
       }
 
-      if (parseInt(ratingToBePublished.receiverId) !== parseInt(req.swagger.params.userId.value)) {
-        res.status(400).send('Must match receiverId and userID');
-        return;
-      }
       const userRated = await prisma.user.findUnique({
         where: {
           id: parseInt(req.swagger.params.userId.value)
@@ -183,7 +174,7 @@ module.exports.postUserRating = async function postUserRating (req, res, next) {
           },
           reviewer: {
             connect: {
-              id: parseInt(ratingToBePublished.reviewerId)
+              id: parseInt(decoded.userId)
             }
           }
         }
@@ -206,7 +197,7 @@ module.exports.postUserRating = async function postUserRating (req, res, next) {
   }
 };
 
-module.exports.deleteUserRating = async function deleteUserRating (req, res, next) {
+module.exports.deleteUserRating = async function deleteUserRating(req, res, next) {
   const authToken = req.cookies?.authToken;
   const ratingId = req.swagger.params.ratingId.value;
   if (authToken) {
@@ -260,7 +251,7 @@ module.exports.deleteUserRating = async function deleteUserRating (req, res, nex
   }
 };
 
-module.exports.getUserRatings = function getUserRatings (req, res, next) {
+module.exports.getUserRatings = function getUserRatings(req, res, next) {
   prisma.rating.findMany({
     skip: req.offset.value,
     take: req.limit.value,
@@ -298,7 +289,7 @@ module.exports.getUserRatings = function getUserRatings (req, res, next) {
     });
 };
 
-module.exports.getUserRating = function getUserRating (req, res, next) {
+module.exports.getUserRating = function getUserRating(req, res, next) {
   prisma.user.findUnique({
     where: {
       id: parseInt(req.userId.value)
@@ -337,7 +328,7 @@ module.exports.getUserRating = function getUserRating (req, res, next) {
     });
 };
 
-module.exports.getUserSpaces = function getUserSpaces (req, res, next) {
+module.exports.getUserSpaces = function getUserSpaces(req, res, next) {
   prisma.space.findMany({
     skip: req.offset.value,
     take: req.limit.value,
@@ -370,7 +361,7 @@ module.exports.getUserSpaces = function getUserSpaces (req, res, next) {
     });
 };
 
-module.exports.getUserSpace = function getUserSpace (req, res, next) {
+module.exports.getUserSpace = function getUserSpace(req, res, next) {
   prisma.user.findUnique({
     where: {
       id: parseInt(req.userId.value)
@@ -402,7 +393,7 @@ module.exports.getUserSpace = function getUserSpace (req, res, next) {
     });
 };
 
-module.exports.getUserRentals = function getUserRentals (req, res, next) {
+module.exports.getUserRentals = function getUserRentals(req, res, next) {
   prisma.rental.findMany({
     skip: req.offset.value,
     take: req.limit.value,
@@ -427,7 +418,7 @@ module.exports.getUserRentals = function getUserRentals (req, res, next) {
     });
 };
 
-module.exports.getUserRental = function getUserRental (req, res, next) {
+module.exports.getUserRental = function getUserRental(req, res, next) {
   prisma.user.findUnique({
     where: {
       id: parseInt(req.userId.value)
@@ -468,7 +459,7 @@ module.exports.getUserRental = function getUserRental (req, res, next) {
     });
 };
 
-module.exports.getUserAvatar = async function getUserAvatar (req, res, next) {
+module.exports.getUserAvatar = async function getUserAvatar(req, res, next) {
   await prisma.image.findUnique({
     where: {
       userId: req.userId.value

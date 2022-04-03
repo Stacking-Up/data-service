@@ -6001,8 +6001,6 @@ module.exports = (prisma, jwt) => {
         title: "Increible trato",
         description: "El arrendador fue muy atento y todo fue correcto.",
         rating: 4,
-        receiverId: 2,
-        reviewerId: 1,
       }
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -6059,50 +6057,15 @@ module.exports = (prisma, jwt) => {
         });
     });
 
-    it('Should return 403 when reviewerID is not equal to userID logged in', async () => {
-      // Fixture
-      const expected = 'Forbidden';
-      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
-      const ratingToBePublished = {
-        title: "Increible trato",
-        description: "El arrendador fue muy atento y todo fue correcto.",
-        rating: 4,
-        receiverId: 2,
-        reviewerId: 3,
-      }
-      // Mock Auth and DB Query
-      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
-      findUniqueUser.withArgs({
-        where: {
-          id: 2
-        }
-      }).resolves(userToBeRated);
-
-      // API Call
-      await axios.post(`${host}/api/v1/users/2/rate`, ratingToBePublished, {
-        withCredentials: true,
-        headers: { Cookie: 'authToken=testToken;' }
-      })
-        .then(() => {
-          assert.fail();
-        }).catch(err => {
-          assert.equal(err.response.status, 403);
-          assert.equal(err.response.data, expected);
-        });
-    });
-
-    it('Should return 400 when reviewerID or receiverID are missing', async () => {
+    it('Should return 400 when receiverID or Token reviewerID are missing', async () => {
       // Fixture
       const expected = 'Missing required attributes';
-      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
+      const decodedJwt = { userId: undefined, role: 'VERIFIED', email: 'test@test.com' };
       const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
       const ratingToBePublished = {
         title: "Increible trato",
         description: "El arrendador fue muy atento y todo fue correcto.",
         rating: 4,
-        receiverId: undefined,
-        reviewerId: 1,
       }
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -6113,7 +6076,7 @@ module.exports = (prisma, jwt) => {
       }).resolves(userToBeRated);
 
       // API Call
-      await axios.post(`${host}/api/v1/users/2/rate`, ratingToBePublished, {
+      await axios.post(`${host}/api/v1/users/2.5/rate`, ratingToBePublished, {
         withCredentials: true,
         headers: { Cookie: 'authToken=testToken;' }
       })
@@ -6125,7 +6088,7 @@ module.exports = (prisma, jwt) => {
         });
     });
 
-    it('Should return 400 when reviewerID or receiverID or PathID are not an integer', async () => {
+    it('Should return 400 when receiverID in PATH is not an integer', async () => {
       // Fixture
       const expected = 'IDs must be integers';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
@@ -6134,8 +6097,6 @@ module.exports = (prisma, jwt) => {
         title: "Increible trato",
         description: "El arrendador fue muy atento y todo fue correcto.",
         rating: 4,
-        receiverId: 2,
-        reviewerId: 1.5,
       }
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -6146,7 +6107,7 @@ module.exports = (prisma, jwt) => {
       }).resolves(userToBeRated);
 
       // API Call
-      await axios.post(`${host}/api/v1/users/2/rate`, ratingToBePublished, {
+      await axios.post(`${host}/api/v1/users/2.5/rate`, ratingToBePublished, {
         withCredentials: true,
         headers: { Cookie: 'authToken=testToken;' }
       })
@@ -6167,8 +6128,6 @@ module.exports = (prisma, jwt) => {
         title: "Increible trato",
         description: "El arrendador fue muy atento y todo fue correcto.",
         rating: 5,
-        receiverId: 1,
-        reviewerId: 1,
       }
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -6190,38 +6149,6 @@ module.exports = (prisma, jwt) => {
         });
     });
 
-    it('Should return 400 when an userId in path does not match receiverID', async () => {
-      // Fixture
-      const expected = 'Must match receiverId and userID';
-      const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
-      const userToBeRated = { id: 2, name: 'John', surname: 'Doe' };
-      const ratingToBePublished = {
-        title: "Increible trato",
-        description: "El arrendador fue muy atento y todo fue correcto.",
-        rating: 5,
-        receiverId: 2,
-        reviewerId: 1,
-      }
-      // Mock Auth and DB Query
-      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
-      findUniqueUser.withArgs({
-        where: {
-          id: 2
-        }
-      }).resolves(userToBeRated);
-      // API Call
-      await axios.post(`${host}/api/v1/users/3/rate`, ratingToBePublished, {
-        withCredentials: true,
-        headers: { Cookie: 'authToken=testToken;' }
-      })
-        .then(() => {
-          assert.fail();
-        }).catch(err => {
-          assert.equal(err.response.status, 400);
-          assert.equal(err.response.data, expected);
-        });
-    });
-
     it('Should return 404 when the given userId in path does not exist in DB', async () => {
       // Fixture
       const expected = 'The user to rate does not exist';
@@ -6230,8 +6157,6 @@ module.exports = (prisma, jwt) => {
         title: "Increible trato",
         description: "El arrendador fue muy atento y todo fue correcto.",
         rating: 5,
-        receiverId: 2,
-        reviewerId: 1,
       }
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -6262,8 +6187,6 @@ module.exports = (prisma, jwt) => {
         title: undefined,
         description: undefined,
         rating: undefined,
-        receiverId: 2,
-        reviewerId: 1,
       }
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -6295,8 +6218,6 @@ module.exports = (prisma, jwt) => {
         title: 'te',
         description: 'description',
         rating: 4,
-        receiverId: 2,
-        reviewerId: 1,
       }
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -6328,8 +6249,6 @@ module.exports = (prisma, jwt) => {
         title: 'this title is too long,too long ,too long ,too long ,too long ,too long ,too long  ',
         description: 'description',
         rating: 4,
-        receiverId: 2,
-        reviewerId: 1,
       }
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -6361,8 +6280,6 @@ module.exports = (prisma, jwt) => {
         title: 'titlte',
         description: 'de',
         rating: 4,
-        receiverId: 2,
-        reviewerId: 1,
       }
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -6394,8 +6311,6 @@ module.exports = (prisma, jwt) => {
         title: 'this title',
         description: 'description is too long,too long ,too long ,too long ,too long ,too long ,too long, ,too long,,too long,,too long,,too long,,too long,,too long,,too long  ',
         rating: 4,
-        receiverId: 2,
-        reviewerId: 1,
       }
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -6427,8 +6342,6 @@ module.exports = (prisma, jwt) => {
         title: 'title',
         description: 'description',
         rating: -1,
-        receiverId: 2,
-        reviewerId: 1,
       }
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -6460,8 +6373,6 @@ module.exports = (prisma, jwt) => {
         title: 'title',
         description: 'description',
         rating: 6,
-        receiverId: 2,
-        reviewerId: 1,
       }
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -6493,8 +6404,6 @@ module.exports = (prisma, jwt) => {
         title: 'title',
         description: 'description',
         rating: 'rating',
-        receiverId: 2,
-        reviewerId: 1,
       }
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -6526,8 +6435,6 @@ module.exports = (prisma, jwt) => {
         title: 'title',
         description: 'description',
         rating: 3.6,
-        receiverId: 2,
-        reviewerId: 1,
       }
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
@@ -6580,8 +6487,6 @@ module.exports = (prisma, jwt) => {
         title: 'title',
         description: 'description',
         rating: 3,
-        receiverId: 2,
-        reviewerId: 1,
       }
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
