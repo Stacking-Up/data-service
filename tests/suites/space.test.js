@@ -4135,7 +4135,7 @@ module.exports = (prisma, jwt) => {
         dimensions: "100x3", priceDay: 56, priceMonth: 456, shared: false, ownerId: 2
       }
 
-      const expected = 'Bad Request: Space must have a price per hour to rent per hour';
+      const expected = 'Bad Request: Space must have a price per hour, start and end hour to rent per hour';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
       const rentalToPublish = {
         initialDate: "2900-01-01T00:00:00.000Z",

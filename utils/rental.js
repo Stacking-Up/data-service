@@ -76,15 +76,9 @@ function _checkRentalBusinessLogic (rentalToBeCreated, space, errors) {
   const tomorrow = new Date();
   tomorrow.setHours(tomorrow.getHours() + 24);
 
-  const rentalInitialHour = new Date(rentalInitialDateToBeCreated);
-  const rentalFinalHour = new Date(rentalFinalDateToBeCreated);
-
-  rentalInitialHour.setFullYear(1970, 0, 1);
-  rentalFinalHour.setFullYear(1970, 0, 1);
-
   // RN05 - RN06 junto a funcion para comprobar si el espacio esta disponible para alquilar - RN07
-  if (rentalToBeCreated.type === 'HOUR' && !space.priceHour) {
-    errors.push('Space must have a price per hour to rent per hour');
+  if (rentalToBeCreated.type === 'HOUR' && (!space.priceHour || !space.startHour || !space.endHour)) {
+    errors.push('Space must have a price per hour, start and end hour to rent per hour');
   } else if (rentalToBeCreated.type === 'DAY' && !space.priceDay) {
     errors.push('Space must have a price per day to rent per day');
   } else if (rentalToBeCreated.type === 'MONTH' && !space.priceMonth) {
@@ -101,14 +95,31 @@ function _checkRentalBusinessLogic (rentalToBeCreated, space, errors) {
     errors.push('Space not available or space capacity exceeded');
   } else if (!space.shared && rentalMetersToBeCreated !== getMeters(space.dimensions)) {
     errors.push('Meters must be equal to space meters');
-  } else if (rentalToBeCreated.type === 'HOUR' && ((space.startHour && rentalInitialHour < space.startHour) || (space.endHour && rentalInitialHour > space.endHour))) {
+  } else if (rentalToBeCreated.type === 'HOUR' && (_compareHours(rentalInitialDateToBeCreated, space.startHour) === -1 || _compareHours(rentalInitialDateToBeCreated, space.endHour) === 1)) {
     errors.push('Initial hour must be between space hours');
-  } else if (rentalToBeCreated.type === 'HOUR' && ((space.startHour && rentalFinalHour < space.startHour) || (space.endHour && rentalFinalHour > space.endHour))) {
+  } else if (rentalToBeCreated.type === 'HOUR' && (_compareHours(rentalFinalDateToBeCreated, space.startHour) === -1 || _compareHours(rentalFinalDateToBeCreated, space.endHour) === 1)) {
     errors.push('Final hour must be between space hours');
   } else if (rentalToBeCreated.type === 'MONTH' && differenceInCalendarDays(rentalFinalDateToBeCreated, rentalInitialDateToBeCreated) % 30 !== 0) {
     errors.push('Monthly rentals must be made in 30 days');
   }
   return errors;
+}
+
+/* istanbul ignore next */
+function _compareHours (date1, date2) {
+  if (date1.getUTCHours() > date2.getUTCHours()) {
+    return 1;
+  } else if (date1.getUTCHours() < date2.getUTCHours()) {
+    return -1;
+  } else {
+    if (date1.getMinutes() > date2.getMinutes()) {
+      return 1;
+    } else if (date1.getMinutes() < date2.getMinutes()) {
+      return -1;
+    } else {
+      return 0;
+    }
+  }
 }
 
 function _calculateCost (rentalToBeCreated, space) {
