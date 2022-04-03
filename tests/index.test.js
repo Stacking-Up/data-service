@@ -9,6 +9,7 @@ const itemTest = require('./suites/item.test');
 const server = require('../server');
 const prisma = require('../prisma');
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
 
 describe('========== UNIT TESTING ==========', () => {
     before( (done) => {
@@ -23,6 +24,7 @@ describe('========== UNIT TESTING ==========', () => {
     describe('\n  ITEM TESTS', itemTest.bind(this, prisma));
 
     after( (done) => {
+        fs.rmSync(`${__dirname}/../storedData`, { recursive: true, force: true });
         server.undeploy();
         done();
     });

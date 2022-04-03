@@ -5168,9 +5168,7 @@ module.exports = (prisma, jwt) => {
         });
     });
 
-    it('Should post a rental of a space (shared, not overlapping)', async () => {
-      fs.writeFileSync(`${__dirname}/../../storedData/rentalTokens.txt`, '', { flag: 'w' });
-      
+    it('Should post a rental of a space (shared, not overlapping)', async () => {      
       //Fixture
       const expected = { rentalId: 1 };
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
@@ -5209,14 +5207,10 @@ module.exports = (prisma, jwt) => {
         .then(res => {
           assert.equal(res.status, 201);
           assert.deepEqual(res.data, expected);
-        })
-      
-      fs.unlinkSync(`${__dirname}/../../storedData/rentalTokens.txt`)
+        })      
     });
 
     it('Should return 400 when token already used', async () => {
-      fs.writeFileSync(`${__dirname}/../../storedData/rentalTokens.txt`, 'rentalTestToken' + "\n", { flag: 'w' });
-
       //Fixture
       const expected = 'Rental token already used';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
@@ -5244,9 +5238,7 @@ module.exports = (prisma, jwt) => {
         }).catch(err =>{
           assert.equal(err.response.status, 400);
           assert.equal(err.response.data, expected);
-        });
-      
-      fs.unlinkSync(`${__dirname}/../../storedData/rentalTokens.txt`)
+        });      
     });
 
     it('Should return a 500 error when trying to post a rental', async () => {      
@@ -5276,12 +5268,12 @@ module.exports = (prisma, jwt) => {
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
-      verify.withArgs('rentalTestToken', 'stackingupsecretlocal').returns(decodedRentalToken);
+      verify.withArgs('rentalTestToken2', 'stackingupsecretlocal').returns(decodedRentalToken);
       
       createRental.rejects();
 
       //API Call
-      await axios.post(`${host}/api/v1/spaces/rentals/confirmation`, {rentalToken: 'rentalTestToken'}, {
+      await axios.post(`${host}/api/v1/spaces/rentals/confirmation`, {rentalToken: 'rentalTestToken2'}, {
         withCredentials: true,
         headers: { Cookie: 'authToken=testToken;' }
       })
@@ -5291,14 +5283,10 @@ module.exports = (prisma, jwt) => {
         .catch(err => {
           assert.equal(err.response.status, 500);
           assert.equal(err.response.data, expected)
-        });
-      
-      fs.unlinkSync(`${__dirname}/../../storedData/rentalTokens.txt`)
+        });      
     });
 
-    it('Should return a 401 error when trying to verify a token', async () => {
-      fs.writeFileSync(`${__dirname}/../../storedData/rentalTokens.txt`, '', { flag: 'w' });
-      
+    it('Should return a 401 error when trying to verify a token', async () => {      
       //Fixture
       const expected = 'Token error: jwt malformed';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
@@ -5314,10 +5302,10 @@ module.exports = (prisma, jwt) => {
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').throws(new jwt.JsonWebTokenError('jwt malformed'));
-      verify.withArgs('rentalTestToken', 'stackingupsecretlocal').returns(decodedRentalToken);
+      verify.withArgs('rentalTestToken3', 'stackingupsecretlocal').returns(decodedRentalToken);
       
       //API Call
-      await axios.post(`${host}/api/v1/spaces/rentals/confirmation`, {rentalToken: 'rentalTestToken'}, {
+      await axios.post(`${host}/api/v1/spaces/rentals/confirmation`, {rentalToken: 'rentalTestToken3'}, {
         withCredentials: true,
         headers: { Cookie: 'authToken=testToken;' }
       })
@@ -5327,14 +5315,10 @@ module.exports = (prisma, jwt) => {
         .catch(err => {
           assert.equal(err.response.status, 401);
           assert.equal(err.response.data, expected)
-        });
-      
-      fs.unlinkSync(`${__dirname}/../../storedData/rentalTokens.txt`)
+        });      
     });
 
-    it('Should return a 500 error when trying to verify a token', async () => {
-      fs.writeFileSync(`${__dirname}/../../storedData/rentalTokens.txt`, '', { flag: 'a' });
-      
+    it('Should return a 500 error when trying to verify a token', async () => {      
       //Fixture
       const expected = 'Internal Server Error';
       const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
@@ -5350,10 +5334,10 @@ module.exports = (prisma, jwt) => {
 
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').throws(new Error('Internal Server Error'));
-      verify.withArgs('rentalTestToken', 'stackingupsecretlocal').returns(decodedRentalToken);
+      verify.withArgs('rentalTestToken4', 'stackingupsecretlocal').returns(decodedRentalToken);
       
       //API Call
-      await axios.post(`${host}/api/v1/spaces/rentals/confirmation`, {rentalToken: 'rentalTestToken'}, {
+      await axios.post(`${host}/api/v1/spaces/rentals/confirmation`, {rentalToken: 'rentalTestToken4'}, {
         withCredentials: true,
         headers: { Cookie: 'authToken=testToken;' }
       })
@@ -5363,9 +5347,7 @@ module.exports = (prisma, jwt) => {
         .catch(err => {
           assert.equal(err.response.status, 500);
           assert.equal(err.response.data, expected)
-        });
-      
-      fs.unlinkSync(`${__dirname}/../../storedData/rentalTokens.txt`)
+        });      
     });
 
     it('Should return a 401 error when invalid tokens provided ', async () => {      

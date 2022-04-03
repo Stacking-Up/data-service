@@ -523,17 +523,25 @@ module.exports.postSpaceRentalVerify = async function postSpaceRentalVerify (req
       jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
       const rentalToBeCreated = jwt.verify(rentalToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
 
-      if (fs.existsSync(path.join(__dirname, '/../storedData/rentalTokens.txt'))) {
-        const rentalTokensTxt = fs.readFileSync(path.join(__dirname, '/../storedData/rentalTokens.txt')).toString();
-        const rentalTokens = rentalTokensTxt.split('\n');
-        for (let i = 0; i < rentalTokens.length; i++) {
-          if (rentalTokens[i] === rentalToken) {
-            res.status(400).send('Rental token already used');
-            return;
-          }
+      /* istanbul ignore next */      
+      if (!fs.existsSync(path.join(__dirname, '/../storedData/rentalTokens.txt'))) {
+        /* istanbul ignore next */      
+        if(!fs.existsSync(path.join(__dirname, '/../storedData'))) {
+          fs.mkdirSync(path.join(__dirname, '/../storedData'), { recursive: true });
         }
+        /* istanbul ignore next */      
+        fs.writeFileSync(path.join(__dirname, '/../storedData/rentalTokens.txt'), '', { flag: 'w' });
       }
 
+      const rentalTokensTxt = fs.readFileSync(path.join(__dirname, '/../storedData/rentalTokens.txt')).toString();
+      const rentalTokens = rentalTokensTxt.split('\n');
+
+      for (let i = 0; i < rentalTokens.length; i++) {
+        if (rentalTokens[i] === rentalToken) {
+          res.status(400).send('Rental token already used');
+          return;
+        }
+      }
       fs.writeFileSync(path.join(__dirname, '/../storedData/rentalTokens.txt'), rentalToken.toString() + '\n', { flag: 'a' });
 
       await prisma.rental.create({
