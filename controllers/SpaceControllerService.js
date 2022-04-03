@@ -516,7 +516,7 @@ module.exports.postSpaceRental = async function postSpaceRental (req, res, next)
 module.exports.postSpaceRentalVerify = async function postSpaceRentalVerify (req, res, next) {
   const authToken = req.cookies?.authToken;
   const rentalToken = req.swagger.params.body.value.rentalToken;
-
+  
   // RN001
   if (authToken && rentalToken) {
     try {
@@ -525,7 +525,6 @@ module.exports.postSpaceRentalVerify = async function postSpaceRentalVerify (req
 
       if(fs.existsSync(`${__dirname}/../storedData/rentalTokens.txt`)) {
         let rentalTokensTxt = fs.readFileSync(`${__dirname}/../storedData/rentalTokens.txt`).toString();
-        
         let rentalTokens = rentalTokensTxt.split('\n');
         for(let i = 0; i < rentalTokens.length; i++) {
           if (rentalTokens[i] === rentalToken) {
