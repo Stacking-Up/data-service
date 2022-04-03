@@ -877,24 +877,24 @@ module.exports = (prisma, jwt) => {
       // Fixture
       const dbOutput = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z",
-        publishDate: "1970-01-01T00:00:00.000Z", startHour: null, endHour: null, location: "Cadiz", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
+        publishDate: "1970-01-01T00:00:00.000Z", startHour: new Date(1111111), endHour: new Date(1111112), location: "Cadiz", city: "Cadiz", province: "Provincia de Cadiz", country: "España",
         dimensions: "1x3", priceHour: null, priceDay: 56, priceMonth: 456, shared: false, ownerId: 1, tags: [{ tag: "GARAGE" }, { tag: "DRY" }], owner: { id: 1, ratings: [] }
       },
       {
         id: 2, name: "casa", description: "Esto es una casa", initialDate: "1970-01-01T00:00:00.000Z", finalDate: null,
-        publishDate: "1970-01-01T00:00:00.000Z", startHour: null, endHour: null, location: "Sevilla", city: "Sevilla", province: "Provincia de Sevilla", country: "España",
+        publishDate: "1970-01-01T00:00:00.000Z", startHour: new Date(11111111), endHour: new Date(11111113), location: "Sevilla", city: "Sevilla", province: "Provincia de Sevilla", country: "España",
         dimensions: "2x4", priceHour: 8, priceDay: null, priceMonth: 760, shared: false, ownerId: 1, tags: [{ tag: "DRY" }], owner: { id: 1, ratings: [] }
       }
       ];
 
       const expected = [{
         id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "2023-01-01T00:00:00.000Z", publishDate: "1970-01-01T00:00:00.000Z", location: "Cadiz",
-        city: "Cadiz", province: "Provincia de Cadiz", country: "España",
+        city: "Cadiz", province: "Provincia de Cadiz", country: "España", startHour: 1111111, endHour: 1111112,
         dimensions: "1x3", priceDay: 56, priceMonth: 456, shared: false, ownerId: 1, tags: ["GARAGE", "DRY"], owner: { id: 1, ratings: [] }, images: []
       },
       {
         id: 2, name: "casa", description: "Esto es una casa", initialDate: "1970-01-01T00:00:00.000Z", publishDate: "1970-01-01T00:00:00.000Z", location: "Sevilla",
-        city: "Sevilla", province: "Provincia de Sevilla", country: "España",
+        city: "Sevilla", province: "Provincia de Sevilla", country: "España", startHour: 11111111, endHour: 11111113,
         dimensions: "2x4", priceHour: 8, priceMonth: 760, shared: false, ownerId: 1, tags: ["DRY"], owner: { id: 1, ratings: [] }, images: []
       }
       ];
