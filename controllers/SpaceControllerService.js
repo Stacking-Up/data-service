@@ -5,6 +5,7 @@ const utils = require('../utils');
 const prisma = require('../prisma');
 const fs = require('fs');
 const { Prisma } = require('@prisma/client');
+const path = require('path');
 
 module.exports.getSpaces = async function getSpaces (req, res, next) {
   // Get tags selected for tag filtering
@@ -495,12 +496,11 @@ module.exports.postSpaceRental = async function postSpaceRental (req, res, next)
       const costes = utils.rental.calculateCost(rentalToBeCreated, spaceToAddRental);
       rentalToBeCreated.cost = costes;
 
-      let rentalToken = jwt.sign(rentalToBeCreated, process.env.JWT_SECRET || 'stackingupsecretlocal', {
-        expiresIn: '24h', 
+      const rentalToken = jwt.sign(rentalToBeCreated, process.env.JWT_SECRET || 'stackingupsecretlocal', {
+        expiresIn: '24h'
       });
-      
-      return res.status(200).send(rentalToken.toString());
 
+      return res.status(200).send(rentalToken.toString());
     } catch (err) {
       if (err instanceof jwt.JsonWebTokenError) {
         res.status(401).send(`Unauthorized: ${err.message}`);
@@ -516,17 +516,17 @@ module.exports.postSpaceRental = async function postSpaceRental (req, res, next)
 module.exports.postSpaceRentalVerify = async function postSpaceRentalVerify (req, res, next) {
   const authToken = req.cookies?.authToken;
   const rentalToken = req.swagger.params.body.value.rentalToken;
-  
+
   // RN001
   if (authToken && rentalToken) {
     try {
       jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
       const rentalToBeCreated = jwt.verify(rentalToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
 
-      if(fs.existsSync(`${__dirname}/../storedData/rentalTokens.txt`)) {
-        let rentalTokensTxt = fs.readFileSync(`${__dirname}/../storedData/rentalTokens.txt`).toString();
-        let rentalTokens = rentalTokensTxt.split('\n');
-        for(let i = 0; i < rentalTokens.length; i++) {
+      if (fs.existsSync(path.join(__dirname, '/../storedData/rentalTokens.txt'))) {
+        const rentalTokensTxt = fs.readFileSync(path.join(__dirname, '/../storedData/rentalTokens.txt')).toString();
+        const rentalTokens = rentalTokensTxt.split('\n');
+        for (let i = 0; i < rentalTokens.length; i++) {
           if (rentalTokens[i] === rentalToken) {
             res.status(400).send('Rental token already used');
             return;
@@ -534,7 +534,7 @@ module.exports.postSpaceRentalVerify = async function postSpaceRentalVerify (req
         }
       }
 
-      fs.writeFileSync(`${__dirname}/../storedData/rentalTokens.txt`, rentalToken.toString() + "\n", { flag: 'a' });
+      fs.writeFileSync(path.join(__dirname, '/../storedData/rentalTokens.txt'), rentalToken.toString() + '\n', { flag: 'a' });
 
       await prisma.rental.create({
         data: {
@@ -555,7 +555,7 @@ module.exports.postSpaceRentalVerify = async function postSpaceRentalVerify (req
           }
         }
       }).then((rentalCreated) => {
-        res.status(201).send({rentalId : rentalCreated.id});
+        res.status(201).send({ rentalId: rentalCreated.id });
       }).catch((err) => {
         console.error(err);
         res.status(500).send('Internal Server Error');
@@ -570,4 +570,4 @@ module.exports.postSpaceRentalVerify = async function postSpaceRentalVerify (req
   } else {
     res.status(401).send('Unauthorized or missing rental token');
   }
-}
+};
