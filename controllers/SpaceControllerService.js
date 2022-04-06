@@ -94,7 +94,7 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
           return [...acc, space];
         }, []);
         /* istanbul ignore next */
-        res.send(spacesNotSorted.slice(req.offset?.value, req.offset?.value + req.limit?.value ? req.limit?.value : spacesNotSorted.length));
+        res.send(spacesNotSorted.slice(req.offset?.value, req.offset?.value + (req.limit?.value ? req.limit?.value : spacesNotSorted.length)));
       });
     })
     .catch(err => {
