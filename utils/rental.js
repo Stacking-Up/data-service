@@ -2,7 +2,7 @@
 
 const { RentalType } = require('@prisma/client');
 const { getMeters } = require('./space');
-const { differenceInCalendarMonths, differenceInCalendarDays, differenceInHours } = require('date-fns');
+const { differenceInHours } = require('date-fns');
 
 module.exports.checkRentalValidity = (rental, space) => {
   const errors = [];
@@ -99,8 +99,8 @@ function _checkRentalBusinessLogic (rentalToBeCreated, space, errors) {
     errors.push('Initial hour must be between space hours');
   } else if (rentalToBeCreated.type === 'HOUR' && (_compareHours(rentalFinalDateToBeCreated, space.startHour) === -1 || _compareHours(rentalFinalDateToBeCreated, space.endHour) === 1)) {
     errors.push('Final hour must be between space hours');
-  } else if (rentalToBeCreated.type === 'MONTH' && differenceInCalendarDays(rentalFinalDateToBeCreated, rentalInitialDateToBeCreated) % 30 !== 0) {
-    errors.push('Monthly rentals must be made in 30 days');
+  } else if (rentalToBeCreated.type === 'MONTH' && (((rentalFinalDateToBeCreated.getTime() - rentalInitialDateToBeCreated.getTime()) / (1000 * 60 * 60 * 24)).toPrecision(2) - 1) % 30 !== 0) {
+    errors.push('Monthly rentals must have a difference of 30 days between initial and final date');
   }
   return errors;
 }
@@ -133,10 +133,10 @@ function _calculateCost (rentalToBeCreated, space) {
       costs = (differenceInHours(rentalFinalDateToBeCreated, rentalInitialDateToBeCreated, { roundingMethod: 'ceil' }) || 1) * space.priceHour; break;
     case 'DAY':
       /* istanbul ignore next */
-      costs = (differenceInCalendarDays(rentalFinalDateToBeCreated, rentalInitialDateToBeCreated) + 1 || 1) * space.priceDay; break;
+      costs = (((rentalFinalDateToBeCreated.getTime() - rentalInitialDateToBeCreated.getTime()) / (1000 * 60 * 60 * 24)).toPrecision(2) || 1) * space.priceDay; break;
     case 'MONTH':
       /* istanbul ignore next */
-      costs = (differenceInCalendarMonths(rentalFinalDateToBeCreated, rentalInitialDateToBeCreated) + 1 || 1) * space.priceMonth; break;
+      costs = ((((rentalFinalDateToBeCreated.getTime() - rentalInitialDateToBeCreated.getTime()) / (1000 * 60 * 60 * 24)).toPrecision(2) - 1) % 30 || 1) * space.priceMonth; break;
   }
 
   if (space.shared) {

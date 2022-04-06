@@ -249,7 +249,7 @@ module.exports.putSpace = async function putSpace (req, res, next) {
         return;
       }
 
-      if (decoded.role === 'USER' || parseInt(decoded.userId) !== parseInt(spaceToBeUpdated.ownerId)) {
+      if (decoded.role === 'USER' || (decoded.role !== 'ADMIN' && parseInt(decoded.userId) !== parseInt(spaceToBeUpdated.ownerId))) {
         res.status(403).send('Forbidden');
         return;
       }
@@ -353,7 +353,7 @@ module.exports.deleteSpace = async function deleteSpace (req, res, next) {
       });
 
       if (space) {
-        if (decoded.role === 'USER' || parseInt(decoded.userId) !== parseInt(space.ownerId)) {
+        if (decoded.role === 'USER' || (decoded.role !== 'ADMIN' && parseInt(decoded.userId) !== parseInt(space.ownerId))) {
           res.status(403).send('Forbidden');
           return;
         }

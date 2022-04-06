@@ -4410,7 +4410,7 @@ module.exports = (prisma, jwt) => {
 
       const rentalToBeCreated = {
         initialDate: new Date("2900-04-01T00:00:00.000Z"),
-        finalDate: new Date("2900-05-01T00:00:00.000Z"),
+        finalDate: new Date("2900-05-01T23:59:59.000Z"),
         cost: 456,
         type: 'MONTH',
         meters: 5,
@@ -6960,6 +6960,14 @@ module.exports = (prisma, jwt) => {
       }
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueUser.withArgs({
+        where: {
+          id: 1
+        },
+        include: {
+          auth: true
+        }
+      }).resolves({auth: {role: 'VERIFIED'}});
       findUniqueImage.resolves();
       updateUser.resolves();
       
@@ -6996,6 +7004,14 @@ module.exports = (prisma, jwt) => {
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
       findUniqueImage.resolves();
+      findUniqueUser.withArgs({
+        where: {
+          id: 2
+        },
+        include: {
+          auth: true
+        }
+      }).resolves({auth: {role: 'USER'}});
       updateUser.resolves();
       
       // API Call
@@ -7214,6 +7230,15 @@ module.exports = (prisma, jwt) => {
       }
       // Mock Auth and DB Query
       verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueUser.withArgs({
+        where: {
+          id: 1
+        },
+        include: {
+          auth: true
+        }
+      }).resolves({auth: {role: 'USER'}});
+      updateUser.resolves();
       findUniqueImage.resolves();
       updateUser.resolves();
       
@@ -7227,6 +7252,47 @@ module.exports = (prisma, jwt) => {
           assert.equal(res.data, expected);
         }).catch( err => {
           assert.fail()
+        });
+    });
+
+    it('Should return 400 when not finding any user by the userId given', async () => {
+      // Fixture
+      const expected = 'User not found';
+      const decodedJwt = { userId: 1, role: 'ADMIN', email: 'test@test.com' };
+      const userToBeUpdated = {
+        name: "updated",
+        surname: "updated",
+        birthDate: "2000-03-30T09:49:30.610Z",
+        sex: "MALE",
+        idCard: "12345678Z",
+        location: "Sevilla",
+        avatar: fs.readFileSync(`${__dirname}/../assets/Test.jpeg`, 'base64')
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      const error = new (require('@prisma/client/runtime').PrismaClientKnownRequestError)('User not found', 'P2025');
+      findUniqueUser.withArgs({
+        where: {
+          id: 88
+        },
+        include: {
+          auth: true
+        }
+      }).rejects(error);
+      updateUser.resolves();
+      findUniqueImage.resolves();
+      updateUser.resolves();
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/88`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.fail()
+        }).catch( err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
         });
     });
 
@@ -7557,6 +7623,7 @@ module.exports = (prisma, jwt) => {
         });
     });
 
+    
     it('Should return 500 when prisma update fails', async () => {
       // Fixture
       const expected = 'Internal Server Error';
@@ -7577,6 +7644,46 @@ module.exports = (prisma, jwt) => {
         })
         .then( () => {
           assert.fail();
+        }).catch( err => {
+          assert.equal(err.response.status, 500);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 500 when trying to get an user of db', async () => {
+      // Fixture
+      const expected = 'Server error: Could not get the role of the user.';
+      const decodedJwt = { userId: 1, role: 'ADMIN', email: 'test@test.com' };
+      const userToBeUpdated = {
+        name: "updated",
+        surname: "updated",
+        birthDate: "2000-03-30T09:49:30.610Z",
+        sex: "MALE",
+        idCard: "12345678Z",
+        location: "Sevilla",
+        avatar: fs.readFileSync(`${__dirname}/../assets/Test.jpeg`, 'base64')
+      }
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUniqueUser.withArgs({
+        where: {
+          id: 1
+        },
+        include: {
+          auth: true
+        }
+      }).rejects('Unknown error');
+      updateUser.resolves();
+      findUniqueImage.resolves();
+      updateUser.resolves();
+      
+      // API Call
+      await axios.put(`${host}/api/v1/users/1`, userToBeUpdated, { 
+          withCredentials: true, 
+          headers: {Cookie: 'authToken=testToken;'}
+        })
+        .then( res => {
+          assert.fail()
         }).catch( err => {
           assert.equal(err.response.status, 500);
           assert.equal(err.response.data, expected);
