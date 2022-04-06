@@ -3,7 +3,9 @@
 const jwt = require('jsonwebtoken');
 const utils = require('../utils');
 const prisma = require('../prisma');
+const fs = require('fs');
 const { Prisma } = require('@prisma/client');
+const path = require('path');
 
 module.exports.getSpaces = async function getSpaces (req, res, next) {
   // Get tags selected for tag filtering
@@ -26,7 +28,7 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
   const maxPriceMonth = req.maxPriceMonth.value || Number.MAX_VALUE;
 
   const sort = {};
-  if (req.orderBy.value?.match(/(?:price(?:Hour|Day|Month)|initialDate)-(?:asc|desc)/)) {
+  if (req.orderBy.value?.match(/(?:price(?:Hour|Day|Month)|initialDate|publishDate)-(?:asc|desc)/)) {
     const [key, value] = req.orderBy.value.split('-');
     sort[key] = value;
   }
@@ -34,8 +36,6 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
   const actualDate = new Date();
   actualDate.setMilliseconds(0);
   await prisma.space.findMany({
-    take: req.limit.value,
-    skip: req.offset.value,
     where: {
       AND: [
         { shared: { equals: req.shared.value } },
@@ -49,14 +49,20 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
     },
     include: {
       tags: true,
-      images: true
+      images: true,
+      owner: {
+        select: {
+          id: true,
+          ratings: { select: { receiverId: true, rating: true } }
+        }
+      }
     },
     orderBy: sort
   })
     .then(spaces => {
       utils.space.spaceFilter(spaces, async (space) => {
         const inRangeDimension = utils.space.inRange(minDimension, maxDimension, utils.space.getMeters(space.dimensions));
-        const fieldSearch = await utils.space.fieldSearch(space.name, space.description, space.location, req.search.value);
+        const fieldSearch = await utils.space.fieldSearch(space.name, space.description, space.location, space.city, space.province, space.country, req.search.value);
         const includeTags = utils.space.includesTags(tagsFilter, utils.space.tagsToArray(space.tags));
         const inRangePriceHour = utils.space.inRange(minPriceHour, maxPriceHour, space.priceHour);
         const inRangePriceDay = utils.space.inRange(minPriceDay, maxPriceDay, space.priceDay);
@@ -67,11 +73,28 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
 
         return inRangeDimension && fieldSearch && includeTags && inRangePriceHour && inRangePriceDay && inRangePriceMonth && isRentPerHour && isRentedPerDay && isRentedPerMonth;
       }).then(spacesFiltered => {
-        res.send(spacesFiltered.map(space => utils.commons.notNulls(space)).reduce((acc, space) => {
+        let spacesNotSorted = spacesFiltered.map(space => utils.commons.notNulls(space));
+        if (req.orderByRatings.value) {
+          const sortingPerRatings = req.orderByRatings.value.toLowerCase() === 'asc'
+            ? (a, b) => utils.space.mediaRatings(a.owner.ratings) - utils.space.mediaRatings(b.owner.ratings)
+            : (a, b) => utils.space.mediaRatings(b.owner.ratings) - utils.space.mediaRatings(a.owner.ratings);
+          spacesNotSorted.sort(sortingPerRatings);
+        }
+        if (req.orderByLocation.value) {
+          const [userLatitude, userLongitude] = req.orderByLocation.value.split(',');
+          const sortingPerLocations = (a, b) => utils.space.getDistanceFromLatLonInKm(parseFloat(userLatitude), parseFloat(userLongitude), parseFloat(a.location.split(',')[0]), parseFloat(a.location.split(',')[1])) -
+            utils.space.getDistanceFromLatLonInKm(parseFloat(userLatitude), parseFloat(userLongitude), parseFloat(b.location.split(',')[0]), parseFloat(b.location.split(',')[1]));
+          spacesNotSorted.sort(sortingPerLocations);
+        }
+        spacesNotSorted = spacesNotSorted.reduce((acc, space) => {
+          if (space.startHour) space.startHour = space.startHour.getTime();
+          if (space.endHour) space.endHour = space.endHour.getTime();
           space.tags = space.tags?.map(tag => tag.tag);
           space.images = (space.images && space.images.length !== 0) ? [{ image: space.images[0].image.toString('base64'), mimetype: space.images[0].mimetype }] : [];
           return [...acc, space];
-        }, []));
+        }, []);
+        /* istanbul ignore next */
+        res.send(spacesNotSorted.slice(req.offset?.value || 0, (req.offset?.value || 0) + (req.limit?.value ? req.limit?.value : spacesNotSorted.length)));
       });
     })
     .catch(err => {
@@ -93,6 +116,8 @@ module.exports.getSpace = function getSpace (req, res, next) {
       if (!space) {
         res.status(404).send('Space not found');
       } else {
+        space.startHour = space.startHour?.getTime();
+        space.endHour = space.endHour?.getTime();
         res.send(utils.commons.excludeNulls(space));
       }
     })
@@ -161,7 +186,13 @@ module.exports.postSpace = async function postSpace (req, res, next) {
           description: spaceToBePublished.description,
           initialDate: new Date(spaceToBePublished.initialDate),
           finalDate: spaceToBePublished.finalDate ? new Date(spaceToBePublished.finalDate) : null,
+          startHour: spaceToBePublished.startHour ? spaceToBePublished.startHour : null,
+          endHour: spaceToBePublished.endHour ? spaceToBePublished.endHour : null,
+          publishDate: new Date(),
           location: spaceToBePublished.location,
+          city: spaceToBePublished.city,
+          province: spaceToBePublished.province,
+          country: spaceToBePublished.country,
           dimensions: spaceToBePublished.dimensions,
           priceHour: parseFloat(spaceToBePublished.priceHour),
           priceDay: parseFloat(spaceToBePublished.priceDay),
@@ -218,7 +249,7 @@ module.exports.putSpace = async function putSpace (req, res, next) {
         return;
       }
 
-      if (decoded.role === 'USER' || parseInt(decoded.userId) !== parseInt(spaceToBeUpdated.ownerId)) {
+      if (decoded.role === 'USER' || (decoded.role !== 'ADMIN' && parseInt(decoded.userId) !== parseInt(spaceToBeUpdated.ownerId))) {
         res.status(403).send('Forbidden');
         return;
       }
@@ -243,7 +274,13 @@ module.exports.putSpace = async function putSpace (req, res, next) {
           description: spaceToBeUpdated.description,
           initialDate: new Date(spaceToBeUpdated.initialDate),
           finalDate: spaceToBeUpdated.finalDate ? new Date(spaceToBeUpdated.finalDate) : null,
+          startHour: spaceToBeUpdated.startHour ? spaceToBeUpdated.startHour : null,
+          endHour: spaceToBeUpdated.endHour ? spaceToBeUpdated.endHour : null,
+          publishDate: new Date(),
           location: spaceToBeUpdated.location,
+          city: spaceToBeUpdated.city,
+          province: spaceToBeUpdated.province,
+          country: spaceToBeUpdated.country,
           dimensions: spaceToBeUpdated.dimensions,
           priceHour: parseFloat(spaceToBeUpdated.priceHour),
           priceDay: parseFloat(spaceToBeUpdated.priceDay),
@@ -316,7 +353,7 @@ module.exports.deleteSpace = async function deleteSpace (req, res, next) {
       });
 
       if (space) {
-        if (decoded.role === 'USER' || parseInt(decoded.userId) !== parseInt(space.ownerId)) {
+        if (decoded.role === 'USER' || (decoded.role !== 'ADMIN' && parseInt(decoded.userId) !== parseInt(space.ownerId))) {
           res.status(403).send('Forbidden');
           return;
         }
@@ -430,6 +467,7 @@ module.exports.postSpaceRental = async function postSpaceRental (req, res, next)
           rentals: true
         }
       });
+
       if (!spaceToAddRental) {
         res.status(400).send('No space found with this Id');
         return;
@@ -455,11 +493,62 @@ module.exports.postSpaceRental = async function postSpaceRental (req, res, next)
         return;
       }
 
+      const costes = utils.rental.calculateCost(rentalToBeCreated, spaceToAddRental);
+      rentalToBeCreated.cost = costes;
+
+      const rentalToken = jwt.sign(rentalToBeCreated, process.env.JWT_SECRET || 'stackingupsecretlocal', {
+        expiresIn: '24h'
+      });
+
+      return res.status(200).send(rentalToken.toString());
+    } catch (err) {
+      if (err instanceof jwt.JsonWebTokenError) {
+        res.status(401).send(`Unauthorized: ${err.message}`);
+      } else {
+        res.status(500).send('Internal Server Error');
+      }
+    }
+  } else {
+    res.status(401).send('Unauthorized');
+  }
+};
+
+module.exports.postSpaceRentalVerify = async function postSpaceRentalVerify (req, res, next) {
+  const authToken = req.cookies?.authToken;
+  const rentalToken = req.swagger.params.body.value.rentalToken;
+
+  // RN001
+  if (authToken && rentalToken) {
+    try {
+      jwt.verify(authToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
+      const rentalToBeCreated = jwt.verify(rentalToken, process.env.JWT_SECRET || 'stackingupsecretlocal');
+
+      /* istanbul ignore next */
+      if (!fs.existsSync(path.join(__dirname, '/../storedData/rentalTokens.txt'))) {
+        /* istanbul ignore next */
+        if (!fs.existsSync(path.join(__dirname, '/../storedData'))) {
+          fs.mkdirSync(path.join(__dirname, '/../storedData'), { recursive: true });
+        }
+        /* istanbul ignore next */
+        fs.writeFileSync(path.join(__dirname, '/../storedData/rentalTokens.txt'), '', { flag: 'w' });
+      }
+
+      const rentalTokensTxt = fs.readFileSync(path.join(__dirname, '/../storedData/rentalTokens.txt')).toString();
+      const rentalTokens = rentalTokensTxt.split('\n');
+
+      for (let i = 0; i < rentalTokens.length; i++) {
+        if (rentalTokens[i] === rentalToken) {
+          res.status(400).send('Rental token already used');
+          return;
+        }
+      }
+      fs.writeFileSync(path.join(__dirname, '/../storedData/rentalTokens.txt'), rentalToken.toString() + '\n', { flag: 'a' });
+
       await prisma.rental.create({
         data: {
           initialDate: new Date(rentalToBeCreated.initialDate),
           finalDate: new Date(rentalToBeCreated.finalDate),
-          cost: parseFloat(rentalToBeCreated.cost),
+          cost: rentalToBeCreated.cost,
           type: rentalToBeCreated.type,
           meters: parseFloat(rentalToBeCreated.meters),
           space: {
@@ -473,21 +562,20 @@ module.exports.postSpaceRental = async function postSpaceRental (req, res, next)
             }
           }
         }
-
-      }).then(() => {
-        res.status(201).send('Rental created successfully');
+      }).then((rentalCreated) => {
+        res.status(201).send({ rentalId: rentalCreated.id });
       }).catch((err) => {
         console.error(err);
         res.status(500).send('Internal Server Error');
       });
     } catch (err) {
       if (err instanceof jwt.JsonWebTokenError) {
-        res.status(401).send(`Unauthorized: ${err.message}`);
+        res.status(401).send(`Token error: ${err.message}`);
       } else {
         res.status(500).send('Internal Server Error');
       }
     }
   } else {
-    res.status(401).send('Unauthorized');
+    res.status(401).send('Unauthorized or missing rental token');
   }
 };

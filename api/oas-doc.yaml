@@ -91,6 +91,60 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
+    put:
+      security:
+        - cookieAuth: []
+      tags:
+        - Users
+      x-swagger-router-controller: UserController
+      description: Update user by id
+      operationId: putUser
+      parameters:
+        - name: userId
+          in: path
+          description: User's id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        x-name: body
+        description: User to be updated
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/user'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
   /api/v1/users/{userId}/items:
     get:
       tags:
@@ -177,6 +231,67 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
+  /api/v1/users/{userId}/rate:
+    post:
+      security:
+        - cookieAuth: []
+      tags:
+        - Users
+      x-swagger-router-controller: UserController
+      description: Rate a user
+      operationId: postUserRating
+      parameters:
+        - name: userId
+          in: path
+          description: User's id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        x-name: body
+        description: Rating object
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/userRating'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'  
   /api/v1/users/{userId}/ratings:
     get:
       tags:
@@ -520,6 +635,53 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/errorModel'
+  /api/v1/ratings/{ratingId}:
+    delete:
+      security:
+        - cookieAuth: []
+      tags:
+        - Ratings
+      x-swagger-router-controller: UserController
+      description: Delete rating by id
+      operationId: deleteUserRating
+      parameters:
+        - name: ratingId
+          in: path
+          description: Rating's id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User deleted succesfully
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
   /api/v1/spaces:
     get:
       tags:
@@ -669,7 +831,7 @@ paths:
 
         - name: orderBy
           in: query
-          description: 'Order by price or initial date'
+          description: 'Order by price, initial date or publish date'
           required: false
           schema:
             type: string
@@ -677,6 +839,20 @@ paths:
         - name: search
           in: query
           description: 'Search the given text in title, description and location'
+          required: false
+          schema:
+            type: string
+          
+        - name: orderByRatings
+          in: query
+          description: 'Order by user ratings (asc or desc)'
+          required: false
+          schema:
+            type: string
+
+        - name: orderByLocation
+          in: query
+          description: 'Order spaces closest to the user'
           required: false
           schema:
             type: string
@@ -942,7 +1118,7 @@ paths:
       tags:
         - Spaces
       x-swagger-router-controller: SpaceController
-      description: Checks the validity of a logged-in user's token and publishes the space rental
+      description: Checks the validity of a logged-in user's token and verify the space rental (to publish check /api/v1/spaces/rentals/confirmation)
       operationId: postSpaceRental
       parameters:
         - name: spaceId
@@ -960,12 +1136,71 @@ paths:
             schema:
               $ref: '#/components/schemas/rental'
       responses:
-        '201':
+        '200':
           description: Success
           content:
             application/json:
               schema:
                 type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorModel'
+  '/api/v1/spaces/rentals/confirmation':
+    post:
+      security:
+        - cookieAuth: []
+      tags:
+        - Spaces
+      x-swagger-router-controller: SpaceController
+      description: Validate a rental payment and save into db through the token sent.
+      operationId: postSpaceRentalVerify
+      requestBody:
+        x-name: body
+        description: Rental token containing the rental to be published
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rentalToken
+              properties:
+                rentalToken:
+                  type: string
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - rentalId
+                properties:
+                  rentalId: 
+                    type: integer
+                    format: int32
         '400':
           description: Bad Request
           content:
@@ -1411,13 +1646,9 @@ components:
     user:
       type: object
       required:
-        - id
         - name
         - surname
       properties:
-        id:
-          type: integer
-          format: int32
         name:
           type: string
         surname:
@@ -1431,7 +1662,7 @@ components:
             - MALE
             - FEMALE
             - OTHER
-        idcard:
+        idCard:
           type: string
         phoneNumber:
           type: string
@@ -1445,7 +1676,11 @@ components:
       required:
         - type
         - dimensions
+        - amount
       properties:
+        amount:
+          type: integer
+          format: int32
         type:
           type: string
           enum:
@@ -1483,6 +1718,19 @@ components:
         receiverId:
           type: integer
           format: int32
+    userRating:
+      type: object
+      required:
+        - title
+        - description
+        - rating
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        rating:
+          type: integer
     space:
       type: object
       required:
@@ -1490,6 +1738,9 @@ components:
         - description
         - initialDate
         - location
+        - city
+        - province
+        - country
         - dimensions
         - shared
         - ownerId
@@ -1504,7 +1755,22 @@ components:
         finalDate:
           type: string
           format: date-time
+        publishDate:
+          type: string
+          format: date-time
+        startHour:
+          type: integer
+          format: int64
+        endHour:
+          type: integer
+          format: int64
         location:
+          type: string
+        city:
+          type: string
+        province:
+          type: string
+        country:
           type: string
         dimensions:
           type: string
@@ -1536,7 +1802,6 @@ components:
       required:
         - initialDate
         - finalDate
-        - cost
         - type
         - meters
         - spaceId
@@ -1548,9 +1813,6 @@ components:
         finalDate:
           type: string
           format: date-time
-        cost:
-          type: number
-          format: double
         type:
           type: string
           enum:
@@ -1560,6 +1822,8 @@ components:
         meters:
           type: number
           format: double
+        renterConfirmation:
+          type: boolean
         spaceId:
           type: integer
           format: int32

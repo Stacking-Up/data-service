@@ -66,7 +66,33 @@ module.exports.checkSpaceValidity = (space) => {
 };
 
 function _checkSpaceConstraints (space, errors) {
-  if (!space.name || !space.description || !space.initialDate || !space.location || !space.dimensions || space.shared === undefined) {
+  if (!space.priceHour) {
+    console.warn('Space priceHour not defined, start and end hour will be ignored');
+    space.startHour = null;
+    space.endHour = null;
+  }
+
+  if (space.startHour) {
+    space.startHour = new Date(space.startHour);
+    if (space.startHour.toString() === 'Invalid Date') {
+      errors.push('Start hour must be a valid Time');
+      return errors;
+    } else {
+      space.startHour.setFullYear(1970, 0, 1);
+    }
+  }
+
+  if (space.endHour) {
+    space.endHour = new Date(space.endHour);
+    if (space.endHour.toString() === 'Invalid Date') {
+      errors.push('End hour must be a valid Time');
+      return errors;
+    } else {
+      space.endHour.setFullYear(1970, 0, 1);
+    }
+  }
+
+  if (!space.name || !space.description || !space.initialDate || !space.location || !space.dimensions || !space.city || !space.province || !space.country || space.shared === undefined) {
     errors.push('Missing required attributes');
   } else if (space.name.length < 3 || space.name.length > 50) {
     errors.push('Name must be between 2 and 50 characters');
@@ -106,6 +132,17 @@ function _checkSpaceBusinessLogic (space, errors) {
   if (space.finalDate && new Date(space.finalDate) < new Date(space.initialDate)) {
     errors.push('Final date must be after initial date');
   }
+
+  // RN10
+  if (space.priceHour && (!space.startHour || !space.endHour)) {
+    errors.push('You must defined all the required fields to rent per hour');
+  }
+
+  // RN09
+  if (space.startHour && space.endHour && space.endHour < space.startHour) {
+    errors.push('Space must be available between hours of the same day');
+  }
+
   return errors;
 }
 
@@ -113,14 +150,14 @@ const deg2rad = (deg) => {
   return deg * (Math.PI / 180);
 };
 
-const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+module.exports.getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
   const dLat = deg2rad(lat2 - lat1);
   const dLon = deg2rad(lon2 - lon1);
   const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const d = R * c;
   return d;
@@ -133,7 +170,7 @@ const mapBoxSearch = async (searchPlace, dimensions) => {
     .then(res => {
       const latitudSearch = res.data.features[0].geometry.coordinates[1];
       const longitudSearch = res.data.features[0].geometry.coordinates[0];
-      const euclideanDistance = getDistanceFromLatLonInKm(latitudSearch, longitudSearch, latitudDB, longitudDB);
+      const euclideanDistance = this.getDistanceFromLatLonInKm(latitudSearch, longitudSearch, latitudDB, longitudDB);
       const resMap = euclideanDistance <= 15.0;
       return resMap;
     }).catch(err => {
@@ -148,12 +185,12 @@ const parseField = (field, searchValue) => {
   return res;
 };
 
-module.exports.fieldSearch = async (title, description, location, query) => {
+module.exports.fieldSearch = async (title, description, location, ciudad, provincia, pais, query) => {
   let res = true;
   if (query !== undefined) {
     const values = query.split(/\s+/);
     const mapQuery = await mapBoxSearch(values, location);
-    res = values.some(value => parseField(title, value) || parseField(description, value)) || mapQuery;
+    res = values.some(value => parseField(title, value) || parseField(description, value) || parseField(ciudad, value) || parseField(provincia, value) || parseField(pais, value)) || mapQuery;
   }
 
   return res;
@@ -162,4 +199,7 @@ module.exports.fieldSearch = async (title, description, location, query) => {
 module.exports.spaceFilter = async (arr, predicate) => {
   const results = await Promise.all(arr.map(predicate));
   return arr.filter((_v, index) => results[index]);
+};
+module.exports.mediaRatings = (ratings) => {
+  return ratings.length !== 0 ? ratings.reduce((acc, curr) => acc + curr.rating, 0) / ratings.length : 0;
 };

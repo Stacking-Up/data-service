@@ -23,7 +23,7 @@ model User {
   ratings     Rating[]   @relation("receiver")
   reviews     Rating[]   @relation("reviewer")
   avatar      Image?
-  items       Item[]
+  items       ItemsOnUsers[]
   spaces      Space[]
   rentals     Rental[]
 }
@@ -72,7 +72,7 @@ model Item {
   type        ItemType
   dimensions  Dimensions
 
-  owner       User[]
+  owner       ItemsOnUsers[]
 
   @@unique([type, dimensions])
 }
@@ -84,6 +84,18 @@ enum ItemType {
   FURNITURE
   DIYs
   OTHER
+}
+
+model ItemsOnUsers{
+  amount  Int
+
+  item    Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemId  Int
+
+  owner   User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId Int
+
+  @@id([itemId, ownerId])
 }
 
 enum Dimensions {
@@ -112,7 +124,13 @@ model Space {
   description String
   initialDate DateTime
   finalDate   DateTime?
+  publishDate DateTime
+  startHour   DateTime?  @db.Time(6)
+  endHour     DateTime?  @db.Time(6)
   location    String
+  city        String
+  province    String
+  country     String
   dimensions  String
   priceHour   Float?
   priceDay    Float?
@@ -165,12 +183,13 @@ enum TagEnum {
 
 // Rental model
 model Rental {
-  id          Int @id @default(autoincrement())
-  initialDate DateTime
-  finalDate   DateTime
-  cost        Float
-  type        RentalType
-  meters      Float
+  id                 Int @id @default(autoincrement())
+  initialDate        DateTime
+  finalDate          DateTime
+  cost               Float
+  type               RentalType
+  meters             Float
+  renterConfirmation Boolean @default(false)
 
   renter      User @relation(fields: [renterId], references: [id])
   renterId    Int

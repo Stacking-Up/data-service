@@ -42,22 +42,39 @@ module.exports.postItems = async function postItems (req, res, next) {
         return;
       }
 
+      if (itemsToBePublished.some(item => !item.amount || !item.amount.toString().match(/^\d+$/))) {
+        res.status(400).send('Invalid item amount. It must be a positive integer number greater than 1');
+        return;
+      }
+
+      const duplicatedItems = itemsToBePublished.map(i => [i.type, i.dimensions]).some((entry, _idx, arr) => arr.filter(e => JSON.stringify(entry) === JSON.stringify(e)).length > 1);
+
+      if (duplicatedItems) {
+        res.status(400).send('Duplicate item type and dimensions');
+        return;
+      }
+
       await prisma.user.update({
         where: {
           id: parseInt(decoded.userId)
         },
         data: {
           items: {
-            set: [],
-            connectOrCreate: itemsToBePublished?.map(itemToBePublished => {
+            deleteMany: {},
+            create: itemsToBePublished?.map(itemToBePublished => {
               return {
-                where: {
-                  type_dimensions: {
-                    type: itemToBePublished.type,
-                    dimensions: itemToBePublished.dimensions
+                amount: parseInt(itemToBePublished.amount),
+                item: {
+                  connectOrCreate: {
+                    where: {
+                      type_dimensions: {
+                        type: itemToBePublished.type,
+                        dimensions: itemToBePublished.dimensions
+                      }
+                    },
+                    create: { type: itemToBePublished.type, dimensions: itemToBePublished.dimensions }
                   }
-                },
-                create: { type: itemToBePublished.type, dimensions: itemToBePublished.dimensions }
+                }
               };
             })
           }
