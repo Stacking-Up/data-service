@@ -934,7 +934,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: false } },
@@ -988,7 +988,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: true } },
@@ -1043,7 +1043,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -1098,7 +1098,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -1153,7 +1153,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -1208,7 +1208,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -1263,7 +1263,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -1318,7 +1318,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -1373,7 +1373,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -1428,7 +1428,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -1483,7 +1483,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -1538,7 +1538,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -1593,7 +1593,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -1648,7 +1648,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -1699,7 +1699,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -1754,7 +1754,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -1814,7 +1814,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -1874,7 +1874,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -1929,7 +1929,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -1984,7 +1984,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -2039,7 +2039,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -2094,7 +2094,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -2149,7 +2149,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -2191,7 +2191,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -2246,7 +2246,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -2312,7 +2312,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -2378,7 +2378,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -2444,7 +2444,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -2510,7 +2510,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -2576,7 +2576,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -2641,7 +2641,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -2697,7 +2697,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -2752,7 +2752,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -2807,7 +2807,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -2862,7 +2862,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -2917,7 +2917,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -2974,7 +2974,7 @@ module.exports = (prisma, jwt) => {
       let sandbox = sinon.createSandbox();
       sandbox.stub(axios, 'get').resolves({ data: { features: [{ geometry: { coordinates: [-5.32362, 36.8551] } }] } });
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -3020,7 +3020,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -3088,7 +3088,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -3154,7 +3154,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -3220,7 +3220,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -3286,7 +3286,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -3352,7 +3352,7 @@ module.exports = (prisma, jwt) => {
 
       // Mock DB Query
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -3397,7 +3397,7 @@ module.exports = (prisma, jwt) => {
       // Mock DB Query
       console.error = sinon.stub(); // Avoid logging intentionally provoked error
       findMany.withArgs({
-        take: undefined, skip: undefined,
+        
         where: {
           AND: [
             { shared: { equals: undefined } },
@@ -5214,6 +5214,36 @@ module.exports = (prisma, jwt) => {
         finalDate: "2999-01-01T00:00:00.000Z",
         cost: 456,
         type: "TEST",
+        meters: 5,
+        spaceId: 1,
+        renterId: 1
+      };
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,
+        {
+          withCredentials: true,
+          headers: { Cookie: 'authToken=testToken;' }
+        })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
+    it('Should return 400 when trying to rent a space for 0 months', async () => {
+      // Fixture
+      const expected = 'Bad Request: Cannot rent a space for 0 months';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToPublish = {
+        initialDate: "2900-01-01T00:00:00.000Z",
+        finalDate: "2900-01-26T23:59:00.000Z",
+        cost: 456,
+        type: "MONTH",
         meters: 5,
         spaceId: 1,
         renterId: 1

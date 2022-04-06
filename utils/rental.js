@@ -29,6 +29,8 @@ function _checkRentalConstraints (rental, errors) {
     errors.push('Meters must be a number');
   } else if (!Object.values(RentalType).includes(rental.type)) {
     errors.push('Type must be one of the following: ' + Object.values(RentalType).join(', '));
+  } else if (rental.type === 'MONTH' && (((new Date(rental.finalDate).getTime() - new Date(rental.initialDate).getTime()) / (1000 * 60 * 60 * 24)).toPrecision(2)) < 30) {
+    errors.push('Cannot rent a space for 0 months');
   }
   return errors;
 }

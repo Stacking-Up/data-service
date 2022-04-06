@@ -36,8 +36,6 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
   const actualDate = new Date();
   actualDate.setMilliseconds(0);
   await prisma.space.findMany({
-    take: req.limit.value,
-    skip: req.offset.value,
     where: {
       AND: [
         { shared: { equals: req.shared.value } },
@@ -75,7 +73,7 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
 
         return inRangeDimension && fieldSearch && includeTags && inRangePriceHour && inRangePriceDay && inRangePriceMonth && isRentPerHour && isRentedPerDay && isRentedPerMonth;
       }).then(spacesFiltered => {
-        const spacesNotSorted = spacesFiltered.map(space => utils.commons.notNulls(space));
+        let spacesNotSorted = spacesFiltered.map(space => utils.commons.notNulls(space));
         if (req.orderByRatings.value) {
           const sortingPerRatings = req.orderByRatings.value.toLowerCase() === 'asc'
             ? (a, b) => utils.space.mediaRatings(a.owner.ratings) - utils.space.mediaRatings(b.owner.ratings)
@@ -88,13 +86,15 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
             utils.space.getDistanceFromLatLonInKm(parseFloat(userLatitude), parseFloat(userLongitude), parseFloat(b.location.split(',')[0]), parseFloat(b.location.split(',')[1]));
           spacesNotSorted.sort(sortingPerLocations);
         }
-        res.send(spacesNotSorted.reduce((acc, space) => {
+        spacesNotSorted = spacesNotSorted.reduce((acc, space) => {
           if (space.startHour) space.startHour = space.startHour.getTime();
           if (space.endHour) space.endHour = space.endHour.getTime();
           space.tags = space.tags?.map(tag => tag.tag);
           space.images = (space.images && space.images.length !== 0) ? [{ image: space.images[0].image.toString('base64'), mimetype: space.images[0].mimetype }] : [];
           return [...acc, space];
-        }, []));
+        }, []);
+        /* istanbul ignore next */
+        res.send(spacesNotSorted.slice(req.offset?.value, req.offset?.value + req.limit?.value ? req.limit?.value : spacesNotSorted.length));
       });
     })
     .catch(err => {
