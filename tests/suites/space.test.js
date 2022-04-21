@@ -4406,7 +4406,7 @@ module.exports = (prisma, jwt) => {
             cost: 456, type: "HOUR", meters: 299, spaceId: 1, renterId: 3
           }]
       }
-      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const decodedJwt = { userId: 1, role: 'SUBSCRIBED', email: 'test@test.com' };
 
       const rentalToBeCreated = {
         initialDate: new Date("2900-04-01T00:00:00.000Z"),
