@@ -1,4 +1,40 @@
-# 0.1.0 (2022-03-23)
+# [0.2.0](https://github.com/Stacking-Up/data-service/compare/v0.1.0...v0.2.0) (2022-04-06)
+
+
+### Bug Fixes
+
+* Changed logic according to PR review ([7399572](https://github.com/Stacking-Up/data-service/commit/739957247405e804a0f1b2095c338f1cf11bafdf))
+* Changes requested from pull request ([ca448d6](https://github.com/Stacking-Up/data-service/commit/ca448d66432041f22e2b73140411c33941bb1072))
+* Fixed hours comparison ([d2382d6](https://github.com/Stacking-Up/data-service/commit/d2382d601561c91868db348ee0b339df039e6ba7))
+* fixed oas-doc.yaml ([c018b8a](https://github.com/Stacking-Up/data-service/commit/c018b8a8137a0eb9970c424f6a53ad1f863ac2b0))
+* Fixed warning on GET with startHour & endHour ([a52a120](https://github.com/Stacking-Up/data-service/commit/a52a12046de35c6bce6df1660b440cd0304f35f1))
+* Improved logic on rental verification ([934821e](https://github.com/Stacking-Up/data-service/commit/934821eaf6a4f3cf96737f45a6abbdc63bc994db))
+* Minor bug solved ([3b9d782](https://github.com/Stacking-Up/data-service/commit/3b9d7829a30963be1f4afa054283bf43967c492b))
+* Minor bug solved ([ad70728](https://github.com/Stacking-Up/data-service/commit/ad707286dc849ffb1c7f30f013d36fd00f299229))
+* One use token and solved bug in costs ([8c53d9b](https://github.com/Stacking-Up/data-service/commit/8c53d9b3ecbe83be377eca0db78ac96b172e1dd3))
+* Removed cost validation due to refactor ([3c83892](https://github.com/Stacking-Up/data-service/commit/3c838926e53a3c2361b59b45cabc6693b1e52b4f))
+* Resolved some minor errors on payment ([201c7f3](https://github.com/Stacking-Up/data-service/commit/201c7f330f29a1a8a7d71586a855bab78019e207))
+* Solved bug for shared rentals ([6f8ee7e](https://github.com/Stacking-Up/data-service/commit/6f8ee7e0511e2a38e5ca94ed3f84969baf48dcde))
+* Solved bugs and updates for admin panel ([97fc913](https://github.com/Stacking-Up/data-service/commit/97fc913004fff830abedd561fa4cd6c6b260e5da))
+* Solved error in cost test ([c457f0a](https://github.com/Stacking-Up/data-service/commit/c457f0ade9197855c6ed0ca267e2864d0d79df69))
+* Solved lint error ([3e552ed](https://github.com/Stacking-Up/data-service/commit/3e552ed2bc8db54c5bb5e6dd04b25da9f61ebf6a))
+* Solved minor bugs for sprint 2 ([c7c5b28](https://github.com/Stacking-Up/data-service/commit/c7c5b28b2eaf08fff5f9b0bb445477a08aa286f6))
+* Solved missing error description in a rating POST test ([1498ae4](https://github.com/Stacking-Up/data-service/commit/1498ae4119054d8edcf9a393a0e1e5969e079a41))
+* Solved PR rental logic issues ([887ba37](https://github.com/Stacking-Up/data-service/commit/887ba37c51598156312358c3cb053255faf217cb))
+* Solved userId in path can not be undefined ([9bc93db](https://github.com/Stacking-Up/data-service/commit/9bc93dbe633724f4efb926163c1b3c8e059062c8))
+
+
+### Features
+
+* Backend refactor and improves ([0655d05](https://github.com/Stacking-Up/data-service/commit/0655d05b2b81c313450bf87d013ba614fb688bc4))
+* Implemented and tested POST and DELETE ratings ([cbd76ba](https://github.com/Stacking-Up/data-service/commit/cbd76bab2d1d2c99de3bc45e338ca2405ea5bc8d))
+* Implemented PUT /api/v1/users/{userId} ([38d7557](https://github.com/Stacking-Up/data-service/commit/38d7557406c1959efe69a2db380e10893655346b))
+* Implemented sorted param GET spaces ([bdb9407](https://github.com/Stacking-Up/data-service/commit/bdb9407822cca53eb736e25b8c3faafa894c9904))
+* Space rental logic for payment ([21f6d5a](https://github.com/Stacking-Up/data-service/commit/21f6d5a248bd0dfde10dbfbe4a32ddc38d896baf))
+
+
+
+# [0.1.0](https://github.com/Stacking-Up/data-service/compare/ab64f785d8084d0d87a055e3552dc882bd0763b3...v0.1.0) (2022-03-23)
 
 
 ### Bug Fixes
