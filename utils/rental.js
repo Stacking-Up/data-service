@@ -14,8 +14,8 @@ module.exports.checkRentalValidity = (rental, space) => {
   return errors;
 };
 
-module.exports.calculateCost = (rental, space) => {
-  return _calculateCost(rental, space);
+module.exports.calculateCost = (rental, space, rol) => {
+  return _calculateCost(rental, space, rol);
 };
 
 function _checkRentalConstraints (rental, errors) {
@@ -124,9 +124,10 @@ function _compareHours (date1, date2) {
   }
 }
 
-function _calculateCost (rentalToBeCreated, space) {
+function _calculateCost (rentalToBeCreated, space, rol) {
   const rentalInitialDateToBeCreated = new Date(rentalToBeCreated.initialDate);
   const rentalFinalDateToBeCreated = new Date(rentalToBeCreated.finalDate);
+  let commission = 1.06;
 
   let costs = 0;
   switch (rentalToBeCreated.type) {
@@ -145,7 +146,11 @@ function _calculateCost (rentalToBeCreated, space) {
     costs = costs * (rentalToBeCreated.meters / getMeters(space.dimensions));
   }
 
-  costs = (1.06 * costs) * 1.21; // comisiones e iva aplicados
+  if (rol === 'SUBSCRIBED') {
+    commission = 1.00;
+  }
+
+  costs = (commission * costs) * 1.21; // comisiones e iva aplicados
 
   return costs;
 }

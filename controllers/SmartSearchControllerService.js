@@ -18,8 +18,8 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
   }
 
   if (!items.every(item => item instanceof Object &&
-      Object.prototype.hasOwnProperty.call(item, 'type') &&
-      Object.prototype.hasOwnProperty.call(item, 'dimensions'))) {
+    Object.prototype.hasOwnProperty.call(item, 'type') &&
+    Object.prototype.hasOwnProperty.call(item, 'dimensions'))) {
     res.status(400).send('Invalid item format');
     return;
   }
@@ -92,7 +92,8 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
     await prisma.space.findMany({
       where: where,
       include: {
-        tags: true
+        tags: true,
+        owner: { select: { auth: { select: { role: true } } } }
       }
     }).then(allSpaces => {
       let scoredSpaces = [];
@@ -102,7 +103,11 @@ module.exports.getSpaces = async function getSpaces (req, res, next) {
           const [latitudDB, longitudDB] = space.location.split(',');
           const tagScore = smartSearch.scoreTags(itemTags, space.tags.map(tag => tag.tag));
           const locationScore = 1 - smartSearch.calculaDistanceBtw2Points(latitudDB, longitudDB, latitude, longitude) / 15;
-          const score = recommendedSpaces.length === 0 ? 0.6 * tagScore + 0.4 * locationScore : recommendedSpaces.find(s => s.id === space.id).score * 0.3 + tagScore * 0.4 + locationScore * 0.3;
+          let score = recommendedSpaces.length === 0 ? 0.6 * tagScore + 0.4 * locationScore : recommendedSpaces.find(s => s.id === space.id).score * 0.3 + tagScore * 0.4 + locationScore * 0.3;
+          // SCORE SUBS
+          if (space.owner.auth.role === 'SUBSCRIBED') {
+            score = score + 0.15;
+          }
           scoredSpaces.push({ id: space.id, score: score });
           scoredSpaces = scoredSpaces.sort((a, b) => b.score - a.score).slice(0, 15);
         });
@@ -233,6 +238,13 @@ module.exports.getRenters = async function getRenters (req, res, next) {
         recs.push({ id: parseInt(userId), score: score });
         return recs;
       }, []).sort((a, b) => b.score - a.score).slice(0, 15);
+      // SCORE SUBS
+      const subUsers = await prisma.user.findMany({ include: { auth: { select: { role: true } } } });
+      recommendations.forEach(rec => {
+        if (subUsers.find(s => s.id === rec.id && s.auth.role === 'SUBSCRIBED')) {
+          rec.score = rec.score + 0.15;
+        }
+      });
       res.status(200).send(recommendations);
     }
   } catch (err) {
