@@ -27,6 +27,13 @@ module.exports.getUser = function getUser (req, res, next) {
   prisma.user.findUnique({
     where: {
       id: parseInt(req.userId.value)
+    },
+    include: {
+      auth: {
+        select: {
+          role: true
+        }
+      }
     }
   })
     .then(user => {

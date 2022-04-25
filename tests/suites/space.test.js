@@ -49,7 +49,13 @@ module.exports = (prisma, jwt) => {
       findUniqueUser.withArgs({
         where: {
           id: 1
-        }
+        }, include: {
+            auth: {
+              select: {
+                role: true
+              }
+            }
+          }
       }).resolves(undefined);
 
       // API Call
@@ -84,7 +90,13 @@ module.exports = (prisma, jwt) => {
       findUniqueUser.withArgs({
         where: {
           id: 1
-        }
+        }, include: {
+              auth: {
+                select: {
+                  role: true
+                }
+              }
+            }
       }).resolves(dbOutput)
 
       // API Call
@@ -100,7 +112,13 @@ module.exports = (prisma, jwt) => {
       findUniqueUser.withArgs({
         where: {
           id: 1
-        }
+        }, include: {
+              auth: {
+                select: {
+                  role: true
+                }
+              }
+            }
       }).rejects();
 
       // API Call
