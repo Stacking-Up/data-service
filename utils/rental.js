@@ -146,6 +146,10 @@ function _calculateCost (rentalToBeCreated, space, rol) {
     costs = costs * (rentalToBeCreated.meters / getMeters(space.dimensions));
   }
 
+  if (costs <= 1) {
+    costs = 1;
+  }
+
   if (rol === 'SUBSCRIBED' || rol === 'ADMIN') {
     commission = 1.00;
   }

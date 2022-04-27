@@ -4431,7 +4431,7 @@ module.exports = (prisma, jwt) => {
         finalDate: new Date("2900-05-01T23:59:59.000Z"),
         cost: 456,
         type: 'MONTH',
-        meters: 5,
+        meters: 0.00000000000000000001,
         spaceId: 1,
         renterId: 1
       };
