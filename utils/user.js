@@ -23,9 +23,9 @@ module.exports.checkRatingValidity = (rating) => {
     errors.push('Rating must be between 1 and 5 or must be a integer number');
   } else if (!rating.title || !rating.description) {
     errors.push('Missing required attributes');
-  } else if (rating.title.length < 3 || rating.title.length > 50) {
+  } else if (rating.title.trim().length < 3 || rating.title.trim().length > 50) {
     errors.push('Title must be between 2 and 50 characters');
-  } else if (rating.description.length < 3 || rating.description.length > 100) {
+  } else if (rating.description.trim().length < 3 || rating.description.trim().length > 100) {
     errors.push('Description must be between 2 and 100 characters');
   }
   return errors;

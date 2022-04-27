@@ -493,7 +493,7 @@ module.exports.postSpaceRental = async function postSpaceRental (req, res, next)
         return;
       }
 
-      const costes = utils.rental.calculateCost(rentalToBeCreated, spaceToAddRental);
+      const costes = utils.rental.calculateCost(rentalToBeCreated, spaceToAddRental, decoded.role);
       rentalToBeCreated.cost = costes;
 
       const rentalToken = jwt.sign(rentalToBeCreated, process.env.JWT_SECRET || 'stackingupsecretlocal', {

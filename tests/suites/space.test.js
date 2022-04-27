@@ -49,7 +49,13 @@ module.exports = (prisma, jwt) => {
       findUniqueUser.withArgs({
         where: {
           id: 1
-        }
+        }, include: {
+            auth: {
+              select: {
+                role: true
+              }
+            }
+          }
       }).resolves(undefined);
 
       // API Call
@@ -84,7 +90,13 @@ module.exports = (prisma, jwt) => {
       findUniqueUser.withArgs({
         where: {
           id: 1
-        }
+        }, include: {
+              auth: {
+                select: {
+                  role: true
+                }
+              }
+            }
       }).resolves(dbOutput)
 
       // API Call
@@ -100,7 +112,13 @@ module.exports = (prisma, jwt) => {
       findUniqueUser.withArgs({
         where: {
           id: 1
-        }
+        }, include: {
+              auth: {
+                select: {
+                  role: true
+                }
+              }
+            }
       }).rejects();
 
       // API Call
@@ -4096,7 +4114,7 @@ module.exports = (prisma, jwt) => {
 
     it('RN09: Should return 400 when space is not available between hours of the same day', async () => {
       // Fixture
-      const expected = 'Bad Request: Space must be available between hours of the same day';
+      const expected = 'Bad Request: Space must be available between hours of the same day or at least with a difference of one hour';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
       const spaceToPublish = { ownerId: 1, name: 'test', description: 'test', priceHour: 1, initialDate: "3923-03-10T18:18:14.049Z", finalDate: "3925-03-10T18:18:14.049Z", startHour: 11111, endHour: 1111, location: '1,1', country: "test", province: "test", city: "test", dimensions: '1x1', shared: true };
 
@@ -4406,14 +4424,14 @@ module.exports = (prisma, jwt) => {
             cost: 456, type: "HOUR", meters: 299, spaceId: 1, renterId: 3
           }]
       }
-      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const decodedJwt = { userId: 1, role: 'SUBSCRIBED', email: 'test@test.com' };
 
       const rentalToBeCreated = {
         initialDate: new Date("2900-04-01T00:00:00.000Z"),
         finalDate: new Date("2900-05-01T23:59:59.000Z"),
         cost: 456,
         type: 'MONTH',
-        meters: 5,
+        meters: 0.00000000000000000001,
         spaceId: 1,
         renterId: 1
       };
@@ -6718,8 +6736,8 @@ module.exports = (prisma, jwt) => {
         shared: true,
         ownerId: 1,
         priceHour: 33.2,
-        startHour: 111111,
-        endHour: 222222,
+        startHour: 60*60*1000,
+        endHour: 60*60*1000*3,
         city: "test",
         province: "test",
         country: "test",

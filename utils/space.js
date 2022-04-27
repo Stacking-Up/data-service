@@ -139,8 +139,8 @@ function _checkSpaceBusinessLogic (space, errors) {
   }
 
   // RN09
-  if (space.startHour && space.endHour && space.endHour < space.startHour) {
-    errors.push('Space must be available between hours of the same day');
+  if (space.startHour && space.endHour && (space.endHour.getTime() - space.startHour.getTime()) < 60 * 60 * 1000) {
+    errors.push('Space must be available between hours of the same day or at least with a difference of one hour');
   }
 
   return errors;
