@@ -1,3 +1,20 @@
+# [0.3.0](https://github.com/Stacking-Up/data-service/compare/v0.2.0...v0.3.0) (2022-04-27)
+
+
+### Bug Fixes
+
+* Added role in getUser endpoint ([0e37e5a](https://github.com/Stacking-Up/data-service/commit/0e37e5a3b97726371b3c4e5225e7fe63f12db3b4))
+* Costs for low prices ([e5e9849](https://github.com/Stacking-Up/data-service/commit/e5e9849c2433c0b035e38cad56455744e7e832ed))
+* Rating spaces and Admin commissions ([c41adbe](https://github.com/Stacking-Up/data-service/commit/c41adbe229fdb7be30b061dd9995c5eaf749bc79))
+* Rental costs and Space hours ([64c848c](https://github.com/Stacking-Up/data-service/commit/64c848cda9b4999db0488ae47aa57d5959bd3343))
+
+
+### Features
+
+* Implementd subs modification in cost and SS function ([f521af7](https://github.com/Stacking-Up/data-service/commit/f521af7c653b2236df7d943277c43fc75e9c1abb))
+
+
+
 # [0.2.0](https://github.com/Stacking-Up/data-service/compare/v0.1.0...v0.2.0) (2022-04-06)
 
 
