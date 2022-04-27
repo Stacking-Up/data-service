@@ -139,7 +139,7 @@ function _calculateCost (rentalToBeCreated, space, rol) {
       costs = (((rentalFinalDateToBeCreated.getTime() - rentalInitialDateToBeCreated.getTime()) / (1000 * 60 * 60 * 24)).toPrecision(2) || 1) * space.priceDay; break;
     case 'MONTH':
       /* istanbul ignore next */
-      costs = ((((rentalFinalDateToBeCreated.getTime() - rentalInitialDateToBeCreated.getTime()) / (1000 * 60 * 60 * 24)).toPrecision(2) - 1) % 30 || 1) * space.priceMonth; break;
+      costs = ((((rentalFinalDateToBeCreated.getTime() - rentalInitialDateToBeCreated.getTime()) / (1000 * 60 * 60 * 24)).toPrecision(2) - 1) / 30 || 1) * space.priceMonth; break;
   }
 
   if (space.shared) {

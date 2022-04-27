@@ -4114,7 +4114,7 @@ module.exports = (prisma, jwt) => {
 
     it('RN09: Should return 400 when space is not available between hours of the same day', async () => {
       // Fixture
-      const expected = 'Bad Request: Space must be available between hours of the same day';
+      const expected = 'Bad Request: Space must be available between hours of the same day or at least with a difference of one hour';
       const decodedJwt = { userId: 1, role: 'VERIFIED', email: 'test@test.com' };
       const spaceToPublish = { ownerId: 1, name: 'test', description: 'test', priceHour: 1, initialDate: "3923-03-10T18:18:14.049Z", finalDate: "3925-03-10T18:18:14.049Z", startHour: 11111, endHour: 1111, location: '1,1', country: "test", province: "test", city: "test", dimensions: '1x1', shared: true };
 
@@ -6736,8 +6736,8 @@ module.exports = (prisma, jwt) => {
         shared: true,
         ownerId: 1,
         priceHour: 33.2,
-        startHour: 111111,
-        endHour: 222222,
+        startHour: 60*60*1000,
+        endHour: 60*60*1000*3,
         city: "test",
         province: "test",
         country: "test",
