@@ -483,7 +483,7 @@ module.exports.postSpaceRental = async function postSpaceRental (req, res, next)
         return;
       }
 
-      if (spaceToAddRental.rentals && spaceToAddRental.rentals.length > 0 && spaceToAddRental.rentals.some(rental => parseInt(rental.renterId) === parseInt(decoded.userId))) {
+      if (spaceToAddRental.rentals && spaceToAddRental.rentals.length > 0 && spaceToAddRental.rentals.some(rental => ((parseInt(rental.renterId) === parseInt(decoded.userId)) && new Date(rental.finalDate) > new Date()))) {
         res.status(400).send('Cannot rent space twice. Please update or delete your previous rental of this space');
         return;
       }

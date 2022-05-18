@@ -8,7 +8,15 @@ const { Prisma } = require('@prisma/client');
 module.exports.getUsers = function getUsers (req, res, next) {
   prisma.user.findMany({
     skip: req.offset.value,
-    take: req.limit.value
+    take: req.limit.value,
+    include: {
+      auth: {
+        select: {
+          email: true,
+          role: true
+        }
+      }
+    }
   })
     .then(users => {
       res.send(users.map(user => utils.commons.excludeNulls(user)));

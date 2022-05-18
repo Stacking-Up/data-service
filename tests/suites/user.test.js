@@ -19,7 +19,7 @@ module.exports = (prisma) => {
   describe('GET Endpoint tests:', () => {
     it('should return empty list when no users are found in DB', async () => {
         // Mock DB Query
-        findMany.withArgs({ skip: undefined, take: undefined }).resolves([]);
+        findMany.withArgs({ skip: undefined, take: undefined, include: {auth: {select: {email: true, role: true}}} }).resolves([]);
 
         // API Call
         await axios.get(`${host}/api/v1/users`).then(res => {
@@ -34,7 +34,7 @@ module.exports = (prisma) => {
       const expected = [{id:1, name: 'John', surname: 'Doe'}, {id:2, name: 'Jane', surname: 'Doe'}];
       
       // Mock DB Query
-      findMany.withArgs({ skip: undefined, take: undefined }).resolves(dbOutput);
+      findMany.withArgs({ skip: undefined, take: undefined, include: {auth: {select: {email: true, role: true}}} }).resolves(dbOutput);
 
       // API Call
       await axios.get(`${host}/api/v1/users`).then(res => {
@@ -46,7 +46,7 @@ module.exports = (prisma) => {
 
     it('should return 400 when invalid query parameters provided', async () => {
       // Mock DB Query
-      findMany.withArgs({ skip: "invalid", take: "invalid" }).rejects();
+      findMany.withArgs({ skip: "invalid", take: "invalid", include: {auth: {select: {email: true, role: true}}} }).rejects();
 
       // API Call
       await axios.get(`${host}/api/v1/users?offset=invalid&limit=invalid`).then(res => {
@@ -61,7 +61,7 @@ module.exports = (prisma) => {
     it('should return 500 when unexpected error throws getting the users', async () => {
       // Mock DB Query
       console.error = sinon.stub(); //avoid printing error to console
-      findMany.withArgs({ skip: undefined, take: undefined }).rejects();
+      findMany.withArgs({ skip: undefined, take: undefined, include: {auth: {select: {email: true, role: true}}} }).rejects();
 
       // API Call
       await axios.get(`${host}/api/v1/users`).then(res => {
