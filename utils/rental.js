@@ -103,6 +103,8 @@ function _checkRentalBusinessLogic (rentalToBeCreated, space, errors) {
     errors.push('Final hour must be between space hours');
   } else if (rentalToBeCreated.type === 'MONTH' && (((rentalFinalDateToBeCreated.getTime() - rentalInitialDateToBeCreated.getTime()) / (1000 * 60 * 60 * 24)).toPrecision(2) - 1) % 30 !== 0) {
     errors.push('Monthly rentals must have a difference of 30 days between initial and final date');
+  } else if (rentalToBeCreated.type === 'HOUR' && rentalInitialDateToBeCreated.toISOString().split('T')[0] === rentalFinalDateToBeCreated.toISOString().split('T')[0] && rentalInitialDateToBeCreated.getHours() === rentalFinalDateToBeCreated.getHours()) {
+    errors.push('Cannot rent a space for 0 hours at the same day');
   }
   return errors;
 }

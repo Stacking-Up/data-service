@@ -5193,6 +5193,49 @@ module.exports = (prisma, jwt) => {
         });
     });
 
+    it('Should return 400 when trying to rent a space for 0 hours at the same day', async () => {
+      // Fixture
+
+      const spaceToAddRental = {
+        id: 1, name: "sotano", description: "Esto es un sotano", initialDate: "1970-01-01T00:00:00.000Z", finalDate: "3000-01-01T00:00:00.000Z", location: "41.2,45.3",
+        dimensions: "100x3", priceHour: 56, startHour: new Date("1970-01-01T17:00:00.000Z"), endHour: new Date("1970-01-01T20:00:00.000Z"), shared: true, ownerId: 2
+      }
+
+      const expected = 'Bad Request: Cannot rent a space for 0 hours at the same day';
+      const decodedJwt = { userId: 1, role: 'USER', email: 'test@test.com' };
+      const rentalToPublish = {
+        initialDate: "2900-01-01T18:00:00.000Z",
+        finalDate: "2900-01-01T18:00:00.000Z",
+        cost: 44.2,
+        type: 'HOUR',
+        meters: 5,
+        spaceId: 1,
+        renterId: 1
+      };
+      // Mock Auth and DB Query
+      verify.withArgs('testToken', 'stackingupsecretlocal').returns(decodedJwt);
+      findUnique.withArgs({
+        where: {
+          id: 1
+        }, include: {
+          rentals: true
+        }
+      }).resolves(spaceToAddRental)
+
+      // API Call
+      await axios.post(`${host}/api/v1/spaces/1/rentals`, rentalToPublish,
+        {
+          withCredentials: true,
+          headers: { Cookie: 'authToken=testToken;' }
+        })
+        .then(() => {
+          assert.fail();
+        }).catch(err => {
+          assert.equal(err.response.status, 400);
+          assert.equal(err.response.data, expected);
+        });
+    });
+
     it('Should return 400 when meters are not a number', async () => {
       // Fixture
       const expected = 'Bad Request: Meters must be a number';
