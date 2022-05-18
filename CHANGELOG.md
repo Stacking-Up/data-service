@@ -1,3 +1,12 @@
+## [0.3.1](https://github.com/Stacking-Up/data-service/compare/v0.3.0...v0.3.1) (2022-05-18)
+
+
+### Bug Fixes
+
+* Solved some bugs and minor fixes ([fa8b697](https://github.com/Stacking-Up/data-service/commit/fa8b697712934e03c27bd2ce5ec4a3381b4ab2f3))
+
+
+
 # [0.3.0](https://github.com/Stacking-Up/data-service/compare/v0.2.0...v0.3.0) (2022-04-27)
 
 
