@@ -124,8 +124,8 @@ function _checkSpaceConstraints (space, errors) {
 
 function _checkSpaceBusinessLogic (space, errors) {
   // RN03
-  if ([space.priceHour, space.priceDay, space.priceMonth].every(price => !price)) {
-    errors.push('You must defined at least one valid price greater than 0');
+  if ([space.priceHour, space.priceDay, space.priceMonth].every(price => !price || price < 1)) {
+    errors.push('You must defined at least one valid price greater than 1');
   }
 
   // RN04
